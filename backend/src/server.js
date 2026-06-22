@@ -9,7 +9,14 @@ const connectDB = require('./utils/db');
 const app  = express();
 const PORT = process.env.PORT || 5900;
 
-app.use(cors({origin:["https://attendancehub-saas.vercel.app", ]}));
+const corsOptions = {
+  origin: ["https://attendancehub-saas.vercel.app"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Ensure POST is here
+  allowedHeaders: ["Content-Type", "Authorization"],   // Ensure these are included
+  credentials: true                                    // Needed if you use cookies/sessions
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use('/api/company',      require('./routes/company'));
