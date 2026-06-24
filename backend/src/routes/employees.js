@@ -5,27 +5,40 @@ const Employee = require('../models/Employee');
 const { verifyAdmin, verifyEmployee } = require('../middleware/auth');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-key-2024';
+const ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+// length 4 random chunk of uppercase letters and numbers (excluding ambiguous ones)
+function randomChunk(length) {
+  let out = '';
+  for (let i = 0; i < length; i++) {
+    out += ID_ALPHABET[Math.floor(Math.random() * ID_ALPHABET.length)];
+  }
+  return out;
+}
+
+function employeePrefix(companyName) {
+  const words = companyName.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 1) {
+    return words[0].replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase().padEnd(3, 'X');
+  }
+  return words.slice(0, 3)
+    .map(w => (w.replace(/[^a-zA-Z]/g, '')[0] || 'X').toUpperCase())
+    .join('')
+    .padEnd(3, 'X');
+}
 
 // Generate employee ID from company name + sequential number
 // e.g. "Acme Pvt Ltd" → "APL" + zero-padded count → "APL001"
 async function generateEmployeeId(companyId, companyName) {
-  const words = companyName.trim().split(/\s+/).filter(Boolean);
-  let prefix;
-  if (words.length === 1) {
-    prefix = words[0].slice(0, 3).toUpperCase();
-  } else {
-    prefix = words.slice(0, 3).map(w => w[0].toUpperCase()).join('');
-  }
-  const count = await Employee.countDocuments({ companyId });
-  const num   = String(count + 1).padStart(3, '0');
-  let id = `${prefix}${num}`;
-  // Ensure uniqueness
-  let exists = await Employee.findOne({ companyId, employeeId: id });
-  let attempt = count + 1;
+  const prefix = employeePrefix(companyName);
+  let id = `${prefix}${randomChunk(4)}`;
+  let exists = await Employee.findOne({ employeeId: id });
   while (exists) {
-    attempt++;
-    id = `${prefix}${String(attempt).padStart(3,'0')}`;
-    exists = await Employee.findOne({ companyId, employeeId: id });
+    id = `${prefix}${randomChunk(4)}`;
+    exists = await Employee.findOne({ employeeId: id });
   }
   return id;
 }
@@ -39,7 +52,7 @@ router.post('/login', async (req, res) => {
 
     // employeeId is globally unique prefix+number, find directly
     const emp = await Employee.findOne({
-      employeeId: { $regex: new RegExp(`^${employeeId.trim()}$`, 'i') }
+      employeeId: { $regex: new RegExp(`^${escapeRegex(employeeId.trim())}$`, 'i') }
     });
 
     if (!emp || !await bcrypt.compare(password, emp.password))
@@ -101,7 +114,8 @@ router.post('/', verifyAdmin, async (req, res) => {
       const company = await Company.findById(companyId);
       finalId = await generateEmployeeId(companyId, company.name);
     } else {
-      if (await Employee.findOne({ companyId, employeeId: { $regex: new RegExp(`^${finalId}$`, 'i') } }))
+      finalId = finalId.toUpperCase();
+      if (await Employee.findOne({ employeeId: { $regex: new RegExp(`^${escapeRegex(finalId)}$`, 'i') } }))
         return res.status(409).json({ error: 'Employee ID already exists' });
     }
 

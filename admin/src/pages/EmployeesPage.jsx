@@ -162,7 +162,7 @@ function AddModal({ designations, onClose, onDone }) {
               {suggestedId}
             </div>
           )}
-          <div className="text-xs text-2 mt-1">Employee uses this ID to log in — no company code needed</div>
+          <div className="text-xs text-2 mt-1">Employee uses this mixed ID to log in - no company code needed</div>
         </div>
 
         <form onSubmit={submit}>
@@ -318,7 +318,7 @@ function BulkModal({ designations, onClose, onDone }) {
     <div className="overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 720 }} onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Bulk Add Employees</h2>
-        <div className="text-xs text-2 mb-2">Employee IDs are auto-generated from your company name</div>
+        <div className="text-xs text-2 mb-2">Employee IDs are auto-generated as mixed letter-number codes.</div>
         <div style={{ overflowX: 'auto' }}>
           <table className="tbl" style={{ minWidth: 600 }}>
             <thead>

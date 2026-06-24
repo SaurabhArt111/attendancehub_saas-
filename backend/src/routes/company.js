@@ -6,12 +6,20 @@ const Admin   = require('../models/Admin');
 const { verifyAdmin } = require('../middleware/auth');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-key-2024';
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function randomChunk(length) {
+  let out = '';
+  for (let i = 0; i < length; i++) {
+    out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return out;
+}
 
 // Generate unique company code
 function genCode(name) {
-  const prefix = name.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4).padEnd(4, 'X');
-  const suffix = Math.floor(1000 + Math.random() * 9000);
-  return `${prefix}${suffix}`;
+  const prefix = name.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 3).padEnd(3, 'X');
+  return `${prefix}${randomChunk(5)}`;
 }
 
 // POST /api/company/register — register new company

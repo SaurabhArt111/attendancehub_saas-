@@ -12,6 +12,7 @@ export default function AttendancePage() {
   const [att,   setAtt]   = useState({})
   const [hols,  setHols]  = useState([])
   const [loading, setLoading] = useState(true)
+  const [remarkModal, setRemarkModal] = useState(null)
 
   const monthStr = `${year}-${String(month+1).padStart(2,'0')}`
 
@@ -86,10 +87,16 @@ export default function AttendancePage() {
               const ds  = String(d).padStart(2,'0')
               const rem = att[ds]?.remark
               return (
-                <div key={d} className={`cal-day ${cls}`} title={rem || undefined}>
+                <button
+                  key={d}
+                  type="button"
+                  className={`cal-day ${rem && cls !== 'future' ? 'clickable' : ''} ${cls}`}
+                  title={rem || undefined}
+                  onClick={() => rem && cls !== 'future' && setRemarkModal({ day: d, remark: rem, status: att[ds]?.status })}
+                  disabled={!rem || cls === 'future'}>
                   {d}
                   {rem && cls !== 'future' && <span className="remark-dot" />}
-                </div>
+                </button>
               )
             })}
           </div>
@@ -120,6 +127,22 @@ export default function AttendancePage() {
                 <span className="text-xs text-2">{new Date(h.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {remarkModal && (
+        <div className="overlay" onClick={() => setRemarkModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-title">Remark</div>
+            <div className="text-sm text-2 mb-1">
+              {MONTHS[month]} {remarkModal.day}, {year}
+              {remarkModal.status && <span className={`badge badge-${remarkModal.status}`} style={{ marginLeft: '.5rem' }}>{remarkModal.status}</span>}
+            </div>
+            <div className="card" style={{ background: 'var(--bg3)', padding: '1rem', whiteSpace: 'pre-wrap' }}>
+              {remarkModal.remark}
+            </div>
+            <button className="btn btn-primary btn-block mt-2" onClick={() => setRemarkModal(null)}>Close</button>
           </div>
         </div>
       )}

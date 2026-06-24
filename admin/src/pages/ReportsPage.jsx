@@ -32,7 +32,14 @@ export default function ReportsPage() {
     if (month === 11) { setYear(y=>y+1); setMonth(0) } else setMonth(m=>m+1)
   }
 
-  const totals = report.reduce((a, r) => { a.P += r.P; a.A += r.A; a.PP += r.PP; return a }, { P:0, A:0, PP:0 })
+  const totals = report.reduce((a, r) => {
+    const advance = parseAdvance(r.remarks)
+    a.employees += 1
+    a.present += r.totalPresent || 0
+    a.advance += advance
+    a.salaryAfterAdvance += Math.max((r.estimatedSalary || 0) - advance, 0)
+    return a
+  }, { employees:0, present:0, advance:0, salaryAfterAdvance:0 })
 
   // ── CSV Download ──
   function downloadCSV() {
@@ -45,7 +52,7 @@ export default function ReportsPage() {
 
       // Parse advance amounts from remarks
       const advTotal = parseAdvance(r.remarks)
-      const netSalary = totalSalary - advTotal
+      const netSalary = Math.max(totalSalary - advTotal, 0)
 
       return [
         idx + 1,
@@ -55,7 +62,7 @@ export default function ReportsPage() {
         present,
         totalSalary,
         r.remarks.join(', ') || '-',
-        netSalary > 0 ? netSalary : totalSalary,
+        netSalary,
         ''
       ]
     })
@@ -70,15 +77,12 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url)
   }
 
-  // Try to extract numeric advance from remarks like "Advance 500", "adv 200", "500 advance"
+  // Extract numeric advance from any remark, with or without the word "advance".
   function parseAdvance(remarks) {
     let total = 0
     remarks.forEach(r => {
-      const lower = r.toLowerCase()
-      if (lower.includes('adv') || lower.includes('advance')) {
-        const nums = r.match(/\d+(\.\d+)?/g)
-        if (nums) nums.forEach(n => { total += parseFloat(n) })
-      }
+      const nums = String(r).match(/\d+(\.\d+)?/g)
+      if (nums) nums.forEach(n => { total += parseFloat(n) })
     })
     return total
   }
@@ -230,14 +234,15 @@ export default function ReportsPage() {
       </div>
 
       {/* STATS CARDS SECTION */}
-      <div className="grid-3 mb-2">
+      <div className="grid-4 report-stat-grid mb-2">
         {[
-          { label: 'Total P',  val: totals.P,  cls: 'text-success' },
-          { label: 'Total A',  val: totals.A,  cls: 'text-danger'  },
-          { label: 'Total PP', val: totals.PP, cls: '', style: { color:'#a78bfa' } },
+          { label: 'Total Employees', val: totals.employees, cls: 'text-success' },
+          { label: 'Total Present', val: totals.present, cls: '' },
+          { label: 'Total Advance', val: `Rs ${totals.advance.toLocaleString()}`, cls: 'text-danger' },
+          { label: 'Salary After Advance', val: `Rs ${totals.salaryAfterAdvance.toLocaleString()}`, cls: '', style: { color:'#a78bfa' } },
         ].map(s => (
-          <div key={s.label} className="card card-sm" style={{ textAlign:'center' }}>
-            <div className={`font-700 ${s.cls}`} style={{ fontSize:'1.65rem', ...(s.style||{}) }}>{s.val}</div>
+          <div key={s.label} className="card card-sm report-stat-card" style={{ textAlign:'center' }}>
+            <div className={`font-700 ${s.cls}`} style={{ fontSize:'1.35rem', ...(s.style||{}) }}>{s.val}</div>
             <div className="text-xs text-2">{s.label}</div>
           </div>
         ))}
