@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
+import api from '../utils/api'
 import { toast } from '../components/Toaster'
 
 export default function RegisterPage() {
@@ -17,7 +17,7 @@ export default function RegisterPage() {
     if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return }
     setLoading(true)
     try {
-      const { data } = await axios.post('/api/company/register', {
+      const { data } = await api.post('/company/register', {
         name: form.name, contact: form.contact, password: form.password
       })
       setDone(data)
@@ -29,7 +29,7 @@ export default function RegisterPage() {
   if (done) return (
     <div className="auth-bg">
       <div className="auth-card card fade-in" style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
+        <div style={{ marginBottom: '1rem' }}>
           <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style={{ margin: '0 auto' }}>
             <circle cx="28" cy="28" r="28" fill="rgba(34,197,94,0.15)" />
             <path d="M18 28l7 7 13-13" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>

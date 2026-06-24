@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
+import api from '../utils/api'
 import { toast } from '../components/Toaster'
 
 export default function SetupPage() {
   const nav = useNavigate()
-  const [step, setStep] = useState(1) // 1=company login, 2=admin create
+  const [step, setStep] = useState(1)
   const [companyData, setCompanyData] = useState(null)
   const [setupToken, setSetupToken] = useState('')
   const [cForm, setCForm] = useState({ companyCode: '', password: '' })
@@ -19,7 +19,7 @@ export default function SetupPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const { data } = await axios.post('/api/company/login', cForm)
+      const { data } = await api.post('/company/login', cForm)
       if (data.adminSetupDone) {
         toast.error('Primary admin already set up. Please log in.')
         nav('/login')
@@ -39,7 +39,7 @@ export default function SetupPage() {
     if (aForm.password.length < 6) { toast.error('Password must be at least 6 characters'); return }
     setLoading(true)
     try {
-      const { data } = await axios.post('/api/admin/setup', {
+      const { data } = await api.post('/admin/setup', {
         companySetupToken: setupToken,
         username: aForm.username,
         adminId:  aForm.adminId,
