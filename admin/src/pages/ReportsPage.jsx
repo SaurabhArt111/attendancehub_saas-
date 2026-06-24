@@ -186,7 +186,7 @@ export default function ReportsPage() {
       </div>
 
       {/* STATS CARDS SECTION */}
-      <div className="grid-4 report-stat-grid mb-2">
+      <div className="report-stat-grid mb-2">
         {[
           { label: 'Total Employees', val: totals.employees, cls: 'text-success' },
           { label: 'Total Present', val: totals.present, cls: '' },
@@ -242,7 +242,7 @@ export default function ReportsPage() {
                   <td className="text-sm" style={{ maxWidth: 160 }}>
                     {r.remarks.length > 0 ? (
                       <span title={r.remarks.join(' | ')} style={{ color:'var(--warn)', cursor:'help' }}>
-                        {r.remarks.length} remark{r.remarks.length > 1 ? 's' : ''}
+                        {r.remarks.length} rmk{r.remarks.length > 1 ? 's' : ''}
                       </span>
                     ) : <span className="text-2">-</span>}
                   </td>
