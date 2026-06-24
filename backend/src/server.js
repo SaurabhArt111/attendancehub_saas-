@@ -9,11 +9,23 @@ const connectDB = require('./utils/db');
 const app  = express();
 const PORT = process.env.PORT || 5900;
 
+const allowedOrigins = [
+  'https://attendancehub-saas.vercel.app',
+  'https://attendancehub-saas-employee.vercel.app',
+  ...(process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean)
+];
+
 const corsOptions = {
-  origin: ["https://attendancehub-saas.vercel.app"],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Ensure POST is here
-  allowedHeaders: ["Content-Type", "Authorization"],   // Ensure these are included
-  credentials: true                                    // Needed if you use cookies/sessions
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 };
 
 app.use(cors(corsOptions));
