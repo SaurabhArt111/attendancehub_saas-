@@ -10,7 +10,6 @@ import ReportsPage from './pages/ReportsPage'
 import HolidaysPage from './pages/HolidaysPage'
 import DesignationsPage from './pages/DesignationsPage'
 import SettingsPage from './pages/SettingsPage'
-import './App.css'
 
 function RequireAuth({ children }) {
   return localStorage.getItem('adminToken') ? children : <Navigate to="/login" replace />

@@ -1,27 +1,25 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
-import './EmployeesPage.css'
+import AttendanceCalendar from '../components/AttendanceCalendar'
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState([])
+  const [employees,    setEmployees]    = useState([])
   const [designations, setDesignations] = useState([])
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [showAdd, setShowAdd] = useState(false)
-  const [expanded, setExpanded] = useState(null)
-  const [editEmp, setEditEmp] = useState(null)
+  const [search,       setSearch]       = useState('')
+  const [loading,      setLoading]      = useState(true)
+  const [showAdd,      setShowAdd]      = useState(false)
+  const [showBulk,     setShowBulk]     = useState(false)
+  const [expanded,     setExpanded]     = useState(null)
+  const [editEmp,      setEditEmp]      = useState(null)
 
   const load = useCallback(async () => {
     try {
       const [eRes, dRes] = await Promise.all([api.get('/employees'), api.get('/designations')])
       setEmployees(eRes.data)
       setDesignations(dRes.data)
-    } catch {
-      toast.error('Failed to load employees')
-    } finally {
-      setLoading(false)
-    }
+    } catch { toast.error('Failed to load') }
+    finally { setLoading(false) }
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -33,161 +31,90 @@ export default function EmployeesPage() {
   )
 
   async function deleteEmployee(id, name) {
-    if (!confirm(`Delete ${name}? All records will be removed.`)) return
+    if (!confirm(`Delete ${name}? All attendance records will be removed.`)) return
     try {
       await api.delete(`/employees/${id}`)
       toast.success('Employee deleted')
       load()
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Delete failed')
-    }
+    } catch (err) { toast.error(err.response?.data?.error || 'Delete failed') }
   }
 
   return (
-    <div className="employees-page">
-      <div className="page-header">
-        <div className="header-content">
-          <h1>Employees</h1>
-          <p className="header-subtitle">{employees.length} total employees</p>
+    <div>
+      <div className="flex items-center justify-between mb-2" style={{ flexWrap: 'wrap', gap: '.65rem' }}>
+        <div style={{ minWidth: 0 }}>
+          <h1 className="font-700" style={{ fontSize: '1.2rem' }}>Employees</h1>
+          <div className="text-sm text-2">{employees.length} total</div>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          <span>Add Employee</span>
-        </button>
+        <div className="flex gap-1" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowBulk(true)}>Bulk Add</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>Add</button>
+        </div>
       </div>
 
-      <div className="search-container">
-        <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <input 
-          className="search-input"
-          placeholder="Search by name, ID, or designation..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        {search && (
-          <button className="search-clear" onClick={() => setSearch('')}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        )}
+      <div className="search-wrap mb-2">
+        <svg className="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input className="input" placeholder="Search by name, ID, or designation..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
       {loading ? (
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Loading employees...</p>
-        </div>
+        <div style={{ textAlign: 'center', padding: '3rem' }}><span className="spinner" /></div>
       ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-          </svg>
-          <h3>{search ? 'No matches found' : 'No employees yet'}</h3>
-          <p>{search ? 'Try adjusting your search' : 'Add your first employee to get started'}</p>
-          {!search && (
-            <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
-              Add Employee
-            </button>
-          )}
+        <div className="empty card">
+          <div className="empty-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          {search ? 'No employees match your search' : 'No employees yet.'}
         </div>
       ) : (
-        <div className="employees-grid">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '.55rem' }}>
           {filtered.map(emp => (
-            <EmployeeCard key={emp._id}
-              emp={emp}
+            <EmployeeCard key={emp._id} emp={emp}
               expanded={expanded === emp._id}
               onToggle={() => setExpanded(expanded === emp._id ? null : emp._id)}
               onEdit={() => setEditEmp(emp)}
-              onDelete={() => deleteEmployee(emp._id, emp.username)}
-            />
+              onDelete={() => deleteEmployee(emp._id, emp.username)} />
           ))}
         </div>
       )}
 
-      {showAdd && <AddModal designations={designations} onClose={() => setShowAdd(false)} onDone={() => { setShowAdd(false); load() }} />}
-      {editEmp && <EditModal emp={editEmp} designations={designations} onClose={() => setEditEmp(null)} onDone={() => { setEditEmp(null); load() }} />}
+      {showAdd  && <AddModal  designations={designations} onClose={() => setShowAdd(false)}  onDone={() => { setShowAdd(false);  load() }} />}
+      {showBulk && <BulkModal designations={designations} onClose={() => setShowBulk(false)} onDone={() => { setShowBulk(false); load() }} />}
+      {editEmp  && <EditModal emp={editEmp} designations={designations} onClose={() => setEditEmp(null)} onDone={() => { setEditEmp(null); load() }} />}
     </div>
   )
 }
 
 function EmployeeCard({ emp, expanded, onToggle, onEdit, onDelete }) {
-  const initials = emp.username.slice(0, 2).toUpperCase()
-  
+  const initials = emp.username.slice(0,2).toUpperCase()
   return (
-    <div className="employee-card slide-in">
-      <div className="card-header" onClick={onToggle}>
-        <div className="card-info">
-          <div className="employee-avatar">{initials}</div>
-          <div className="employee-details">
-            <h3 className="employee-name">{emp.username}</h3>
-            <p className="employee-id">{emp.employeeId}</p>
-            {emp.designation && (
-              <span className="badge">{emp.designation}</span>
-            )}
+    <div className="emp-card slide-in">
+      <div className="emp-card-header" onClick={onToggle}>
+        <div className="flex items-center gap-2" style={{ minWidth: 0, flex: 1 }}>
+          <div className="emp-avatar">{initials}</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="font-600" style={{ display:'flex', alignItems:'center', gap:'.4rem', flexWrap:'wrap' }}>
+              {emp.username}
+              <span className="tag" style={{ fontSize: '.7rem', fontFamily: 'monospace', letterSpacing:'.04em' }}>{emp.employeeId}</span>
+            </div>
+            <div className="text-xs text-2" style={{ marginTop:'.1rem' }}>
+              {emp.designation && <span style={{ marginRight: '.5rem' }}>{emp.designation}</span>}
+              {emp.contact && <span>{emp.contact}</span>}
+            </div>
           </div>
         </div>
-        <div className="card-toggle">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={expanded ? 'expanded' : ''}>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+        <div className="flex items-center gap-1" style={{ flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <span className="tag" style={{ whiteSpace:'nowrap' }}>
+            {emp.salaryType === 'daily' ? `Rs ${emp.salary}/day` : `Rs ${emp.salary?.toLocaleString()}/mo`}
+          </span>
+          <button className="btn btn-secondary btn-sm" onClick={e => { e.stopPropagation(); onEdit() }} style={{ whiteSpace: 'nowrap' }}>Edit</button>
+          <button className="btn btn-danger btn-sm" onClick={e => { e.stopPropagation(); onDelete() }} style={{ whiteSpace: 'nowrap' }}>Delete</button>
+          <svg className={`chevron ${expanded ? 'open' : ''}`} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
         </div>
       </div>
-
       {expanded && (
-        <div className="card-content">
-          <div className="content-grid">
-            {emp.email && (
-              <div className="content-item">
-                <span className="label">Email</span>
-                <span className="value">{emp.email}</span>
-              </div>
-            )}
-            {emp.phone && (
-              <div className="content-item">
-                <span className="label">Phone</span>
-                <span className="value">{emp.phone}</span>
-              </div>
-            )}
-            {emp.department && (
-              <div className="content-item">
-                <span className="label">Department</span>
-                <span className="value">{emp.department}</span>
-              </div>
-            )}
-            {emp.joiningDate && (
-              <div className="content-item">
-                <span className="label">Joined</span>
-                <span className="value">{new Date(emp.joiningDate).toLocaleDateString()}</span>
-              </div>
-            )}
-          </div>
-          <div className="card-actions">
-            <button className="btn btn-sm btn-secondary" onClick={onEdit}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-              <span>Edit</span>
-            </button>
-            <button className="btn btn-sm btn-danger" onClick={onDelete}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                <line x1="10" y1="11" x2="10" y2="17" />
-                <line x1="14" y1="11" x2="14" y2="17" />
-              </svg>
-              <span>Delete</span>
-            </button>
-          </div>
+        <div className="emp-card-body fade-in">
+          <AttendanceCalendar employeeId={emp._id} adminMode />
         </div>
       )}
     </div>
@@ -195,86 +122,88 @@ function EmployeeCard({ emp, expanded, onToggle, onEdit, onDelete }) {
 }
 
 function AddModal({ designations, onClose, onDone }) {
-  const [form, setForm] = useState({
-    username: '',
-    employeeId: '',
-    email: '',
-    phone: '',
-    designation: '',
-    department: '',
-    password: ''
-  })
+  const [form, setForm] = useState({ username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' })
+  const [suggestedId, setSuggestedId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [idLoading, setIdLoading] = useState(true)
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
+
+  useEffect(() => {
+    api.get('/employees/suggest-id')
+      .then(r => setSuggestedId(r.data.employeeId))
+      .catch(() => {})
+      .finally(() => setIdLoading(false))
+  }, [])
 
   async function submit(e) {
     e.preventDefault()
     setLoading(true)
     try {
-      await api.post('/employees', form)
-      toast.success('Employee added successfully')
+      await api.post('/employees', { ...form, employeeId: suggestedId })
+      toast.success(`Employee added — ID: ${suggestedId}`)
       onDone()
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to add employee')
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to add') }
+    finally { setLoading(false) }
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Add Employee</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2 className="modal-title">Add Employee</h2>
+
+        {/* Auto-generated ID */}
+        <div className="form-group">
+          <label className="label">Auto-Generated Employee ID</label>
+          {idLoading ? (
+            <div className="flex items-center gap-2"><span className="spinner" /><span className="text-sm text-2">Generating...</span></div>
+          ) : (
+            <div className="id-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+              {suggestedId}
+            </div>
+          )}
+          <div className="text-xs text-2 mt-1">Employee uses this ID to log in — no company code needed</div>
         </div>
 
-        <form onSubmit={submit} className="modal-form">
-          <div className="form-grid">
+        <form onSubmit={submit}>
+          <div className="form-group">
+            <label className="label">Full Name / Username</label>
+            <input className="input" placeholder="John Doe" value={form.username} onChange={set('username')} required />
+          </div>
+          <div className="grid-2">
             <div className="form-group">
-              <label>Full Name *</label>
-              <input className="form-input" placeholder="John Doe" value={form.username} onChange={set('username')} required />
+              <label className="label">Contact</label>
+              <input className="input" placeholder="9876543210" value={form.contact} onChange={set('contact')} />
             </div>
             <div className="form-group">
-              <label>Employee ID *</label>
-              <input className="form-input" placeholder="EMP001" value={form.employeeId} onChange={set('employeeId')} required />
-            </div>
-            <div className="form-group">
-              <label>Email</label>
-              <input className="form-input" type="email" placeholder="john@example.com" value={form.email} onChange={set('email')} />
-            </div>
-            <div className="form-group">
-              <label>Phone</label>
-              <input className="form-input" placeholder="+1 (555) 123-4567" value={form.phone} onChange={set('phone')} />
-            </div>
-            <div className="form-group">
-              <label>Designation</label>
-              <select className="form-input" value={form.designation} onChange={set('designation')}>
-                <option value="">Select...</option>
+              <label className="label">Designation</label>
+              <select className="input" value={form.designation} onChange={set('designation')}>
+                <option value="">None</option>
                 {designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
               </select>
             </div>
+          </div>
+          <div className="grid-2">
             <div className="form-group">
-              <label>Department</label>
-              <input className="form-input" placeholder="Engineering" value={form.department} onChange={set('department')} />
+              <label className="label">Salary Type</label>
+              <select className="input" value={form.salaryType} onChange={set('salaryType')}>
+                <option value="monthly">Monthly (fixed)</option>
+                <option value="daily">Daily rate</option>
+              </select>
             </div>
             <div className="form-group">
-              <label>Password *</label>
-              <input className="form-input" type="password" placeholder="••••••••" value={form.password} onChange={set('password')} required />
+              <label className="label">{form.salaryType === 'daily' ? 'Daily Rate (Rs)' : 'Monthly Salary (Rs)'}</label>
+              <input className="input" type="number" placeholder="0" value={form.salary} onChange={set('salary')} />
             </div>
           </div>
-
-          <div className="modal-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? <span className="spinner"></span> : 'Add Employee'}
+          <div className="form-group">
+            <label className="label">Login Password</label>
+            <input className="input" type="password" placeholder="Min 6 characters" value={form.password} onChange={set('password')} required />
+          </div>
+          <div className="flex gap-1 mt-2">
+            <button type="button" className="btn btn-secondary btn-block" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading || idLoading}>
+              {loading ? <span className="spinner" /> : 'Add Employee'}
             </button>
           </div>
         </form>
@@ -284,73 +213,150 @@ function AddModal({ designations, onClose, onDone }) {
 }
 
 function EditModal({ emp, designations, onClose, onDone }) {
-  const [form, setForm] = useState(emp)
+  const [form, setForm] = useState({ contact: emp.contact || '', salaryType: emp.salaryType || 'monthly', salary: emp.salary || '', designation: emp.designation || '', password: '' })
   const [loading, setLoading] = useState(false)
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
 
   async function submit(e) {
     e.preventDefault()
     setLoading(true)
+    const payload = { contact: form.contact, salaryType: form.salaryType, salary: form.salary, designation: form.designation }
+    if (form.password) payload.password = form.password
     try {
-      await api.put(`/employees/${emp._id}`, form)
+      await api.put(`/employees/${emp._id}`, payload)
       toast.success('Employee updated')
       onDone()
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Update failed')
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) { toast.error(err.response?.data?.error || 'Update failed') }
+    finally { setLoading(false) }
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Edit Employee</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <form onSubmit={submit} className="modal-form">
-          <div className="form-grid">
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2 className="modal-title">Edit — {emp.username}</h2>
+        <div className="id-badge mb-2">{emp.employeeId}</div>
+        <form onSubmit={submit}>
+          <div className="grid-2">
             <div className="form-group">
-              <label>Full Name</label>
-              <input className="form-input" value={form.username} onChange={set('username')} />
+              <label className="label">Contact</label>
+              <input className="input" value={form.contact} onChange={set('contact')} />
             </div>
             <div className="form-group">
-              <label>Email</label>
-              <input className="form-input" type="email" value={form.email} onChange={set('email')} />
-            </div>
-            <div className="form-group">
-              <label>Phone</label>
-              <input className="form-input" value={form.phone} onChange={set('phone')} />
-            </div>
-            <div className="form-group">
-              <label>Designation</label>
-              <select className="form-input" value={form.designation} onChange={set('designation')}>
-                <option value="">Select...</option>
+              <label className="label">Designation</label>
+              <select className="input" value={form.designation} onChange={set('designation')}>
+                <option value="">None</option>
                 {designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
               </select>
             </div>
+          </div>
+          <div className="grid-2">
             <div className="form-group">
-              <label>Department</label>
-              <input className="form-input" value={form.department} onChange={set('department')} />
+              <label className="label">Salary Type</label>
+              <select className="input" value={form.salaryType} onChange={set('salaryType')}>
+                <option value="monthly">Monthly (fixed)</option>
+                <option value="daily">Daily rate</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="label">{form.salaryType === 'daily' ? 'Daily Rate (Rs)' : 'Monthly Salary (Rs)'}</label>
+              <input className="input" type="number" value={form.salary} onChange={set('salary')} />
             </div>
           </div>
-
-          <div className="modal-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? <span className="spinner"></span> : 'Save Changes'}
+          <div className="form-group">
+            <label className="label">New Password (blank = keep)</label>
+            <input className="input" type="password" placeholder="New password" value={form.password} onChange={set('password')} />
+          </div>
+          <div className="flex gap-1 mt-2">
+            <button type="button" className="btn btn-secondary btn-block" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+              {loading ? <span className="spinner" /> : 'Save'}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+function BulkModal({ designations, onClose, onDone }) {
+  const [rows, setRows] = useState([{ username:'', contact:'', password:'', salaryType:'monthly', salary:'', designation:'' }])
+  const [loading, setLoading] = useState(false)
+  const [results, setResults] = useState(null)
+
+  function setRow(i, k, v) { setRows(r => r.map((row, idx) => idx === i ? { ...row, [k]: v } : row)) }
+  function addRow() { setRows(r => [...r, { username:'', contact:'', password:'', salaryType:'monthly', salary:'', designation:'' }]) }
+  function remRow(i) { setRows(r => r.filter((_, idx) => idx !== i)) }
+
+  async function submit() {
+    const valid = rows.filter(r => r.username && r.password)
+    if (!valid.length) { toast.error('At least one complete row required'); return }
+    setLoading(true)
+    try {
+      const { data } = await api.post('/employees/bulk', { employees: valid })
+      setResults(data)
+      if (data.created.length) toast.success(`${data.created.length} added`)
+      if (data.failed.length)  toast.error(`${data.failed.length} failed`)
+    } catch (err) { toast.error(err.response?.data?.error || 'Bulk add failed') }
+    finally { setLoading(false) }
+  }
+
+  if (results) return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2 className="modal-title">Bulk Add Results</h2>
+        <div className="mb-2">
+          <div className="text-success font-600 mb-1">{results.created.length} created</div>
+          {results.created.map((c,i) => <div key={i} className="text-sm">{c.username} — <span style={{fontFamily:'monospace',color:'var(--accent)'}}>{c.employeeId}</span></div>)}
+          {results.failed.map((f,i) => <div key={i} className="text-danger text-sm mt-1">{f.username}: {f.reason}</div>)}
+        </div>
+        <button className="btn btn-primary btn-block" onClick={onDone}>Done</button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 720 }} onClick={e => e.stopPropagation()}>
+        <h2 className="modal-title">Bulk Add Employees</h2>
+        <div className="text-xs text-2 mb-2">Employee IDs are auto-generated from your company name</div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="tbl" style={{ minWidth: 600 }}>
+            <thead>
+              <tr><th>Name *</th><th>Contact</th><th>Password *</th><th>Designation</th><th>Type</th><th>Salary</th><th></th></tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i}>
+                  <td><input className="input" style={{ minWidth: 100 }} value={r.username} onChange={e => setRow(i,'username',e.target.value)} /></td>
+                  <td><input className="input" style={{ minWidth: 90 }} value={r.contact}  onChange={e => setRow(i,'contact', e.target.value)} /></td>
+                  <td><input className="input" type="password" style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i,'password',e.target.value)} /></td>
+                  <td>
+                    <select className="input" style={{ minWidth: 100 }} value={r.designation} onChange={e => setRow(i,'designation',e.target.value)}>
+                      <option value="">None</option>
+                      {designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <select className="input" style={{ minWidth: 90 }} value={r.salaryType} onChange={e => setRow(i,'salaryType',e.target.value)}>
+                      <option value="monthly">Monthly</option>
+                      <option value="daily">Daily</option>
+                    </select>
+                  </td>
+                  <td><input className="input" type="number" style={{ minWidth: 70 }} value={r.salary} onChange={e => setRow(i,'salary',e.target.value)} /></td>
+                  <td><button className="btn btn-danger btn-sm" onClick={() => remRow(i)} disabled={rows.length===1}>X</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex gap-1 mt-2">
+          <button className="btn btn-secondary btn-sm" onClick={addRow}>+ Row</button>
+          <div style={{ flex: 1 }} />
+          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={submit} disabled={loading}>
+            {loading ? <span className="spinner" /> : 'Add All'}
+          </button>
+        </div>
       </div>
     </div>
   )
