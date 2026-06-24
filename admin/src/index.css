@@ -5,6 +5,25 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+:root {
+  --bg: #0b0e18;
+  --bg2: #131720;
+  --bg3: #1a2030;
+  --border: #252d42;
+  --accent: #4f8ef7;
+  --accent2: #7c5cfc;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warn: #f59e0b;
+  --text: #e8eaf0;
+  --text2: #8b95a8;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.55);
+  --tr: 0.22s cubic-bezier(.4, 0, .2, 1);
+  --sidebar-w: 230px;
+}
 
 html {
   font-size: 15px;
