@@ -6,10 +6,10 @@
 }
 
 :root {
-  --bg: #0f1117;
-  --bg2: #161b27;
-  --bg3: #1e2536;
-  --border: #2a3347;
+  --bg: #0b0e18;
+  --bg2: #131720;
+  --bg3: #1a2030;
+  --border: #252d42;
   --accent: #4f8ef7;
   --accent2: #7c5cfc;
   --success: #22c55e;
@@ -19,8 +19,10 @@
   --text2: #8b95a8;
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.55);
   --tr: 0.22s cubic-bezier(.4, 0, .2, 1);
+  --sidebar-w: 230px;
 }
 
 html {
@@ -76,6 +78,7 @@ body {
   cursor: pointer;
   transition: all var(--tr);
   white-space: nowrap;
+  letter-spacing: .01em;
 }
 
 .btn:active {
@@ -83,12 +86,14 @@ body {
 }
 
 .btn-primary {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #3b7cf5);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(79, 142, 247, .3);
 }
 
 .btn-primary:hover {
-  background: #3b7cf5;
+  background: linear-gradient(135deg, #3b7cf5, #2d6de8);
+  box-shadow: 0 4px 14px rgba(79, 142, 247, .4);
 }
 
 .btn-secondary {
@@ -104,6 +109,7 @@ body {
 .btn-danger {
   background: var(--danger);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, .25);
 }
 
 .btn-danger:hover {
@@ -113,6 +119,7 @@ body {
 .btn-success {
   background: var(--success);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, .25);
 }
 
 .btn-success:hover {
@@ -120,7 +127,7 @@ body {
 }
 
 .btn-sm {
-  padding: .35rem .75rem;
+  padding: .35rem .8rem;
   font-size: .78rem;
 }
 
@@ -132,6 +139,7 @@ body {
   opacity: .5;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 .input {
@@ -143,12 +151,13 @@ body {
   padding: .62rem .85rem;
   font-size: .88rem;
   font-family: inherit;
-  transition: border-color var(--tr);
+  transition: border-color var(--tr), box-shadow var(--tr);
   outline: none;
 }
 
 .input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79, 142, 247, .12);
 }
 
 .input::placeholder {
@@ -174,7 +183,7 @@ select.input {
 
 .badge {
   display: inline-block;
-  padding: .18rem .55rem;
+  padding: .2rem .6rem;
   border-radius: 99px;
   font-size: .7rem;
   font-weight: 700;
@@ -261,9 +270,9 @@ select.input {
 
 /* ── Utilities ── */
 .page-wrap {
-  max-width: 1100px;
+  max-width: 1140px;
   margin: 0 auto;
-  padding: 1.25rem 1rem;
+  padding: 1.5rem 1.25rem;
 }
 
 .flex {
@@ -360,8 +369,8 @@ select.input {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, .65);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, .7);
+  backdrop-filter: blur(6px);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -374,18 +383,19 @@ select.input {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.5rem;
+  padding: 1.75rem;
   width: 100%;
   max-width: 480px;
   animation: fadeIn .22s ease;
   max-height: 90dvh;
   overflow-y: auto;
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-title {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  margin-bottom: 1.1rem;
+  margin-bottom: 1.25rem;
 }
 
 /* ── Toast ── */
@@ -403,10 +413,10 @@ select.input {
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: .7rem 1rem;
+  padding: .75rem 1.1rem;
   font-size: .83rem;
   animation: fadeIn .22s ease;
-  max-width: 300px;
+  max-width: 310px;
   box-shadow: var(--shadow);
 }
 
@@ -428,17 +438,18 @@ select.input {
 .tbl th {
   text-align: left;
   color: var(--text2);
-  font-weight: 500;
-  font-size: .75rem;
-  padding: .6rem .7rem;
+  font-weight: 600;
+  font-size: .72rem;
+  padding: .7rem .8rem;
   border-bottom: 1px solid var(--border);
-  letter-spacing: .03em;
+  letter-spacing: .05em;
   text-transform: uppercase;
+  background: rgba(255, 255, 255, .015);
 }
 
 .tbl td {
-  padding: .65rem .7rem;
-  border-bottom: 1px solid rgba(42, 51, 71, .5);
+  padding: .7rem .8rem;
+  border-bottom: 1px solid rgba(37, 45, 66, .5);
   vertical-align: middle;
 }
 
@@ -447,7 +458,7 @@ select.input {
 }
 
 .tbl tr:hover td {
-  background: rgba(255, 255, 255, .02);
+  background: rgba(255, 255, 255, .025);
 }
 
 /* ── Layout shell ── */
@@ -458,7 +469,7 @@ select.input {
 
 /* ── Sidebar ── */
 .sidebar {
-  width: 220px;
+  width: var(--sidebar-w);
   min-height: 100dvh;
   background: var(--bg2);
   border-right: 1px solid var(--border);
@@ -472,32 +483,34 @@ select.input {
 }
 
 .sidebar-logo {
-  padding: 1.25rem 1.1rem .9rem;
-  font-size: 1.05rem;
-  font-weight: 700;
+  padding: 1.4rem 1.2rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: var(--accent);
   border-bottom: 1px solid var(--border);
+  letter-spacing: -.01em;
 }
 
 .sidebar-logo span {
   color: var(--text2);
   font-weight: 400;
-  font-size: .73rem;
+  font-size: .72rem;
   display: block;
-  margin-top: .12rem;
+  margin-top: .15rem;
+  letter-spacing: 0;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: .6rem 0;
+  padding: .75rem 0;
   overflow-y: auto;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: .7rem;
-  padding: .6rem 1.1rem;
+  gap: .75rem;
+  padding: .65rem 1.2rem;
   font-size: .875rem;
   font-weight: 500;
   color: var(--text2);
@@ -505,26 +518,30 @@ select.input {
   transition: all var(--tr);
   border-left: 3px solid transparent;
   text-decoration: none;
+  margin: 0 .5rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-left: 0;
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, .03);
+  background: rgba(255, 255, 255, .04);
 }
 
 .nav-item.active {
   color: var(--accent);
-  background: rgba(79, 142, 247, .08);
+  background: rgba(79, 142, 247, .1);
   border-left-color: var(--accent);
 }
 
 .sidebar-footer {
-  padding: .85rem 1.1rem;
+  padding: 1rem 1.2rem;
   border-top: 1px solid var(--border);
 }
 
 .main-content {
-  margin-left: 220px;
+  margin-left: var(--sidebar-w);
   flex: 1;
   min-width: 0;
   display: flex;
@@ -533,13 +550,13 @@ select.input {
 
 /* ── Topbar ── */
 .topbar {
-  height: 52px;
+  height: 54px;
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem;
+  padding: 0 1.5rem;
   position: sticky;
   top: 0;
   z-index: 30;
@@ -547,8 +564,9 @@ select.input {
 }
 
 .topbar-title {
-  font-weight: 600;
-  font-size: .95rem;
+  font-weight: 700;
+  font-size: .97rem;
+  letter-spacing: -.01em;
 }
 
 .menu-btn {
@@ -557,7 +575,7 @@ select.input {
   border: none;
   color: var(--text);
   cursor: pointer;
-  padding: .3rem;
+  padding: .35rem;
   border-radius: 6px;
 }
 
@@ -576,22 +594,24 @@ select.input {
   border-top: 1px solid var(--border);
   position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 3500;
   justify-content: space-around;
-  padding: .4rem 0 calc(.4rem + env(safe-area-inset-bottom));
+  padding: .45rem 0 calc(.45rem + env(safe-area-inset-bottom));
 }
 
 .bnav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .58rem;
+  gap: .3rem;
   padding: .3rem .5rem;
   border-radius: 8px;
   cursor: pointer;
   transition: all var(--tr);
   color: var(--text2);
-  font-size: .62rem;
+  font-size: .6rem;
   font-weight: 500;
   background: none;
   border: none;
@@ -615,7 +635,10 @@ select.input {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: radial-gradient(ellipse at 60% 20%, rgba(79, 142, 247, .12) 0%, transparent 60%), radial-gradient(ellipse at 10% 80%, rgba(124, 92, 252, .1) 0%, transparent 50%), var(--bg);
+  background:
+    radial-gradient(ellipse at 70% 10%, rgba(79, 142, 247, .15) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 90%, rgba(124, 92, 252, .12) 0%, transparent 50%),
+    var(--bg);
 }
 
 .auth-card {
@@ -624,9 +647,10 @@ select.input {
 }
 
 .auth-title {
-  font-size: 1.45rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   margin-bottom: .3rem;
+  letter-spacing: -.02em;
 }
 
 .auth-sub {
@@ -636,10 +660,11 @@ select.input {
 }
 
 .auth-logo {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--accent);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  letter-spacing: -.02em;
 }
 
 .step-dots {
@@ -733,7 +758,6 @@ select.input {
   opacity: .3;
 }
 
-/* remark dot */
 .cal-day .remark-dot {
   position: absolute;
   bottom: 2px;
@@ -780,12 +804,12 @@ select.input {
 }
 
 .search-wrap .input {
-  padding-left: 2.1rem;
+  padding-left: 2.2rem;
 }
 
 .search-icon {
   position: absolute;
-  left: .7rem;
+  left: .75rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text2);
@@ -797,16 +821,17 @@ select.input {
   border-radius: var(--radius);
   border: 1px solid var(--border);
   overflow: hidden;
-  transition: border-color var(--tr);
+  transition: border-color var(--tr), box-shadow var(--tr);
 }
 
 .emp-card:hover {
-  border-color: rgba(79, 142, 247, .35);
+  border-color: rgba(79, 142, 247, .4);
+  box-shadow: 0 2px 12px rgba(79, 142, 247, .08);
 }
 
 .emp-card-header {
   background: var(--bg2);
-  padding: .9rem 1.1rem;
+  padding: .95rem 1.15rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -817,14 +842,14 @@ select.input {
 
 .emp-card-body {
   background: var(--bg);
-  padding: 1.1rem;
+  padding: 1.15rem;
   border-top: 1px solid var(--border);
   overflow-x: hidden;
 }
 
 .emp-avatar {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   display: flex;
@@ -834,6 +859,7 @@ select.input {
   font-size: .95rem;
   color: #fff;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(79, 142, 247, .25);
 }
 
 .chevron {
@@ -860,7 +886,7 @@ select.input {
 }
 
 .tab-btn {
-  padding: .6rem 1.1rem;
+  padding: .65rem 1.1rem;
   font-size: .875rem;
   font-weight: 500;
   color: var(--text2);
@@ -889,13 +915,13 @@ select.input {
 
 .empty {
   text-align: center;
-  padding: 2.5rem 1rem;
+  padding: 3rem 1rem;
   color: var(--text2);
 }
 
 .empty-icon {
-  margin-bottom: .65rem;
-  opacity: .45;
+  margin-bottom: .75rem;
+  opacity: .4;
 }
 
 /* ── ID badge ── */
@@ -903,7 +929,7 @@ select.input {
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  background: rgba(79, 142, 247, .12);
+  background: rgba(79, 142, 247, .1);
   border: 1px solid rgba(79, 142, 247, .25);
   border-radius: 8px;
   padding: .55rem .9rem;
@@ -912,6 +938,57 @@ select.input {
   font-weight: 700;
   color: var(--accent);
   letter-spacing: .06em;
+}
+
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .65rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-header h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+/* ── Stats row ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: .25rem;
+}
+
+.stat-card-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+
+.stat-card-label {
+  font-size: .75rem;
+  color: var(--text2);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
 
 /* ── Mobile responsive ── */
@@ -923,19 +1000,21 @@ select.input {
   .sidebar {
     transform: translateX(-100%);
     width: 260px;
+    box-shadow: none;
   }
 
   .sidebar.open {
     transform: translateX(0);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-lg);
   }
 
   .sidebar-backdrop {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .55);
+    background: rgba(0, 0, 0, .6);
     z-index: 39;
+    animation: fadeIn .18s ease;
   }
 
   .main-content {
@@ -950,8 +1029,21 @@ select.input {
     grid-template-columns: 1fr;
   }
 
+  .stats-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: .6rem;
+  }
+
+  .stat-card {
+    padding: .75rem .65rem;
+  }
+
+  .stat-card-value {
+    font-size: 1.65rem;
+  }
+
   .modal {
-    padding: 1.1rem;
+    padding: 1.2rem;
     max-width: 95vw !important;
     width: 100% !important;
   }
@@ -965,7 +1057,7 @@ select.input {
   }
 
   .tbl th, .tbl td {
-    padding: 0.5rem 0.6rem;
+    padding: 0.55rem 0.65rem;
   }
 
   .bottom-nav {
@@ -973,10 +1065,9 @@ select.input {
   }
 
   .page-wrap {
-    padding: 1rem 0.75rem 5.5rem 0.75rem;
+    padding: 1rem .85rem 5.5rem .85rem;
   }
 
-  /* hide sidebar footer sign-out on mobile (use bottom nav) */
   .sidebar-footer {
     display: none;
   }
@@ -986,12 +1077,12 @@ select.input {
   }
 
   .btn {
-    padding: 0.5rem 0.85rem;
+    padding: 0.5rem 0.9rem;
     font-size: 0.825rem;
   }
 
   .btn-sm {
-    padding: 0.3rem 0.6rem;
+    padding: 0.32rem 0.65rem;
     font-size: 0.75rem;
   }
 
@@ -1004,20 +1095,19 @@ select.input {
   }
 
   .emp-card-header {
-    padding: 0.8rem 1rem;
+    padding: 0.82rem 1rem;
     gap: 0.4rem;
-    flex-wrap: wrap;
   }
 
   .emp-avatar {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     font-size: 0.85rem;
   }
 
   .input {
-    padding: 0.55rem 0.75rem;
-    font-size: 0.82rem;
+    padding: 0.58rem 0.78rem;
+    font-size: 0.84rem;
   }
 
   .label {
@@ -1025,16 +1115,16 @@ select.input {
   }
 
   .topbar {
-    height: 48px;
-    padding: 0 0.9rem;
+    height: 50px;
+    padding: 0 .9rem;
   }
 
   .topbar-title {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
   }
 
   .auth-title {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
   }
 
   .auth-sub {
@@ -1042,24 +1132,19 @@ select.input {
   }
 
   .modal-title {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 
   .flex {
     flex-wrap: wrap;
   }
 
-  .page-wrap {
-    max-width: 100%;
-    padding: 0.9rem 0.6rem 5.5rem 0.6rem;
-  }
-
   .search-wrap .input {
-    padding-left: 1.8rem;
+    padding-left: 1.9rem;
   }
 
   .search-icon {
-    left: 0.55rem;
+    left: 0.6rem;
   }
 
   .id-badge {
@@ -1080,13 +1165,21 @@ select.input {
   .toast {
     max-width: 90vw;
     font-size: 0.78rem;
-    padding: 0.6rem 0.85rem;
+    padding: 0.65rem 0.9rem;
   }
 
   .toast-wrap {
     right: 0.5rem;
     left: 0.5rem;
     top: 0.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 1rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.15rem;
   }
 }
 
@@ -1096,15 +1189,15 @@ select.input {
   }
 
   .sidebar {
-    width: 240px;
+    width: 248px;
   }
 
   .page-wrap {
-    padding: 0.8rem 0.5rem 5.5rem 0.5rem;
+    padding: 0.85rem 0.6rem 5.5rem 0.6rem;
   }
 
   .modal {
-    padding: 1rem !important;
+    padding: 1.05rem !important;
   }
 
   .btn {
@@ -1113,7 +1206,7 @@ select.input {
   }
 
   .btn-sm {
-    padding: 0.25rem 0.5rem;
+    padding: 0.28rem 0.55rem;
     font-size: 0.72rem;
   }
 
@@ -1122,8 +1215,12 @@ select.input {
   }
 
   .topbar {
-    height: 45px;
+    height: 46px;
     padding: 0 0.75rem;
+  }
+
+  .topbar-title {
+    font-size: 0.88rem;
   }
 
   .input {
@@ -1131,7 +1228,7 @@ select.input {
   }
 
   .emp-card-header {
-    padding: 0.7rem 0.9rem;
+    padding: 0.72rem 0.9rem;
   }
 
   .badge {
@@ -1142,10 +1239,18 @@ select.input {
     padding: 0.5rem 0.85rem;
     font-size: 0.82rem;
   }
+
+  .stats-row {
+    gap: .5rem;
+  }
+
+  .stat-card-value {
+    font-size: 1.5rem;
+  }
 }
 
 @media (min-width: 769px) {
   .bottom-nav {
-    display: none;
+    display: none !important;
   }
 }

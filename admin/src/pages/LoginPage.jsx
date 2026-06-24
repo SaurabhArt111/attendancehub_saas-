@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import api from '../api/api'
+import api from '../utils/api'
 import { toast } from '../components/Toaster'
 
 export default function LoginPage() {
@@ -13,7 +13,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const { data } = await axios.post('/api/admin/login', form)
+      const { data } = await api.post('/admin/login', form)
       localStorage.setItem('adminToken', data.token)
       localStorage.setItem('adminUser', JSON.stringify({ ...data.admin, company: data.company }))
       nav('/employees')
