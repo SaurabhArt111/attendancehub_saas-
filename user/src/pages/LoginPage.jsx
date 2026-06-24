@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import api from '../utils/api'
 import { toast } from '../components/Toaster'
 
 export default function LoginPage() {
@@ -13,7 +13,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const { data } = await axios.post('/api/employees/login', form)
+      const { data } = await api.post('/employees/login', form)
       localStorage.setItem('employeeToken', data.token)
       localStorage.setItem('employeeUser', JSON.stringify({ ...data.employee, company: data.company }))
       nav('/')

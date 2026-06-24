@@ -3,6 +3,8 @@ import api from '../utils/api'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
+const STATUS_LABEL = { P: 'Present', A: 'Absent', PP: 'Double Shift' }
+
 export default function HomePage() {
   const now  = new Date()
   const user = (() => { try { return JSON.parse(localStorage.getItem('employeeUser') || '{}') } catch { return {} } })()
@@ -64,7 +66,7 @@ export default function HomePage() {
               <span className="badge" style={{ background:'rgba(245,158,11,.15)',color:'#f59e0b' }}>{todayHol.name}</span>
             ) : todayAtt ? (
               <span className={`badge badge-${todayAtt.status}`}>
-                {{P:'Present',A:'Absent',PP:'Double Shift'}[todayAtt.status]}
+                {STATUS_LABEL[todayAtt.status] || todayAtt.status}
               </span>
             ) : (
               <span className="text-sm text-2">Not marked yet</span>
