@@ -15,6 +15,12 @@ export default function SettingsPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  function logout() {
+    localStorage.removeItem('adminToken')
+    localStorage.removeItem('adminUser')
+    window.location.href = '/login'
+  }
+
   return (
     <div>
       <h1 className="font-700 mb-2" style={{ fontSize: '1.25rem' }}>Settings</h1>
@@ -30,8 +36,8 @@ export default function SettingsPage() {
                 {[
                   ['Company Name', company.name],
                   ['Company Code', company.companyCode],
-                  ['Contact',      company.contact],
-                  ['Registered',   new Date(company.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })],
+                  ['Contact', company.contact],
+                  ['Registered', new Date(company.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })],
                 ].map(([k, v]) => (
                   <div key={k} className="settings-row">
                     <span className="text-sm text-2">{k}</span>
@@ -48,7 +54,7 @@ export default function SettingsPage() {
               {[
                 ['Username', user?.username],
                 ['Admin ID', user?.adminId],
-                ['Role',     user?.isOwner ? 'Primary Admin (Owner)' : 'Admin'],
+                ['Role', user?.isOwner ? 'Primary Admin (Owner)' : 'Admin'],
               ].map(([k, v]) => v && (
                 <div key={k} className="settings-row">
                   <span className="text-sm text-2">{k}</span>
@@ -63,9 +69,9 @@ export default function SettingsPage() {
             <div className="text-sm text-2 mb-2">The three attendance states used across the system</div>
             <div className="settings-list">
               {[
-                { code: 'P',  label: 'Present',  desc: 'Employee was present for regular hours', cls: 'badge-P' },
-                { code: 'A',  label: 'Absent',   desc: 'Employee was absent', cls: 'badge-A' },
-                { code: 'PP', label: 'Double',   desc: 'Employee worked a double shift', cls: 'badge-PP' },
+                { code: 'P', label: 'Present', desc: 'Employee was present for regular hours', cls: 'badge-P' },
+                { code: 'A', label: 'Absent', desc: 'Employee was absent', cls: 'badge-A' },
+                { code: 'PP', label: 'Double', desc: 'Employee worked a double shift', cls: 'badge-PP' },
               ].map(s => (
                 <div key={s.code} className="settings-legend-item">
                   <span className={`badge ${s.cls}`}>{s.code}</span>
@@ -77,8 +83,14 @@ export default function SettingsPage() {
               ))}
             </div>
           </div>
+
+          <button className="Signout-btn" onClick={logout}>
+            <LogoutIcon /> SignOut
+          </button>
         </div>
       )}
     </div>
   )
 }
+
+function LogoutIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg> }

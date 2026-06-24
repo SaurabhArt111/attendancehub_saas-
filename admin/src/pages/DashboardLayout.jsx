@@ -83,10 +83,6 @@ export default function DashboardLayout() {
             {user?.company?.companyCode && (
               <span className="tag" id="desktop-company-code">{user.company.companyCode}</span>
             )}
-            <button className="btn btn-secondary btn-sm" onClick={logout}
-              style={{ gap: '.35rem' }}>
-              <LogoutIcon /> Sign Out
-            </button>
           </div>
         </header>
 

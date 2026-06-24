@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: center;
   background: radial-gradient(circle at 10% 20%, var(--primary-glow) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(124, 92, 252, 0.05) 0%, transparent 40%),
-              var(--bg);
+    radial-gradient(circle at 90% 80%, rgba(124, 92, 252, 0.05) 0%, transparent 40%),
+    var(--bg);
   padding: 1.5rem;
   transition: background var(--tr);
 }
@@ -22,6 +22,7 @@
   margin-bottom: 1.75rem;
   background: linear-gradient(135deg, var(--primary), #a78bfa);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.03em;
 }
