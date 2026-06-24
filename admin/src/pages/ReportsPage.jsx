@@ -250,15 +250,15 @@ export default function ReportsPage() {
         ) : report.length === 0 ? (
           <div className="empty">No data for this month.</div>
         ) : (
-          <table className="tbl">
+          <table className="tbl report-table" >
             <thead>
               <tr>
                 <th>#</th>
                 <th>Name</th>
                 <th>Desig.</th>
                 <th>Salary</th>
-                <th><span className="badge badge-P">P</span></th>
-                <th><span className="badge badge-PP">PP</span></th>
+                {/* <th><span className="badge badge-P">P</span></th>
+                <th><span className="badge badge-PP">PP</span></th> */}
                 <th>Present</th>
                 <th>Est. Pay</th>
                 <th>Remarks</th>
@@ -276,8 +276,8 @@ export default function ReportsPage() {
                   <td className="text-sm" style={{whiteSpace:'nowrap'}}>
                     {r.salary ? (r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`) : '-'}
                   </td>
-                  <td className="text-success font-600">{r.P}</td>
-                  <td style={{color:'#a78bfa',fontWeight:600}}>{r.PP}</td>
+                  {/* <td className="text-success font-600">{r.P}</td>
+                  <td style={{color:'#a78bfa',fontWeight:600}}>{r.PP}</td> */}
                   <td className="font-600">{r.totalPresent}</td>
                   <td className="font-600">
                     {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
@@ -285,7 +285,7 @@ export default function ReportsPage() {
                   <td className="text-sm" style={{ maxWidth: 160 }}>
                     {r.remarks.length > 0 ? (
                       <span title={r.remarks.join(' | ')} style={{ color:'var(--warn)', cursor:'help' }}>
-                        {r.remarks.length} remark{r.remarks.length > 1 ? 's' : ''}
+                        {r.remarks.length} rmk{r.remarks.length > 1 ? 's' : ''}
                       </span>
                     ) : <span className="text-2">-</span>}
                   </td>
