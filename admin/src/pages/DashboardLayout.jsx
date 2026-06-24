@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 
 const NAV = [
   { to: '/employees',    label: 'Employees',    icon: <PeopleIcon /> },
-  { to: '/attendance',   label: 'Attendance',   icon: <CalIcon /> },
+  // { to: '/attendance',   label: 'Attendance',   icon: <CalIcon /> },
   { to: '/reports',      label: 'Reports',      icon: <ChartIcon /> },
   { to: '/holidays',     label: 'Holidays',     icon: <HolIcon /> },
   { to: '/designations', label: 'Designations', icon: <TagIcon /> },
