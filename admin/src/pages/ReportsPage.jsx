@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
-import { PeopleIcon, CalIcon, ChartIcon, HolIcon, TagIcon, GearIcon, LogoutIcon } from '../components/Icons'
 import './ReportsPage.css'
 
 const MONTHS = [
