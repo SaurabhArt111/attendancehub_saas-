@@ -250,7 +250,7 @@ export default function ReportsPage() {
         ) : report.length === 0 ? (
           <div className="empty">No data for this month.</div>
         ) : (
-          <table className="tbl report-table" >
+          <table className="tbl">
             <thead>
               <tr>
                 <th>#</th>
