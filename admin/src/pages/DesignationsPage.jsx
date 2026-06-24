@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
+import './DesignationsPage.css'
 
 export default function DesignationsPage() {
   const [list, setList]   = useState([])
@@ -57,7 +58,7 @@ export default function DesignationsPage() {
                 <tr key={d._id}>
                   <td className="text-2 text-sm">{i+1}</td>
                   <td className="font-600">{d.name}</td>
-                  <td style={{ textAlign:'right' }}>
+                  <td className="text-right">
                     <button className="btn btn-danger btn-sm" onClick={() => del(d._id, d.name)}>Remove</button>
                   </td>
                 </tr>

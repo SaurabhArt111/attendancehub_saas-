@@ -1,0 +1,127 @@
+/* Calendar Navigation */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+}
+
+.cal-nav-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+/* Stat strip above calendar */
+.stat-strip {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Calendar Grid layout */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cal-head {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  padding: 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all var(--tr);
+  border: 2px solid transparent;
+  position: relative;
+  cursor: default;
+  user-select: none;
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.cal-day.clickable {
+  cursor: pointer;
+}
+
+.cal-day.clickable:hover {
+  background: var(--bg-active);
+  transform: scale(1.05);
+  box-shadow: var(--shadow);
+}
+
+.cal-day.today {
+  border-color: var(--primary);
+  background: var(--primary-glow);
+  color: var(--primary);
+}
+
+.cal-day.P {
+  background: var(--success-glow);
+  color: var(--success);
+}
+
+.cal-day.A {
+  background: var(--danger-glow);
+  color: var(--danger);
+}
+
+.cal-day.PP {
+  background: rgba(124, 92, 252, 0.15);
+  color: #a78bfa;
+}
+
+.cal-day.H {
+  background: var(--warn-glow);
+  color: var(--warn);
+}
+
+.cal-day.future {
+  opacity: 0.25;
+}
+
+.remark-dot {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--warn);
+  box-shadow: 0 0 4px var(--warn);
+}

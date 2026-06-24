@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
+import './SetupPage.css'
 
 export default function SetupPage() {
   const nav = useNavigate()

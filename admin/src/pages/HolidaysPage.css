@@ -1,0 +1,52 @@
+/* Holiday page lists styling */
+.holiday-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.holiday-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all var(--tr);
+}
+
+.holiday-item:hover {
+  border-color: var(--primary);
+  background: var(--bg-card);
+}
+
+.holiday-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.holiday-date {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+.holiday-section-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 480px) {
+  .holiday-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .holiday-item button {
+    align-self: flex-start;
+  }
+}

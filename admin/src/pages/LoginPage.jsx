@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
+import './LoginPage.css'
 
 export default function LoginPage() {
   const nav = useNavigate()

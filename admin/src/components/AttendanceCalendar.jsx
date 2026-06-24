@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
 import { toast } from './Toaster'
+import './AttendanceCalendar.css'
 
 const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -36,7 +37,9 @@ export default function AttendanceCalendar({ employeeId, adminMode = false }) {
   const daysInMonth = new Date(year, month+1, 0).getDate()
   const firstDay    = new Date(year, month, 1).getDay()
   const holidayDates = new Set(
-    holidays.filter(h => h.date.startsWith(monthStr)).map(h => h.date.split('-')[2])
+    holidays
+      .filter(h => h.date && h.date.split('T')[0].startsWith(monthStr))
+      .map(h => h.date.split('T')[0].split('-')[2])
   )
   const canGoNext = new Date(year, month+1, 1) <= today
 
@@ -52,8 +55,8 @@ export default function AttendanceCalendar({ employeeId, adminMode = false }) {
     const isFut  = new Date(year, month, d) > today
     const isToday= new Date(year, month, d).toDateString() === today.toDateString()
     let cls = ''
-    if (isFut) cls = 'future'
-    else if (isHol && !status) cls = 'H'
+    if (isHol && !status) cls = 'H'
+    else if (isFut) cls = 'future'
     else if (status) cls = status
     else if (isToday) cls = 'today'
     return { cls, remark, status, isFut, isToday }

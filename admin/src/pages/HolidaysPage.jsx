@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
+import './HolidaysPage.css'
 
 export default function HolidaysPage() {
   const [holidays, setHolidays] = useState([])
@@ -59,14 +60,14 @@ export default function HolidaysPage() {
 
       {upcoming.length > 0 && (
         <div className="card mb-2">
-          <div className="font-600 mb-1 text-success">Upcoming Holidays</div>
+          <div className="holiday-section-title text-success">Upcoming Holidays</div>
           <HolidayList holidays={upcoming} onDelete={del} />
         </div>
       )}
 
       {past.length > 0 && (
         <div className="card">
-          <div className="font-600 mb-1 text-2">Past Holidays</div>
+          <div className="holiday-section-title text-2">Past Holidays</div>
           <HolidayList holidays={past} onDelete={del} />
         </div>
       )}
@@ -80,13 +81,12 @@ export default function HolidaysPage() {
 
 function HolidayList({ holidays, onDelete }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+    <div className="holiday-list-container">
       {holidays.map(h => (
-        <div key={h._id} className="flex items-center justify-between"
-          style={{ padding: '.6rem .75rem', background: 'var(--bg3)', borderRadius: 8 }}>
+        <div key={h._id} className="holiday-item">
           <div>
-            <div className="font-600">{h.name}</div>
-            <div className="text-xs text-2">{new Date(h.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div className="holiday-name">{h.name}</div>
+            <div className="holiday-date">{new Date(h.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
           </div>
           <button className="btn btn-danger btn-sm" onClick={() => onDelete(h._id)}>Remove</button>
         </div>

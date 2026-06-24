@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
+import './ReportsPage.css'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -89,55 +90,6 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <style>{`
-        @media (max-width: 768px) {
-          .reports-header-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-          }
-          .reports-controls-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-          }
-          .reports-month-nav {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-          }
-          .reports-download-btn {
-            width: 100%;
-            justify-content: center;
-          }
-        }
-        @media (min-width: 769px) {
-          .reports-header-container {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 1.5rem;
-          }
-          .reports-controls-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-          }
-          .reports-month-nav {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: nowrap;
-          }
-          .reports-download-btn {
-            width: auto;
-          }
-        }
-      `}</style>
 
       <div className="reports-header-container" style={{ marginBottom: '1.5rem' }}>
         {/* Title & Company Info */}

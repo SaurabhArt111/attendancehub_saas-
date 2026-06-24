@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
+import './EmployeesPage.css'
 
 export default function EmployeesPage() {
   const [employees,    setEmployees]    = useState([])
