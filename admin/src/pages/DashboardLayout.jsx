@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import './DashboardLayout.css'
 
 const NAV = [
   { to: '/employees',    label: 'Employees',    icon: <PeopleIcon /> },
@@ -26,15 +25,15 @@ export default function DashboardLayout() {
   const currentLabel = NAV.find(n => loc.pathname.startsWith(n.to))?.label || 'Dashboard'
 
   return (
-    <div className="dash-layout">
-      {open && <div className="dash-sidebar-backdrop" onClick={() => setOpen(false)} />}
+    <div className="layout">
+      {open && <div className="sidebar-backdrop" onClick={() => setOpen(false)} />}
 
       <aside className={`sidebar ${open ? 'open' : ''}`}>
-        <div className="dash-sidebar-logo">
+        <div className="sidebar-logo">
           AttendanceHub
           <span>{user?.company?.name || user?.username || 'Admin'}</span>
         </div>
-        <nav className="dash-sidebar-nav">
+        <nav className="sidebar-nav">
           {NAV.map(n => (
             <NavLink key={n.to} to={n.to}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
@@ -43,48 +42,48 @@ export default function DashboardLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="dash-sidebar-footer">
-          <div className="dash-text-xs text-2 mb-1" style={{ letterSpacing: '.01em' }}>
+        <div className="sidebar-footer">
+          <div className="text-xs text-2 mb-1" style={{ letterSpacing: '.01em' }}>
             {user?.username}
           </div>
           {user?.company?.companyCode && (
-            <div className="dash-tag mb-1" style={{ display: 'inline-block', fontSize: '.7rem', marginBottom: '.5rem' }}>
+            <div className="tag mb-1" style={{ display: 'inline-block', fontSize: '.7rem', marginBottom: '.5rem' }}>
               {user.company.companyCode}
             </div>
           )}
-          <button className="dash-btn btn-secondary btn-sm btn-block" onClick={logout}>
+          <button className="btn btn-secondary btn-sm btn-block" onClick={logout}>
             <LogoutIcon /> Sign Out
           </button>
         </div>
       </aside>
 
-      <div className="dash-main-content">
-        <header className="dash-topbar">
-          <div className="dash-flex items-center gap-2">
-            <button className="dash-menu-btn" onClick={() => setOpen(o => !o)} aria-label="Menu">
+      <div className="main-content">
+        <header className="topbar">
+          <div className="flex items-center gap-2">
+            <button className="menu-btn" onClick={() => setOpen(o => !o)} aria-label="Menu">
               <MenuIcon />
             </button>
-            <span className="dash-topbar-title">{currentLabel}</span>
+            <span className="topbar-title">{currentLabel}</span>
           </div>
-          <div className="dash-flex items-center gap-2">
+          <div className="flex items-center gap-2">
             {user?.company?.companyCode && (
-              <span className="dash-tag">{user.company.companyCode}</span>
+              <span className="tag">{user.company.companyCode}</span>
             )}
-            <span className="dash-text-sm text-2 font-600" style={{ display: 'none' }}
+            <span className="text-sm text-2 font-600" style={{ display: 'none' }}
               id="desktop-username">{user?.username}</span>
-            <button className="dash-btn btn-secondary btn-sm" onClick={logout}
+            <button className="btn btn-secondary btn-sm" onClick={logout}
               style={{ gap: '.35rem' }}>
               <LogoutIcon /> Sign Out
             </button>
           </div>
         </header>
 
-        <div className="dash-page-wrap fade-in">
+        <div className="page-wrap fade-in">
           <Outlet />
         </div>
 
         {/* Mobile bottom nav */}
-        <nav className="dash-bottom-nav">
+        <nav className="bottom-nav">
           {NAV.map(n => {
             const active = loc.pathname.startsWith(n.to)
             return (
