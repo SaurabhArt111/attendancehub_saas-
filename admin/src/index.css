@@ -1245,4 +1245,15 @@ select.input {
   .bottom-nav {
     display: none !important;
   }
+
+  .report-stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.report-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }

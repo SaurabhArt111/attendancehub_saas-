@@ -261,7 +261,7 @@ export default function ReportsPage() {
                 <th>#</th>
                 <th>Name</th>
                 <th>Desig.</th>
-                <th>Salary</th>
+                {/* <th>Salary</th> */}
                 {/* <th><span className="badge badge-P">P</span></th>
                 <th><span className="badge badge-PP">PP</span></th> */}
                 <th>Present</th>
@@ -278,9 +278,9 @@ export default function ReportsPage() {
                     <div className="text-xs text-2" style={{fontFamily:'monospace'}}>{r.employeeId}</div>
                   </td>
                   <td className="text-sm text-2">{r.designation || '-'}</td>
-                  <td className="text-sm" style={{whiteSpace:'nowrap'}}>
+                  {/* <td className="text-sm" style={{whiteSpace:'nowrap'}}>
                     {r.salary ? (r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`) : '-'}
-                  </td>
+                  </td> */}
                   {/* <td className="text-success font-600">{r.P}</td>
                   <td style={{color:'#a78bfa',fontWeight:600}}>{r.PP}</td> */}
                   <td className="font-600">{r.totalPresent}</td>
