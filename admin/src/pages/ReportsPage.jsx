@@ -1,170 +1,253 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
-
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+import './ReportsPage.css'
 
 export default function ReportsPage() {
-  const now = new Date()
-  const [year,  setYear]  = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth())
-  const [report, setReport]   = useState([])
-  const [loading, setLoading] = useState(false)
-  const [company, setCompany] = useState(null)
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('all')
 
-  const monthStr = `${year}-${String(month + 1).padStart(2,'0')}`
-
-  useEffect(() => {
-    api.get('/company/info').then(r => setCompany(r.data)).catch(() => {})
+  const load = useCallback(async () => {
+    try {
+      const res = await api.get('/reports')
+      setData(res.data)
+    } catch {
+      toast.error('Failed to load reports')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => {
-    setLoading(true)
-    api.get(`/attendance/report/${monthStr}`)
-      .then(r => setReport(r.data))
-      .catch(() => toast.error('Failed to load report'))
-      .finally(() => setLoading(false))
-  }, [monthStr])
-
-  function prevM() { if (month === 0) { setYear(y=>y-1); setMonth(11) } else setMonth(m=>m-1) }
-  function nextM() {
-    if (new Date(year, month+1, 1) > new Date()) return
-    if (month === 11) { setYear(y=>y+1); setMonth(0) } else setMonth(m=>m+1)
-  }
-
-  const totals = report.reduce((a, r) => { a.P += r.P; a.A += r.A; a.PP += r.PP; return a }, { P:0, A:0, PP:0 })
-
-  // ── CSV Download ──
-  function downloadCSV() {
-    const daysInMonth = report[0]?.daysInMonth || 30
-    const headerRow   = ['Sr.No.','Name','Designation',`Salary (${daysInMonth} days)`,'Present','Total Salary','Advance/Remark','Net Salary','Signature']
-    const rows = report.map((r, idx) => {
-      const present = r.totalPresent
-      const salaryLabel = r.salaryType === 'daily' ? `Rs ${r.salary}/day` : `Rs ${r.salary}/mo`
-      const totalSalary = r.estimatedSalary
-
-      // Parse advance amounts from remarks
-      const advTotal = parseAdvance(r.remarks)
-      const netSalary = totalSalary - advTotal
-
-      return [
-        idx + 1,
-        r.username,
-        r.designation || '-',
-        salaryLabel,
-        present,
-        totalSalary,
-        r.remarks.join(', ') || '-',
-        netSalary > 0 ? netSalary : totalSalary,
-        ''
-      ]
-    })
-
-    const csv = [headerRow, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  // Try to extract numeric advance from remarks like "Advance 500", "adv 200", "500 advance"
-  function parseAdvance(remarks) {
-    let total = 0
-    remarks.forEach(r => {
-      const lower = r.toLowerCase()
-      if (lower.includes('adv') || lower.includes('advance')) {
-        const nums = r.match(/\d+(\.\d+)?/g)
-        if (nums) nums.forEach(n => { total += parseFloat(n) })
-      }
-    })
-    return total
-  }
+  useEffect(() => { load() }, [load])
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2" style={{ flexWrap: 'wrap', gap: '.65rem' }}>
+    <div className="reports-page">
+      <div className="page-header">
         <div>
-          <h1 className="font-700" style={{ fontSize: '1.2rem' }}>Monthly Report</h1>
-          {company && <div className="text-xs text-2">{company.name}</div>}
-        </div>
-        <div className="flex items-center gap-1" style={{ flexWrap: 'wrap' }}>
-          <button className="btn btn-secondary btn-sm" onClick={prevM}>&#8249;</button>
-          <span className="font-600" style={{ minWidth: 130, textAlign: 'center', fontSize: '.88rem' }}>{MONTHS[month]} {year}</span>
-          <button className="btn btn-secondary btn-sm" onClick={nextM}
-            disabled={new Date(year, month+1, 1) > new Date()}>&#8250;</button>
-          <button className="btn btn-success btn-sm" onClick={downloadCSV} disabled={!report.length}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download CSV
-          </button>
+          <h1>Reports</h1>
+          <p className="header-subtitle">View attendance and employee reports</p>
         </div>
       </div>
 
-      <div className="grid-3 mb-2">
-        {[
-          { label: 'Total P',  val: totals.P,  cls: 'text-success' },
-          { label: 'Total A',  val: totals.A,  cls: 'text-danger'  },
-          { label: 'Total PP', val: totals.PP, cls: '', style: { color:'#a78bfa' } },
-        ].map(s => (
-          <div key={s.label} className="card card-sm" style={{ textAlign:'center' }}>
-            <div className={`font-700 ${s.cls}`} style={{ fontSize:'1.65rem', ...(s.style||{}) }}>{s.val}</div>
-            <div className="text-xs text-2">{s.label}</div>
+      <div className="reports-filters">
+        <select className="form-input" value={filter} onChange={e => setFilter(e.target.value)}>
+          <option value="all">All Reports</option>
+          <option value="attendance">Attendance</option>
+          <option value="performance">Performance</option>
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Loading reports...</p>
+        </div>
+      ) : data.length === 0 ? (
+        <div className="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+            <line x1="2" y1="20" x2="22" y2="20" />
+          </svg>
+          <h3>No Reports Available</h3>
+          <p>Check back later for reports</p>
+        </div>
+      ) : (
+        <div className="reports-grid">
+          {/* Reports content */}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// HolidaysPage.jsx
+import { useState, useEffect, useCallback } from 'react'
+import api from '../utils/api'
+import { toast } from '../components/Toaster'
+import './HolidaysPage.css'
+
+export default function HolidaysPage() {
+  const [holidays, setHolidays] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showAdd, setShowAdd] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await api.get('/holidays')
+      setHolidays(res.data)
+    } catch {
+      toast.error('Failed to load holidays')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  return (
+    <div className="holidays-page">
+      <div className="page-header">
+        <div>
+          <h1>Holidays</h1>
+          <p className="header-subtitle">Manage company holidays</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>Add Holiday</span>
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Loading holidays...</p>
+        </div>
+      ) : holidays.length === 0 ? (
+        <div className="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M12 8v4l3 2" />
+          </svg>
+          <h3>No Holidays Yet</h3>
+          <p>Add your first holiday</p>
+        </div>
+      ) : (
+        <div className="holidays-list">
+          {holidays.map(h => (
+            <div key={h._id} className="holiday-item">
+              <span>{h.name}</span>
+              <span className="date">{new Date(h.date).toLocaleDateString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// DesignationsPage.jsx
+import { useState, useEffect, useCallback } from 'react'
+import api from '../utils/api'
+import { toast } from '../components/Toaster'
+import './DesignationsPage.css'
+
+export default function DesignationsPage() {
+  const [designations, setDesignations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showAdd, setShowAdd] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await api.get('/designations')
+      setDesignations(res.data)
+    } catch {
+      toast.error('Failed to load designations')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  return (
+    <div className="designations-page">
+      <div className="page-header">
+        <div>
+          <h1>Designations</h1>
+          <p className="header-subtitle">Manage job titles and roles</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>Add Designation</span>
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Loading designations...</p>
+        </div>
+      ) : designations.length === 0 ? (
+        <div className="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+            <line x1="7" y1="7" x2="7.01" y2="7" />
+          </svg>
+          <h3>No Designations Yet</h3>
+          <p>Add your first designation</p>
+        </div>
+      ) : (
+        <div className="designations-grid">
+          {designations.map(d => (
+            <div key={d._id} className="designation-card">
+              <h3>{d.name}</h3>
+              {d.description && <p>{d.description}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// SettingsPage.jsx
+import { useState, useCallback } from 'react'
+import api from '../utils/api'
+import { toast } from '../components/Toaster'
+import './SettingsPage.css'
+
+export default function SettingsPage() {
+  const [settings, setSettings] = useState({})
+  const [saving, setSaving] = useState(false)
+
+  const set = k => e => setSettings(p => ({ ...p, [k]: e.target.value }))
+
+  const save = useCallback(async () => {
+    setSaving(true)
+    try {
+      await api.post('/settings', settings)
+      toast.success('Settings saved')
+    } catch {
+      toast.error('Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }, [settings])
+
+  return (
+    <div className="settings-page">
+      <div className="page-header">
+        <div>
+          <h1>Settings</h1>
+          <p className="header-subtitle">Manage your company settings</p>
+        </div>
+      </div>
+
+      <div className="settings-card">
+        <div className="settings-section">
+          <h2>Company Information</h2>
+          <div className="form-group">
+            <label>Company Name</label>
+            <input className="form-input" value={settings.name || ''} onChange={set('name')} />
           </div>
-        ))}
-      </div>
+          <div className="form-group">
+            <label>Company Code</label>
+            <input className="form-input" value={settings.code || ''} onChange={set('code')} disabled />
+          </div>
+        </div>
 
-      <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
-        {loading ? (
-          <div style={{ textAlign:'center', padding:'2.5rem' }}><span className="spinner" /></div>
-        ) : report.length === 0 ? (
-          <div className="empty">No data for this month.</div>
-        ) : (
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Desig.</th>
-                <th>Salary</th>
-                <th><span className="badge badge-P">P</span></th>
-                <th><span className="badge badge-PP">PP</span></th>
-                <th>Present</th>
-                <th>Est. Pay</th>
-                <th>Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {report.map((r, idx) => (
-                <tr key={r.id}>
-                  <td className="text-2 text-sm">{idx+1}</td>
-                  <td className="font-600">
-                    <div>{r.username}</div>
-                    <div className="text-xs text-2" style={{fontFamily:'monospace'}}>{r.employeeId}</div>
-                  </td>
-                  <td className="text-sm text-2">{r.designation || '-'}</td>
-                  <td className="text-sm" style={{whiteSpace:'nowrap'}}>
-                    {r.salary ? (r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`) : '-'}
-                  </td>
-                  <td className="text-success font-600">{r.P}</td>
-                  <td style={{color:'#a78bfa',fontWeight:600}}>{r.PP}</td>
-                  <td className="font-600">{r.totalPresent}</td>
-                  <td className="font-600">
-                    {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
-                  </td>
-                  <td className="text-sm" style={{ maxWidth: 160 }}>
-                    {r.remarks.length > 0 ? (
-                      <span title={r.remarks.join(' | ')} style={{ color:'var(--warn)', cursor:'help' }}>
-                        {r.remarks.length} remark{r.remarks.length > 1 ? 's' : ''}
-                      </span>
-                    ) : <span className="text-2">-</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <button className="btn btn-primary" onClick={save} disabled={saving}>
+          {saving ? <span className="spinner"></span> : 'Save Settings'}
+        </button>
       </div>
     </div>
   )

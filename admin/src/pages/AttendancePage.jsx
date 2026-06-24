@@ -1,56 +1,98 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
+import './AttendancePage.css'
 
 export default function AttendancePage() {
   const [employees, setEmployees] = useState([])
-  const [selected, setSelected]   = useState('')
-  const [loading, setLoading]     = useState(true)
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [month, setMonth] = useState(new Date())
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    api.get('/employees')
-      .then(r => { setEmployees(r.data); if (r.data.length) setSelected(r.data[0]._id) })
-      .catch(() => toast.error('Failed to load employees'))
-      .finally(() => setLoading(false))
-  }, [])
+  const load = useCallback(async () => {
+    try {
+      const res = await api.get('/employees')
+      setEmployees(res.data)
+      if (res.data.length > 0 && !selectedEmployee) {
+        setSelectedEmployee(res.data[0]._id)
+      }
+    } catch {
+      toast.error('Failed to load employees')
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedEmployee])
 
-  const emp = employees.find(e => e._id === selected)
+  useEffect(() => { load() }, [load])
 
   return (
-    <div>
-      <h1 className="font-700 mb-2" style={{ fontSize: '1.25rem' }}>Attendance</h1>
+    <div className="attendance-page">
+      <div className="page-header">
+        <div>
+          <h1>Attendance</h1>
+          <p className="header-subtitle">Track and manage employee attendance</p>
+        </div>
+      </div>
+
+      <div className="attendance-controls">
+        <div className="control-group">
+          <label htmlFor="employee-select">Select Employee</label>
+          <select 
+            id="employee-select"
+            className="form-input"
+            value={selectedEmployee || ''}
+            onChange={e => setSelectedEmployee(e.target.value)}
+          >
+            <option value="">Choose an employee...</option>
+            {employees.map(emp => (
+              <option key={emp._id} value={emp._id}>
+                {emp.username} ({emp.employeeId})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="control-group">
+          <label>Month</label>
+          <div className="month-picker">
+            <button 
+              className="btn-month-nav"
+              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1))}
+            >
+              ←
+            </button>
+            <span className="month-display">
+              {month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </span>
+            <button 
+              className="btn-month-nav"
+              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1))}
+            >
+              →
+            </button>
+          </div>
+        </div>
+      </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}><span className="spinner" /></div>
-      ) : employees.length === 0 ? (
-        <div className="empty card">No employees found. Add employees first.</div>
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Loading attendance data...</p>
+        </div>
+      ) : !selectedEmployee ? (
+        <div className="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+          </svg>
+          <h3>No Employee Selected</h3>
+          <p>Select an employee to view their attendance</p>
+        </div>
       ) : (
-        <>
-          <div className="form-group">
-            <label className="label">Select Employee</label>
-            <select className="input" value={selected} onChange={e => setSelected(e.target.value)}
-              style={{ cursor: 'pointer' }}>
-              {employees.map(e => (
-                <option key={e._id} value={e._id}>{e.username} ({e.employeeId})</option>
-              ))}
-            </select>
-          </div>
-
-          {emp && (
-            <div className="card fade-in">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="emp-avatar">{emp.username.slice(0,2).toUpperCase()}</div>
-                <div>
-                  <div className="font-600">{emp.username}</div>
-                  <div className="text-xs text-2">{emp.employeeId} · Rs {emp.salary?.toLocaleString()}</div>
-                </div>
-              </div>
-              <div className="divider" />
-              <AttendanceCalendar employeeId={emp._id} adminMode />
-            </div>
-          )}
-        </>
+        <div className="calendar-container">
+          <AttendanceCalendar employeeId={selectedEmployee} month={month} />
+        </div>
       )}
     </div>
   )
