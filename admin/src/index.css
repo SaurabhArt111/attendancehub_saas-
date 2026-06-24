@@ -1064,10 +1064,6 @@ select.input {
     display: flex;
   }
 
-  .page-wrap {
-    padding: 1rem .85rem 5.5rem .85rem;
-  }
-
   .sidebar-footer {
     display: none;
   }
@@ -1190,10 +1186,6 @@ select.input {
 
   .sidebar {
     width: 248px;
-  }
-
-  .page-wrap {
-    padding: 0.85rem 0.6rem 5.5rem 0.6rem;
   }
 
   .modal {
