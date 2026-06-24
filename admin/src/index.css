@@ -430,8 +430,7 @@ select.input {
 
 /* ── Table ── */
 .tbl {
-  width: max-content;
-  min-width: 850px;
+  width: 100%;
   border-collapse: collapse;
   font-size: .86rem;
 }
@@ -1245,11 +1244,5 @@ select.input {
 @media (min-width: 769px) {
   .bottom-nav {
     display: none !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .report-table {
-    min-width: 850px;
   }
 }
