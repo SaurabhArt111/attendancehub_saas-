@@ -212,7 +212,7 @@ export default function ReportsPage() {
               <tr>
                 <th>#</th>
                 <th>Name</th>
-                <th>Desig.</th>
+                {/* <th>Desig.</th> */}
                 {/* <th>Salary</th> */}
                 {/* <th><span className="badge badge-P">P</span></th>
                 <th><span className="badge badge-PP">PP</span></th> */}
@@ -229,7 +229,7 @@ export default function ReportsPage() {
                     <div>{r.username}</div>
                     <div className="text-xs text-2" style={{fontFamily:'monospace'}}>{r.employeeId}</div>
                   </td>
-                  <td className="text-sm text-2">{r.designation || '-'}</td>
+                  {/* <td className="text-sm text-2">{r.designation || '-'}</td> */}
                   {/* <td className="text-sm" style={{whiteSpace:'nowrap'}}>
                     {r.salary ? (r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`) : '-'}
                   </td> */}
@@ -242,7 +242,7 @@ export default function ReportsPage() {
                   <td className="text-sm" style={{ maxWidth: 160 }}>
                     {r.remarks.length > 0 ? (
                       <span title={r.remarks.join(' | ')} style={{ color:'var(--warn)', cursor:'help' }}>
-                        {r.remarks.length} rmk{r.remarks.length > 1 ? 's' : ''}
+                        {r.remarks.length} remark{r.remarks.length > 1 ? 's' : ''}
                       </span>
                     ) : <span className="text-2">-</span>}
                   </td>
