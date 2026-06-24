@@ -85,7 +85,7 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2" style={{ flexWrap: 'wrap', gap: '.65rem' }}>
+      <div className="flex items-center justify-between mb-2" style={{ flexWrap: 'wrap', gap: '.65rem', flexDirection: 'row' }}>
         <div>
           <h1 className="font-700" style={{ fontSize: '1.2rem' }}>Monthly Report</h1>
           {company && <div className="text-xs text-2">{company.name}</div>}
