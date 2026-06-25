@@ -219,7 +219,7 @@ export default function ReportsPage() {
                     <th>Salary</th>
                     <th><span className="badge badge-P">P</span></th>
                     <th><span className="badge badge-PP">PP</span></th>
-                    <th>Est. Pay</th>
+                    <th>Net Pay</th>
                     <th>Remarks</th>
                   </tr>
                 </thead>
@@ -238,7 +238,7 @@ export default function ReportsPage() {
                       <td className="text-success font-600">{r.P || 0}</td>
                       <td style={{ color: '#a78bfa', fontWeight: 600 }}>{r.PP || 0}</td>
                       <td className="font-600">
-                        {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
+                        {r.salary ? `Rs ${Math.max((r.estimatedSalary || 0) - parseAdvance(r.remarks), 0).toLocaleString()}` : '-'}
                       </td>
                       <td className="text-sm" style={{ maxWidth: 160 }}>
                         {r.remarks.length > 0 ? (
@@ -274,7 +274,7 @@ export default function ReportsPage() {
                         <span className="report-metric-value text-success">{r.P || 0}</span>
                       </div>
                       <div className="report-metric">
-                        <span className="report-metric-label">Present (PP)</span>
+                        <span className="report-metric-label">Double (PP)</span>
                         <span className="report-metric-value" style={{ color: '#a78bfa' }}>{r.PP || 0}</span>
                       </div>
                     </div>
@@ -296,9 +296,9 @@ export default function ReportsPage() {
                         </div>
                       )}
                       <div className="report-detail-row">
-                        <span className="report-detail-label">Est. Pay</span>
+                        <span className="report-detail-label">Net Pay</span>
                         <span className="report-detail-value font-600">
-                          {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
+                          {r.salary ? `Rs ${Math.max((r.estimatedSalary || 0) - parseAdvance(r.remarks), 0).toLocaleString()}` : '-'}
                         </span>
                       </div>
                     </div>
