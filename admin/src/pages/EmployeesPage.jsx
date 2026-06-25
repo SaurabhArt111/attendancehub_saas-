@@ -13,18 +13,12 @@ export default function EmployeesPage() {
   const [showBulk,     setShowBulk]     = useState(false)
   const [expanded,     setExpanded]     = useState(null)
   const [editEmp,      setEditEmp]      = useState(null)
-  const [attendanceStats, setAttendanceStats] = useState({})
 
   const load = useCallback(async () => {
     try {
-      const [eRes, dRes, aRes] = await Promise.all([
-        api.get('/employees'),
-        api.get('/designations'),
-        api.get('/attendance/stats').catch(() => ({ data: {} }))
-      ])
+      const [eRes, dRes] = await Promise.all([api.get('/employees'), api.get('/designations')])
       setEmployees(eRes.data)
       setDesignations(dRes.data)
-      setAttendanceStats(aRes.data || {})
     } catch { toast.error('Failed to load') }
     finally { setLoading(false) }
   }, [])
@@ -77,7 +71,6 @@ export default function EmployeesPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '.55rem' }}>
           {filtered.map(emp => (
             <EmployeeCard key={emp._id} emp={emp}
-              stats={attendanceStats[emp._id] || { P: 0, A: 0, PP: 0 }}
               expanded={expanded === emp._id}
               onToggle={() => setExpanded(expanded === emp._id ? null : emp._id)}
               onEdit={() => setEditEmp(emp)}
@@ -93,73 +86,31 @@ export default function EmployeesPage() {
   )
 }
 
-function EmployeeCard({ emp, stats, expanded, onToggle, onEdit, onDelete }) {
+function EmployeeCard({ emp, expanded, onToggle, onEdit, onDelete }) {
   const initials = emp.username.slice(0,2).toUpperCase()
   return (
     <div className="emp-card slide-in">
       <div className="emp-card-header" onClick={onToggle}>
-        {/* Left Section: Avatar + Name + Details */}
-        <div className="emp-card-left">
+        <div className="flex items-center gap-2" style={{ minWidth: 0, flex: 1 }}>
           <div className="emp-avatar">{initials}</div>
-          <div className="emp-card-info">
-            <div className="emp-card-name">
+          <div style={{ minWidth: 0 }}>
+            <div className="font-600" style={{ display:'flex', alignItems:'center', gap:'.4rem', flexWrap:'wrap' }}>
               {emp.username}
-              <span className="emp-card-id">{emp.employeeId}</span>
+              <span className="tag" style={{ fontSize: '.7rem', fontFamily: 'monospace', letterSpacing:'.04em' }}>{emp.employeeId}</span>
             </div>
-            {(emp.designation || emp.contact) && (
-              <div className="emp-card-meta">
-                {emp.designation && <span className="emp-designation">{emp.designation}</span>}
-                {emp.contact && <span className="emp-contact">{emp.contact}</span>}
-              </div>
-            )}
+            <div className="text-xs text-2" style={{ marginTop:'.1rem' }}>
+              {emp.designation && <span style={{ marginRight: '.5rem' }}>{emp.designation}</span>}
+              {emp.contact && <span>{emp.contact}</span>}
+            </div>
           </div>
         </div>
-
-        {/* Middle Section: Attendance Stats */}
-        <div className="emp-card-stats">
-          <div className="stat-badge stat-present">
-            <span className="stat-label">P</span>
-            <span className="stat-value">{stats.P || 0}</span>
-          </div>
-          <div className="stat-badge stat-absent">
-            <span className="stat-label">A</span>
-            <span className="stat-value">{stats.A || 0}</span>
-          </div>
-          <div className="stat-badge stat-presentplus">
-            <span className="stat-label">PP</span>
-            <span className="stat-value">{stats.PP || 0}</span>
-          </div>
-        </div>
-
-        {/* Right Section: Salary + Actions */}
-        <div className="emp-card-right">
-          <div className="emp-salary-badge">
+        <div className="flex items-center gap-1" style={{ flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <span className="tag" style={{ whiteSpace:'nowrap' }}>
             {emp.salaryType === 'daily' ? `Rs ${emp.salary}/day` : `Rs ${emp.salary?.toLocaleString()}/mo`}
-          </div>
-          <div className="emp-card-actions">
-            <button 
-              className="btn btn-secondary btn-sm" 
-              onClick={e => { e.stopPropagation(); onEdit() }} 
-              title="Edit employee"
-            >Edit</button>
-            <button 
-              className="btn btn-danger btn-sm" 
-              onClick={e => { e.stopPropagation(); onDelete() }}
-              title="Delete employee"
-            >Delete</button>
-            <svg 
-              className={`chevron ${expanded ? 'open' : ''}`} 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2.5"
-              aria-hidden="true"
-            >
-              <path d="m6 9 6 6 6-6"/>
-            </svg>
-          </div>
+          </span>
+          <button className="btn btn-secondary btn-sm" onClick={e => { e.stopPropagation(); onEdit() }} style={{ whiteSpace: 'nowrap' }}>Edit</button>
+          <button className="btn btn-danger btn-sm" onClick={e => { e.stopPropagation(); onDelete() }} style={{ whiteSpace: 'nowrap' }}>Delete</button>
+          <svg className={`chevron ${expanded ? 'open' : ''}`} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
         </div>
       </div>
       {expanded && (
