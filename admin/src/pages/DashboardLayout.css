@@ -89,7 +89,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 1.25rem;
+  padding: 0;
   padding-bottom: 0;
   overflow-x: hidden;
   transition: margin-left var(--tr);
@@ -100,7 +100,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0;
+  padding: 1.25rem;
   margin: 0;
   width: 100%;
   max-width: 100%;
@@ -205,7 +205,7 @@
   justify-content: space-around;
   align-items: center;
   padding: 0 0.5rem;
-  /* safe-area-inset-bottom: env(safe-area-inset-bottom); */
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 
 .bnav-item {
@@ -237,7 +237,7 @@
 
 /* Responsive Overrides - Tablets */
 @media (max-width: 1024px) {
-  .main-content {
+  .page-wrap {
     padding: 1rem;
   }
 }
@@ -267,12 +267,13 @@
 
   .main-content {
     margin-left: 0;
-    padding: 1rem;
+    padding: 0;
     padding-bottom: 0;
     min-height: calc(100vh - 60px);
   }
 
   .page-wrap {
+    padding: 1rem;
     padding-bottom: 60px;
   }
 
@@ -296,7 +297,12 @@
 /* Small Mobile Devices */
 @media (max-width: 480px) {
   .main-content {
+    padding: 0;
+  }
+
+  .page-wrap {
     padding: 0.875rem;
+    padding-bottom: 60px;
   }
 
   .topbar {
