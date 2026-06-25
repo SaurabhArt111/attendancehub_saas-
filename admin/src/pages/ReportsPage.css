@@ -171,6 +171,27 @@
     flex-shrink: 0;
   }
 
+  /* Badge styles for P and PP */
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: calc(var(--radius) / 2);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-P {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .badge-PP {
+    background: rgba(167, 139, 250, 0.1);
+    color: #a78bfa;
+  }
+
   /* Card Metrics Section */
   .report-card-metrics {
     display: grid;
@@ -196,6 +217,39 @@
     font-size: 1rem;
     font-weight: 700;
     color: var(--text);
+  }
+
+  /* Card Details Section (Designation, Salary, Est Pay) */
+  .report-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .report-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .report-detail-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .report-detail-value {
+    font-size: 0.85rem;
+    color: var(--text);
+    text-align: right;
+    word-break: break-word;
   }
 
   /* Card Remarks Section */
@@ -292,10 +346,6 @@
     font-size: 0.7rem;
   }
 
-  .report-stat-grid {
-    grid-template-columns: 1fr;
-    gap: 0.625rem;
-  }
 }
 
 /* Landscape mobile */

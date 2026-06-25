@@ -3,20 +3,20 @@ import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import './ReportsPage.css'
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 export default function ReportsPage() {
   const now = new Date()
-  const [year,  setYear]  = useState(now.getFullYear())
+  const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
-  const [report, setReport]   = useState([])
+  const [report, setReport] = useState([])
   const [loading, setLoading] = useState(false)
   const [company, setCompany] = useState(null)
 
-  const monthStr = `${year}-${String(month + 1).padStart(2,'0')}`
+  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`
 
   useEffect(() => {
-    api.get('/company/info').then(r => setCompany(r.data)).catch(() => {})
+    api.get('/company/info').then(r => setCompany(r.data)).catch(() => { })
   }, [])
 
   useEffect(() => {
@@ -27,10 +27,10 @@ export default function ReportsPage() {
       .finally(() => setLoading(false))
   }, [monthStr])
 
-  function prevM() { if (month === 0) { setYear(y=>y-1); setMonth(11) } else setMonth(m=>m-1) }
+  function prevM() { if (month === 0) { setYear(y => y - 1); setMonth(11) } else setMonth(m => m - 1) }
   function nextM() {
-    if (new Date(year, month+1, 1) > new Date()) return
-    if (month === 11) { setYear(y=>y+1); setMonth(0) } else setMonth(m=>m+1)
+    if (new Date(year, month + 1, 1) > new Date()) return
+    if (month === 11) { setYear(y => y + 1); setMonth(0) } else setMonth(m => m + 1)
   }
 
   const totals = report.reduce((a, r) => {
@@ -40,12 +40,12 @@ export default function ReportsPage() {
     a.advance += advance
     a.salaryAfterAdvance += Math.max((r.estimatedSalary || 0) - advance, 0)
     return a
-  }, { employees:0, present:0, advance:0, salaryAfterAdvance:0 })
+  }, { employees: 0, present: 0, advance: 0, salaryAfterAdvance: 0 })
 
   // ── CSV Download ──
   function downloadCSV() {
     const daysInMonth = report[0]?.daysInMonth || 30
-    const headerRow   = ['Sr.No.','Name','Designation',`Salary (${daysInMonth} days)`,'Present','Total Salary','Advance/Remark','Net Salary','Signature']
+    const headerRow = ['Sr.No.', 'Name', 'Designation', `Salary (${daysInMonth} days)`, 'Present', 'Total Salary', 'Advance/Remark', 'Net Salary', 'Signature']
     const rows = report.map((r, idx) => {
       const present = r.totalPresent
       const salaryLabel = r.salaryType === 'daily' ? `Rs ${r.salary}/day` : `Rs ${r.salary}/mo`
@@ -70,9 +70,9 @@ export default function ReportsPage() {
 
     const csv = [headerRow, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
     a.download = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
     a.click()
     URL.revokeObjectURL(url)
@@ -108,10 +108,10 @@ export default function ReportsPage() {
         <div className="reports-controls-wrapper">
           {/* Month Navigation */}
           <div className="reports-month-nav">
-            <button 
-              className="btn btn-secondary btn-sm" 
+            <button
+              className="btn btn-secondary btn-sm"
               onClick={prevM}
-              style={{ 
+              style={{
                 padding: '0.35rem 0.55rem',
                 minWidth: 'auto',
                 display: 'flex',
@@ -123,9 +123,9 @@ export default function ReportsPage() {
             >
               &#8249;
             </button>
-            <span 
-              className="font-600" 
-              style={{ 
+            <span
+              className="font-600"
+              style={{
                 minWidth: '135px',
                 textAlign: 'center',
                 fontSize: '.88rem',
@@ -135,11 +135,11 @@ export default function ReportsPage() {
             >
               {MONTHS[month]} {year}
             </span>
-            <button 
-              className="btn btn-secondary btn-sm" 
+            <button
+              className="btn btn-secondary btn-sm"
               onClick={nextM}
-              disabled={new Date(year, month+1, 1) > new Date()}
-              style={{ 
+              disabled={new Date(year, month + 1, 1) > new Date()}
+              style={{
                 padding: '0.35rem 0.55rem',
                 minWidth: 'auto',
                 display: 'flex',
@@ -154,9 +154,9 @@ export default function ReportsPage() {
           </div>
 
           {/* Download CSV Button */}
-          <button 
-            className="btn btn-success btn-sm reports-download-btn" 
-            onClick={downloadCSV} 
+          <button
+            className="btn btn-success btn-sm reports-download-btn"
+            onClick={downloadCSV}
             disabled={!report.length}
             style={{
               display: 'flex',
@@ -167,18 +167,18 @@ export default function ReportsPage() {
             }}
             title={!report.length ? "No data available" : "Download as CSV"}
           >
-            <svg 
-              width="14" 
-              height="14" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
               strokeWidth="2.5"
               style={{ flexShrink: 0 }}
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             <span>Download CSV</span>
           </button>
@@ -191,10 +191,10 @@ export default function ReportsPage() {
           { label: 'Total Employees', val: totals.employees, cls: 'text-success' },
           { label: 'Total Present', val: totals.present, cls: '' },
           { label: 'Total Advance', val: `Rs ${totals.advance.toLocaleString()}`, cls: 'text-danger' },
-          { label: 'Salary After Advance', val: `Rs ${totals.salaryAfterAdvance.toLocaleString()}`, cls: '', style: { color:'#a78bfa' } },
+          { label: 'Salary After Advance', val: `Rs ${totals.salaryAfterAdvance.toLocaleString()}`, cls: '', style: { color: '#a78bfa' } },
         ].map(s => (
-          <div key={s.label} className="card card-sm report-stat-card" style={{ textAlign:'center' }}>
-            <div className={`font-700 ${s.cls}`} style={{ fontSize:'1.35rem', ...(s.style||{}) }}>{s.val}</div>
+          <div key={s.label} className="card card-sm report-stat-card" style={{ textAlign: 'center' }}>
+            <div className={`font-700 ${s.cls}`} style={{ fontSize: '1.35rem', ...(s.style || {}) }}>{s.val}</div>
             <div className="text-xs text-2">{s.label}</div>
           </div>
         ))}
@@ -203,7 +203,7 @@ export default function ReportsPage() {
       {/* DATA TABLE SECTION */}
       <div className="card report-table-wrapper" style={{ padding: 0 }}>
         {loading ? (
-          <div style={{ textAlign:'center', padding:'2.5rem' }}><span className="spinner" /></div>
+          <div style={{ textAlign: 'center', padding: '2.5rem' }}><span className="spinner" /></div>
         ) : report.length === 0 ? (
           <div className="empty">No data for this month.</div>
         ) : (
@@ -215,7 +215,10 @@ export default function ReportsPage() {
                   <tr>
                     <th>#</th>
                     <th>Name</th>
-                    <th>Present</th>
+                    <th>Desig.</th>
+                    <th>Salary</th>
+                    <th><span className="badge badge-P">P</span></th>
+                    <th><span className="badge badge-PP">PP</span></th>
                     <th>Est. Pay</th>
                     <th>Remarks</th>
                   </tr>
@@ -223,18 +226,23 @@ export default function ReportsPage() {
                 <tbody>
                   {report.map((r, idx) => (
                     <tr key={r.id}>
-                      <td className="text-2 text-sm">{idx+1}</td>
+                      <td className="text-2 text-sm">{idx + 1}</td>
                       <td className="font-600">
                         <div>{r.username}</div>
-                        <div className="text-xs text-2" style={{fontFamily:'monospace'}}>{r.employeeId}</div>
+                        <div className="text-xs text-2" style={{ fontFamily: 'monospace' }}>{r.employeeId}</div>
                       </td>
-                      <td className="font-600">{r.totalPresent}</td>
+                      <td className="text-sm text-2">{r.designation || '-'}</td>
+                      <td className="text-sm" style={{ whiteSpace: 'nowrap' }}>
+                        {r.salary ? (r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`) : '-'}
+                      </td>
+                      <td className="text-success font-600">{r.P || 0}</td>
+                      <td style={{ color: '#a78bfa', fontWeight: 600 }}>{r.PP || 0}</td>
                       <td className="font-600">
                         {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
                       </td>
                       <td className="text-sm" style={{ maxWidth: 160 }}>
                         {r.remarks.length > 0 ? (
-                          <span title={r.remarks.join(' | ')} style={{ color:'var(--warn)', cursor:'help' }}>
+                          <span title={r.remarks.join(' | ')} style={{ color: 'var(--warn)', cursor: 'help' }}>
                             {r.remarks.length} rmk{r.remarks.length > 1 ? 's' : ''}
                           </span>
                         ) : <span className="text-2">-</span>}
@@ -262,12 +270,34 @@ export default function ReportsPage() {
                     {/* Card Body: Key Metrics */}
                     <div className="report-card-metrics">
                       <div className="report-metric">
-                        <span className="report-metric-label">Present</span>
-                        <span className="report-metric-value">{r.totalPresent}</span>
+                        <span className="report-metric-label">Present (P)</span>
+                        <span className="report-metric-value text-success">{r.P || 0}</span>
                       </div>
                       <div className="report-metric">
-                        <span className="report-metric-label">Est. Pay</span>
-                        <span className="report-metric-value">
+                        <span className="report-metric-label">Present (PP)</span>
+                        <span className="report-metric-value" style={{ color: '#a78bfa' }}>{r.PP || 0}</span>
+                      </div>
+                    </div>
+
+                    {/* Card Body: Secondary Details */}
+                    <div className="report-card-details">
+                      {r.designation && (
+                        <div className="report-detail-row">
+                          <span className="report-detail-label">Designation</span>
+                          <span className="report-detail-value">{r.designation}</span>
+                        </div>
+                      )}
+                      {r.salary && (
+                        <div className="report-detail-row">
+                          <span className="report-detail-label">Salary</span>
+                          <span className="report-detail-value">
+                            {r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`}
+                          </span>
+                        </div>
+                      )}
+                      <div className="report-detail-row">
+                        <span className="report-detail-label">Est. Pay</span>
+                        <span className="report-detail-value font-600">
                           {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
                         </span>
                       </div>
