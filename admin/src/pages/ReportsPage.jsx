@@ -201,55 +201,96 @@ export default function ReportsPage() {
       </div>
 
       {/* DATA TABLE SECTION */}
-      <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+      <div className="card report-table-wrapper" style={{ padding: 0 }}>
         {loading ? (
           <div style={{ textAlign:'center', padding:'2.5rem' }}><span className="spinner" /></div>
         ) : report.length === 0 ? (
           <div className="empty">No data for this month.</div>
         ) : (
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                {/* <th>Desig.</th> */}
-                {/* <th>Salary</th> */}
-                {/* <th><span className="badge badge-P">P</span></th>
-                <th><span className="badge badge-PP">PP</span></th> */}
-                <th>Present</th>
-                <th>Est. Pay</th>
-                <th>Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {report.map((r, idx) => (
-                <tr key={r.id}>
-                  <td className="text-2 text-sm">{idx+1}</td>
-                  <td className="font-600">
-                    <div>{r.username}</div>
-                    <div className="text-xs text-2" style={{fontFamily:'monospace'}}>{r.employeeId}</div>
-                  </td>
-                  {/* <td className="text-sm text-2">{r.designation || '-'}</td> */}
-                  {/* <td className="text-sm" style={{whiteSpace:'nowrap'}}>
-                    {r.salary ? (r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`) : '-'}
-                  </td> */}
-                  {/* <td className="text-success font-600">{r.P}</td>
-                  <td style={{color:'#a78bfa',fontWeight:600}}>{r.PP}</td> */}
-                  <td className="font-600">{r.totalPresent}</td>
-                  <td className="font-600">
-                    {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
-                  </td>
-                  <td className="text-sm" style={{ maxWidth: 160 }}>
-                    {r.remarks.length > 0 ? (
-                      <span title={r.remarks.join(' | ')} style={{ color:'var(--warn)', cursor:'help' }}>
-                        {r.remarks.length} rmk{r.remarks.length > 1 ? 's' : ''}
-                      </span>
-                    ) : <span className="text-2">-</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <>
+            {/* Desktop Table View */}
+            <div className="report-table-desktop">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Present</th>
+                    <th>Est. Pay</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.map((r, idx) => (
+                    <tr key={r.id}>
+                      <td className="text-2 text-sm">{idx+1}</td>
+                      <td className="font-600">
+                        <div>{r.username}</div>
+                        <div className="text-xs text-2" style={{fontFamily:'monospace'}}>{r.employeeId}</div>
+                      </td>
+                      <td className="font-600">{r.totalPresent}</td>
+                      <td className="font-600">
+                        {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
+                      </td>
+                      <td className="text-sm" style={{ maxWidth: 160 }}>
+                        {r.remarks.length > 0 ? (
+                          <span title={r.remarks.join(' | ')} style={{ color:'var(--warn)', cursor:'help' }}>
+                            {r.remarks.length} rmk{r.remarks.length > 1 ? 's' : ''}
+                          </span>
+                        ) : <span className="text-2">-</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="report-table-mobile">
+              <div className="report-cards-list">
+                {report.map((r, idx) => (
+                  <div key={r.id} className="report-employee-card">
+                    {/* Card Header: Name & ID */}
+                    <div className="report-card-header">
+                      <div>
+                        <div className="report-card-name">{r.username}</div>
+                        <div className="report-card-id">{r.employeeId}</div>
+                      </div>
+                      <div className="report-card-badge">#{idx + 1}</div>
+                    </div>
+
+                    {/* Card Body: Key Metrics */}
+                    <div className="report-card-metrics">
+                      <div className="report-metric">
+                        <span className="report-metric-label">Present</span>
+                        <span className="report-metric-value">{r.totalPresent}</span>
+                      </div>
+                      <div className="report-metric">
+                        <span className="report-metric-label">Est. Pay</span>
+                        <span className="report-metric-value">
+                          {r.salary ? `Rs ${r.estimatedSalary?.toLocaleString()}` : '-'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Card Footer: Remarks */}
+                    {r.remarks.length > 0 && (
+                      <div className="report-card-remarks">
+                        <span className="report-remarks-tag">
+                          {r.remarks.length} remark{r.remarks.length > 1 ? 's' : ''}
+                        </span>
+                        <div className="report-remarks-list">
+                          {r.remarks.map((remark, i) => (
+                            <div key={i} className="report-remark-item">{remark}</div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
