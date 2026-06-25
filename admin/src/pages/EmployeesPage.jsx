@@ -4,6 +4,14 @@ import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
 import './EmployeesPage.css'
 
+// Today-status pill config
+const TODAY_STATUS = {
+  P:  { label: 'Present',  bg: 'rgba(16,185,129,0.15)',  color: 'var(--success)', dot: '#10b981' },
+  A:  { label: 'Absent',   bg: 'rgba(239,68,68,0.12)',   color: 'var(--danger)',  dot: '#ef4444' },
+  PP: { label: 'Double',   bg: 'rgba(167,139,250,0.15)', color: '#a78bfa',        dot: '#a78bfa' },
+  H:  { label: 'Holiday',  bg: 'rgba(245,158,11,0.12)',  color: 'var(--warn)',    dot: '#f59e0b' },
+}
+
 export default function EmployeesPage() {
   const [employees,    setEmployees]    = useState([])
   const [designations, setDesignations] = useState([])
@@ -13,6 +21,8 @@ export default function EmployeesPage() {
   const [showBulk,     setShowBulk]     = useState(false)
   const [expanded,     setExpanded]     = useState(null)
   const [editEmp,      setEditEmp]      = useState(null)
+  // Map: employeeId -> today's status ('P'|'A'|'PP'|null)
+  const [todayStatuses, setTodayStatuses] = useState({})
 
   const load = useCallback(async () => {
     try {
@@ -38,6 +48,10 @@ export default function EmployeesPage() {
       toast.success('Employee deleted')
       load()
     } catch (err) { toast.error(err.response?.data?.error || 'Delete failed') }
+  }
+
+  function handleTodayStatus(empId, status) {
+    setTodayStatuses(prev => ({ ...prev, [empId]: status }))
   }
 
   return (
@@ -72,9 +86,11 @@ export default function EmployeesPage() {
           {filtered.map(emp => (
             <EmployeeCard key={emp._id} emp={emp}
               expanded={expanded === emp._id}
+              todayStatus={todayStatuses[emp._id]}
               onToggle={() => setExpanded(expanded === emp._id ? null : emp._id)}
               onEdit={() => setEditEmp(emp)}
-              onDelete={() => deleteEmployee(emp._id, emp.username)} />
+              onDelete={() => deleteEmployee(emp._id, emp.username)}
+              onTodayStatus={(s) => handleTodayStatus(emp._id, s)} />
           ))}
         </div>
       )}
@@ -86,7 +102,19 @@ export default function EmployeesPage() {
   )
 }
 
-function EmployeeCard({ emp, expanded, onToggle, onEdit, onDelete }) {
+function TodayBadge({ status }) {
+  if (!status) return null
+  const cfg = TODAY_STATUS[status]
+  if (!cfg) return null
+  return (
+    <span className="emp-today-badge" style={{ background: cfg.bg, color: cfg.color }}>
+      <span className="emp-today-dot" style={{ background: cfg.dot }} />
+      {cfg.label}
+    </span>
+  )
+}
+
+function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onDelete, onTodayStatus }) {
   const initials = emp.username.slice(0,2).toUpperCase()
   return (
     <div className="emp-card slide-in">
@@ -98,9 +126,10 @@ function EmployeeCard({ emp, expanded, onToggle, onEdit, onDelete }) {
               {emp.username}
               <span className="tag" style={{ fontSize: '.7rem', fontFamily: 'monospace', letterSpacing:'.04em' }}>{emp.employeeId}</span>
             </div>
-            <div className="text-xs text-2" style={{ marginTop:'.1rem' }}>
-              {emp.designation && <span style={{ marginRight: '.5rem' }}>{emp.designation}</span>}
+            <div className="text-xs text-2" style={{ marginTop:'.1rem', display:'flex', alignItems:'center', gap:'.5rem', flexWrap:'wrap' }}>
+              {emp.designation && <span>{emp.designation}</span>}
               {emp.contact && <span>{emp.contact}</span>}
+              <TodayBadge status={todayStatus} />
             </div>
           </div>
         </div>
@@ -115,7 +144,7 @@ function EmployeeCard({ emp, expanded, onToggle, onEdit, onDelete }) {
       </div>
       {expanded && (
         <div className="emp-card-body fade-in">
-          <AttendanceCalendar employeeId={emp._id} adminMode />
+          <AttendanceCalendar employeeId={emp._id} adminMode onTodayStatus={onTodayStatus} />
         </div>
       )}
     </div>
@@ -151,8 +180,6 @@ function AddModal({ designations, onClose, onDone }) {
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Add Employee</h2>
-
-        {/* Auto-generated ID */}
         <div className="form-group">
           <label className="label">Auto-Generated Employee ID</label>
           {idLoading ? (
@@ -165,7 +192,6 @@ function AddModal({ designations, onClose, onDone }) {
           )}
           <div className="text-xs text-2 mt-1">Employee uses this mixed ID to log in - no company code needed</div>
         </div>
-
         <form onSubmit={submit}>
           <div className="form-group">
             <label className="label">Full Name / Username</label>

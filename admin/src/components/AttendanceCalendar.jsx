@@ -6,7 +6,13 @@ import './AttendanceCalendar.css'
 const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-export default function AttendanceCalendar({ employeeId, adminMode = false }) {
+// Exported so EmployeeCard can read today's status without a separate fetch
+export function getTodayKey() {
+  const now = new Date()
+  return String(now.getDate()).padStart(2, '0')
+}
+
+export default function AttendanceCalendar({ employeeId, adminMode = false, onTodayStatus }) {
   const now = new Date()
   const [year,  setYear]  = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
@@ -14,9 +20,12 @@ export default function AttendanceCalendar({ employeeId, adminMode = false }) {
   const [holidays, setHolidays] = useState([])
   const [loading, setLoading]   = useState(true)
   const [markModal, setMarkModal] = useState(null)
+  const [savingDay, setSavingDay] = useState(null) // which day is being saved
 
   const monthStr = `${year}-${String(month + 1).padStart(2,'0')}`
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth()
 
+  // Full load — only on mount or month change
   const load = useCallback(async () => {
     if (!employeeId) return
     setLoading(true)
@@ -25,8 +34,14 @@ export default function AttendanceCalendar({ employeeId, adminMode = false }) {
         api.get(`/attendance/${employeeId}/${monthStr}`),
         api.get('/holidays')
       ])
-      setData(attRes.data)
+      const newData = attRes.data
+      setData(newData)
       setHolidays(holRes.data)
+      // Notify parent of today's status (only when viewing current month)
+      if (onTodayStatus && isCurrentMonth) {
+        const todayKey = getTodayKey()
+        onTodayStatus(newData[todayKey]?.status || null)
+      }
     } catch(e) { console.error('Calendar load error', e) }
     finally { setLoading(false) }
   }, [employeeId, monthStr])
@@ -62,22 +77,51 @@ export default function AttendanceCalendar({ employeeId, adminMode = false }) {
     return { cls, remark, status, isFut, isToday }
   }
 
+  // ── SEAMLESS single-day patch ──────────────────────────────
   async function markAttendance(day, status, remark) {
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    const dayStr  = String(day).padStart(2,'0')
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${dayStr}`
+    setSavingDay(day)
     try {
       await api.post('/attendance', { employeeId, date: dateStr, status, remark })
+      // Patch just this day in local state — no full reload
+      setData(prev => {
+        const next = { ...prev, [dayStr]: { status, remark } }
+        // Notify parent if it's today
+        if (onTodayStatus && isCurrentMonth && dayStr === getTodayKey()) {
+          onTodayStatus(status)
+        }
+        return next
+      })
       toast.success('Saved')
-      load()
-    } catch (err) { toast.error(err.response?.data?.error || 'Save failed') }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Save failed')
+    } finally {
+      setSavingDay(null)
+    }
   }
 
   async function clearAttendance(day) {
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    const dayStr  = String(day).padStart(2,'0')
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${dayStr}`
+    setSavingDay(day)
     try {
       await api.delete(`/attendance/${employeeId}/${dateStr}`)
+      // Remove just this day from local state
+      setData(prev => {
+        const next = { ...prev }
+        delete next[dayStr]
+        if (onTodayStatus && isCurrentMonth && dayStr === getTodayKey()) {
+          onTodayStatus(null)
+        }
+        return next
+      })
       toast.success('Cleared')
-      load()
-    } catch { toast.error('Clear failed') }
+    } catch {
+      toast.error('Clear failed')
+    } finally {
+      setSavingDay(null)
+    }
   }
 
   function handleDayClick(d) {
@@ -117,12 +161,13 @@ export default function AttendanceCalendar({ employeeId, adminMode = false }) {
             const d   = i + 1
             const { cls, remark, isFut } = getDayMeta(d)
             const clickable = adminMode && !isFut
+            const saving    = savingDay === d
             return (
               <div key={d}
-                className={`cal-day ${cls} ${clickable ? 'clickable' : ''}`}
+                className={`cal-day ${cls} ${clickable ? 'clickable' : ''} ${saving ? 'cal-day-saving' : ''}`}
                 onClick={() => handleDayClick(d)}
                 title={remark || undefined}>
-                {d}
+                {saving ? <span className="cal-mini-spinner" /> : d}
                 {remark && !isFut && <span className="remark-dot" />}
               </div>
             )

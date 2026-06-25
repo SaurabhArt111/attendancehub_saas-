@@ -140,3 +140,24 @@
     width: 100%;
   }
 }
+
+/* ── Today's attendance status badge in emp-card-header ── */
+.emp-today-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px 2px 5px;
+  border-radius: 99px;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.emp-today-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
