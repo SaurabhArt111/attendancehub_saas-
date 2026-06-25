@@ -68,6 +68,7 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
+      {/* Main Content */}
       <div className="main-content">
         <header className="topbar">
           <div className="flex items-center gap-2">
@@ -81,7 +82,7 @@ export default function DashboardLayout() {
               {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </button>
             {user?.company?.companyCode && (
-              <span className="tag" id="desktop-company-code">{user.company.companyCode}</span>
+              <span className="tag" id="desktop-company-code">{user.company.name}</span>
             )}
           </div>
         </header>
