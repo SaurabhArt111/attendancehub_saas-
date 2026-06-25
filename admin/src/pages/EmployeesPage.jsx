@@ -5,14 +5,14 @@ import AttendanceCalendar from '../components/AttendanceCalendar'
 import './EmployeesPage.css'
 
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState([])
+  const [employees,    setEmployees]    = useState([])
   const [designations, setDesignations] = useState([])
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [showAdd, setShowAdd] = useState(false)
-  const [showBulk, setShowBulk] = useState(false)
-  const [expanded, setExpanded] = useState(null)
-  const [editEmp, setEditEmp] = useState(null)
+  const [search,       setSearch]       = useState('')
+  const [loading,      setLoading]      = useState(true)
+  const [showAdd,      setShowAdd]      = useState(false)
+  const [showBulk,     setShowBulk]     = useState(false)
+  const [expanded,     setExpanded]     = useState(null)
+  const [editEmp,      setEditEmp]      = useState(null)
   const [attendanceStats, setAttendanceStats] = useState({})
 
   const load = useCallback(async () => {
@@ -60,7 +60,7 @@ export default function EmployeesPage() {
       </div>
 
       <div className="search-wrap mb-2">
-        <svg className="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+        <svg className="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input className="input" placeholder="Search by name, ID, or designation..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
@@ -69,7 +69,7 @@ export default function EmployeesPage() {
       ) : filtered.length === 0 ? (
         <div className="empty card">
           <div className="empty-icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
           </div>
           {search ? 'No employees match your search' : 'No employees yet.'}
         </div>
@@ -86,15 +86,15 @@ export default function EmployeesPage() {
         </div>
       )}
 
-      {showAdd && <AddModal designations={designations} onClose={() => setShowAdd(false)} onDone={() => { setShowAdd(false); load() }} />}
+      {showAdd  && <AddModal  designations={designations} onClose={() => setShowAdd(false)}  onDone={() => { setShowAdd(false);  load() }} />}
       {showBulk && <BulkModal designations={designations} onClose={() => setShowBulk(false)} onDone={() => { setShowBulk(false); load() }} />}
-      {editEmp && <EditModal emp={editEmp} designations={designations} onClose={() => setEditEmp(null)} onDone={() => { setEditEmp(null); load() }} />}
+      {editEmp  && <EditModal emp={editEmp} designations={designations} onClose={() => setEditEmp(null)} onDone={() => { setEditEmp(null); load() }} />}
     </div>
   )
 }
 
 function EmployeeCard({ emp, stats, expanded, onToggle, onEdit, onDelete }) {
-  const initials = emp.username.slice(0, 2).toUpperCase()
+  const initials = emp.username.slice(0,2).toUpperCase()
   return (
     <div className="emp-card slide-in">
       <div className="emp-card-header" onClick={onToggle}>
@@ -137,27 +137,27 @@ function EmployeeCard({ emp, stats, expanded, onToggle, onEdit, onDelete }) {
             {emp.salaryType === 'daily' ? `Rs ${emp.salary}/day` : `Rs ${emp.salary?.toLocaleString()}/mo`}
           </div>
           <div className="emp-card-actions">
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={e => { e.stopPropagation(); onEdit() }}
+            <button 
+              className="btn btn-secondary btn-sm" 
+              onClick={e => { e.stopPropagation(); onEdit() }} 
               title="Edit employee"
             >Edit</button>
-            <button
-              className="btn btn-danger btn-sm"
+            <button 
+              className="btn btn-danger btn-sm" 
               onClick={e => { e.stopPropagation(); onDelete() }}
               title="Delete employee"
             >Delete</button>
-            <svg
-              className={`chevron ${expanded ? 'open' : ''}`}
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
+            <svg 
+              className={`chevron ${expanded ? 'open' : ''}`} 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
               strokeWidth="2.5"
               aria-hidden="true"
             >
-              <path d="m6 9 6 6 6-6" />
+              <path d="m6 9 6 6 6-6"/>
             </svg>
           </div>
         </div>
@@ -181,7 +181,7 @@ function AddModal({ designations, onClose, onDone }) {
   useEffect(() => {
     api.get('/employees/suggest-id')
       .then(r => setSuggestedId(r.data.employeeId))
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => setIdLoading(false))
   }, [])
 
@@ -208,7 +208,7 @@ function AddModal({ designations, onClose, onDone }) {
             <div className="flex items-center gap-2"><span className="spinner" /><span className="text-sm text-2">Generating...</span></div>
           ) : (
             <div className="id-badge">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M8 9h8M8 13h5" /></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
               {suggestedId}
             </div>
           )}
@@ -329,12 +329,12 @@ function EditModal({ emp, designations, onClose, onDone }) {
 }
 
 function BulkModal({ designations, onClose, onDone }) {
-  const [rows, setRows] = useState([{ username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' }])
+  const [rows, setRows] = useState([{ username:'', contact:'', password:'', salaryType:'monthly', salary:'', designation:'' }])
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState(null)
 
   function setRow(i, k, v) { setRows(r => r.map((row, idx) => idx === i ? { ...row, [k]: v } : row)) }
-  function addRow() { setRows(r => [...r, { username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' }]) }
+  function addRow() { setRows(r => [...r, { username:'', contact:'', password:'', salaryType:'monthly', salary:'', designation:'' }]) }
   function remRow(i) { setRows(r => r.filter((_, idx) => idx !== i)) }
 
   async function submit() {
@@ -345,7 +345,7 @@ function BulkModal({ designations, onClose, onDone }) {
       const { data } = await api.post('/employees/bulk', { employees: valid })
       setResults(data)
       if (data.created.length) toast.success(`${data.created.length} added`)
-      if (data.failed.length) toast.error(`${data.failed.length} failed`)
+      if (data.failed.length)  toast.error(`${data.failed.length} failed`)
     } catch (err) { toast.error(err.response?.data?.error || 'Bulk add failed') }
     finally { setLoading(false) }
   }
@@ -356,8 +356,8 @@ function BulkModal({ designations, onClose, onDone }) {
         <h2 className="modal-title">Bulk Add Results</h2>
         <div className="mb-2">
           <div className="text-success font-600 mb-1">{results.created.length} created</div>
-          {results.created.map((c, i) => <div key={i} className="text-sm">{c.username} — <span style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>{c.employeeId}</span></div>)}
-          {results.failed.map((f, i) => <div key={i} className="text-danger text-sm mt-1">{f.username}: {f.reason}</div>)}
+          {results.created.map((c,i) => <div key={i} className="text-sm">{c.username} — <span style={{fontFamily:'monospace',color:'var(--accent)'}}>{c.employeeId}</span></div>)}
+          {results.failed.map((f,i) => <div key={i} className="text-danger text-sm mt-1">{f.username}: {f.reason}</div>)}
         </div>
         <button className="btn btn-primary btn-block" onClick={onDone}>Done</button>
       </div>
@@ -377,23 +377,23 @@ function BulkModal({ designations, onClose, onDone }) {
             <tbody>
               {rows.map((r, i) => (
                 <tr key={i}>
-                  <td><input className="input" style={{ minWidth: 100 }} value={r.username} onChange={e => setRow(i, 'username', e.target.value)} /></td>
-                  <td><input className="input" style={{ minWidth: 90 }} value={r.contact} onChange={e => setRow(i, 'contact', e.target.value)} /></td>
-                  <td><input className="input" type="password" style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i, 'password', e.target.value)} /></td>
+                  <td><input className="input" style={{ minWidth: 100 }} value={r.username} onChange={e => setRow(i,'username',e.target.value)} /></td>
+                  <td><input className="input" style={{ minWidth: 90 }} value={r.contact}  onChange={e => setRow(i,'contact', e.target.value)} /></td>
+                  <td><input className="input" type="password" style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i,'password',e.target.value)} /></td>
                   <td>
-                    <select className="input" style={{ minWidth: 100 }} value={r.designation} onChange={e => setRow(i, 'designation', e.target.value)}>
+                    <select className="input" style={{ minWidth: 100 }} value={r.designation} onChange={e => setRow(i,'designation',e.target.value)}>
                       <option value="">None</option>
                       {designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
                     </select>
                   </td>
                   <td>
-                    <select className="input" style={{ minWidth: 90 }} value={r.salaryType} onChange={e => setRow(i, 'salaryType', e.target.value)}>
+                    <select className="input" style={{ minWidth: 90 }} value={r.salaryType} onChange={e => setRow(i,'salaryType',e.target.value)}>
                       <option value="monthly">Monthly</option>
                       <option value="daily">Daily</option>
                     </select>
                   </td>
-                  <td><input className="input" type="number" style={{ minWidth: 70 }} value={r.salary} onChange={e => setRow(i, 'salary', e.target.value)} /></td>
-                  <td><button className="btn btn-danger btn-sm" onClick={() => remRow(i)} disabled={rows.length === 1}>X</button></td>
+                  <td><input className="input" type="number" style={{ minWidth: 70 }} value={r.salary} onChange={e => setRow(i,'salary',e.target.value)} /></td>
+                  <td><button className="btn btn-danger btn-sm" onClick={() => remRow(i)} disabled={rows.length===1}>X</button></td>
                 </tr>
               ))}
             </tbody>
