@@ -28,7 +28,6 @@ const corsOptions = {
   credentials: true
 };
 
-app.set('trust proxy', 1); // Required for Render/Vercel reverse proxies
 app.use(cors(corsOptions));
 app.use(express.json());
 

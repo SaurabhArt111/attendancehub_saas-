@@ -74,10 +74,6 @@ export default function LoginPage() {
           <p className="text-sm text-2 mt-1">
             Already registered but no admin yet? <Link to="/setup" style={{ color: 'var(--primary)' }}>Set up admin</Link>
           </p>
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
-            <Link to="/forgot-code" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Forgot Company Code?</Link>
-            <Link to="/forgot-password" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Forgot Password?</Link>
-          </div>
         </div>
       </div>
     </div>
