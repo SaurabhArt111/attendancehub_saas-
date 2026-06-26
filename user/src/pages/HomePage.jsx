@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import api from '../utils/api'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
-
 const STATUS_LABEL = { P: 'Present', A: 'Absent', PP: 'Double Shift' }
 
 export default function HomePage() {
@@ -30,8 +29,14 @@ export default function HomePage() {
 
   const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
   const todayAtt = att[String(now.getDate()).padStart(2,'0')]
-  const todayHol = hols.find(h => h.date === todayStr)
-  const upcoming = hols.filter(h => h.date >= todayStr).slice(0, 3)
+  const todayHol = hols.find(h => h.date?.split('T')[0] === todayStr)
+  const upcoming = hols.filter(h => (h.date?.split('T')[0] || h.date) >= todayStr).slice(0, 3)
+
+  // Remarks for current month
+  const remarks = Object.entries(att)
+    .filter(([, v]) => v.remark)
+    .map(([day, v]) => ({ day: parseInt(day, 10), remark: v.remark, status: v.status }))
+    .sort((a, b) => a.day - b.day)
 
   const initials = user?.username?.slice(0,2).toUpperCase() || 'U'
 
@@ -58,6 +63,7 @@ export default function HomePage() {
         <div className="stat-card stat-PP"><div className="stat-val">{PP}</div><div className="stat-lbl">Double</div></div>
       </div>
 
+      {/* Today card */}
       <div className="card mb-2">
         <div className="font-600 mb-1 text-sm">Today</div>
         {loading ? <span className="spinner" /> : (
@@ -65,9 +71,7 @@ export default function HomePage() {
             {todayHol ? (
               <span className="badge" style={{ background:'rgba(245,158,11,.15)',color:'#f59e0b' }}>{todayHol.name}</span>
             ) : todayAtt ? (
-              <span className={`badge badge-${todayAtt.status}`}>
-                {STATUS_LABEL[todayAtt.status] || todayAtt.status}
-              </span>
+              <span className={`badge badge-${todayAtt.status}`}>{STATUS_LABEL[todayAtt.status] || todayAtt.status}</span>
             ) : (
               <span className="text-sm text-2">Not marked yet</span>
             )}
@@ -75,6 +79,28 @@ export default function HomePage() {
         )}
       </div>
 
+      {/* Remarks this month */}
+      {!loading && remarks.length > 0 && (
+        <div className="card mb-2">
+          <div className="font-600 mb-1 text-sm" style={{ display:'flex', alignItems:'center', gap:'.4rem' }}>
+            <span style={{ width:8,height:8,borderRadius:'50%',background:'var(--warn)',display:'inline-block' }} />
+            Remarks — {MONTHS[now.getMonth()]}
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:'.35rem' }}>
+            {remarks.map(r => (
+              <div key={r.day} style={{ display:'flex', gap:'.65rem', alignItems:'flex-start', padding:'.45rem .6rem', background:'var(--bg3)', borderRadius:8 }}>
+                <div style={{ minWidth:28, fontWeight:700, fontSize:'.8rem', color:'var(--text2)', paddingTop:1 }}>{r.day}</div>
+                <div style={{ flex:1 }}>
+                  {r.status && <span className={`badge badge-${r.status}`} style={{ fontSize:'.65rem', padding:'1px 5px', marginBottom:3, display:'inline-block' }}>{r.status}</span>}
+                  <div className="text-sm" style={{ marginTop: r.status ? '.2rem' : 0 }}>{r.remark}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Upcoming holidays */}
       {upcoming.length > 0 && (
         <div className="card">
           <div className="font-600 mb-1 text-sm">Upcoming Holidays</div>
@@ -83,7 +109,7 @@ export default function HomePage() {
               <div key={h._id} className="flex justify-between items-center"
                 style={{ padding:'.4rem .58rem',background:'var(--bg3)',borderRadius:7 }}>
                 <span className="font-600 text-sm">{h.name}</span>
-                <span className="text-xs text-2">{new Date(h.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+                <span className="text-xs text-2">{new Date((h.date?.split('T')[0] || h.date)+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
               </div>
             ))}
           </div>

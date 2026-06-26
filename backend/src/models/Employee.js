@@ -10,6 +10,8 @@ const employeeSchema = new mongoose.Schema({
   salaryType:   { type: String, enum: ['monthly', 'daily'], default: 'monthly' },
   salary:       { type: Number, default: 0 },       // fixed monthly OR daily rate
   isActive:     { type: Boolean, default: true },
+  archived:     { type: Boolean, default: false },
+  archivedAt:   { type: Date },
   createdAt:    { type: Date, default: Date.now }
 });
 

@@ -364,3 +364,24 @@
     gap: 0.75rem;
   }
 }
+
+/* CSV hint text */
+.reports-csv-hint {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  opacity: 0.75;
+}
+
+/* Ensure download button always visible on mobile */
+@media (max-width: 480px) {
+  .reports-controls-wrapper {
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .reports-download-btn {
+    font-size: 0.78rem;
+    padding: 0.38rem 0.7rem !important;
+  }
+}

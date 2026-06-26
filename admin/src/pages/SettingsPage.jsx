@@ -11,7 +11,7 @@ export default function SettingsPage() {
   useEffect(() => {
     api.get('/company/info')
       .then(r => setCompany(r.data))
-      .catch(() => { })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
@@ -69,9 +69,9 @@ export default function SettingsPage() {
             <div className="text-sm text-2 mb-2">The three attendance states used across the system</div>
             <div className="settings-list">
               {[
-                { code: 'P', label: 'Present', desc: 'Employee was present for regular hours', cls: 'badge-P' },
-                { code: 'A', label: 'Absent', desc: 'Employee was absent', cls: 'badge-A' },
-                { code: 'PP', label: 'Double', desc: 'Employee worked a double shift', cls: 'badge-PP' },
+                { code: 'P',  label: 'Present', desc: 'Employee was present for regular hours', cls: 'badge-P' },
+                { code: 'A',  label: 'Absent',  desc: 'Employee was absent',                    cls: 'badge-A' },
+                { code: 'PP', label: 'Double',  desc: 'Employee worked a double shift',          cls: 'badge-PP' },
               ].map(s => (
                 <div key={s.code} className="settings-legend-item">
                   <span className={`badge ${s.cls}`}>{s.code}</span>
@@ -85,7 +85,7 @@ export default function SettingsPage() {
           </div>
 
           <button className="Signout-btn" onClick={logout}>
-            <LogoutIcon /> SignOut
+            <LogoutIcon /> Sign Out
           </button>
         </div>
       )}
@@ -93,4 +93,5 @@ export default function SettingsPage() {
   )
 }
 
-function LogoutIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg> }
+function LogoutIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> }
+function CopyIcon()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> }

@@ -37,3 +37,16 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
+
+.Signout-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: all var(--tr);
+}
+
+.Signout-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+}

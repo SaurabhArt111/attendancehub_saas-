@@ -1,8 +1,3 @@
-/* ============================================================
-   TOASTER — eye-catching notifications
-   Desktop: bottom-right slide-in with glow & progress bar
-   Mobile:  top full-width drop with swipe-to-dismiss
-   ============================================================ */
 
 .toast-wrap {
   position: fixed;
