@@ -84,3 +84,8 @@
   background: rgba(239, 68, 68, 0.15);
   border-color: var(--danger);
 }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.text-sm { font-size: 0.8rem; }
+.text-2  { color: var(--text-secondary); }
