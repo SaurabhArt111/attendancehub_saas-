@@ -4,6 +4,27 @@ import api from '../utils/api'
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const STATUS_LABEL = { P: 'Present', A: 'Absent', PP: 'Double Shift' }
 
+// Color palette for holidays (matches AttendancePage)
+const HOLIDAY_COLORS = [
+  { bg: '#fef3c7', color: '#92400e', name: 'Amber' },
+  { bg: '#fce7f3', color: '#831843', name: 'Pink' },
+  { bg: '#e0e7ff', color: '#3730a3', name: 'Indigo' },
+  { bg: '#f0fdfa', color: '#134e4a', name: 'Teal' },
+  { bg: '#fef2f2', color: '#7f1d1d', name: 'Red' },
+]
+
+// Hash function for consistent holiday colors
+function getHolidayColor(name) {
+  if (!name) return HOLIDAY_COLORS[0]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash << 5) - hash) + name.charCodeAt(i)
+    hash = hash & hash
+  }
+  const colorIndex = Math.abs(hash) % HOLIDAY_COLORS.length
+  return HOLIDAY_COLORS[colorIndex]
+}
+
 export default function HomePage() {
   const now  = new Date()
   const user = (() => { try { return JSON.parse(localStorage.getItem('employeeUser') || '{}') } catch { return {} } })()
@@ -36,7 +57,7 @@ export default function HomePage() {
   const remarks = Object.entries(att)
     .filter(([, v]) => v.remark)
     .map(([day, v]) => ({ day: parseInt(day, 10), remark: v.remark, status: v.status }))
-    .sort((a, b) => a.day - b.day)
+    .sort((a, b) => b.day - a.day) // Latest first
 
   const initials = user?.username?.slice(0,2).toUpperCase() || 'U'
 
@@ -46,8 +67,20 @@ export default function HomePage() {
         <div className="avatar">{initials}</div>
         <div>
           <div className="font-700" style={{ fontSize:'1.02rem' }}>{user?.username}</div>
-          {user?.designation && <div className="text-sm text-2">{user.designation}</div>}
-          <div style={{ fontFamily:'monospace',color:'var(--accent)',fontWeight:700,fontSize:'.82rem',marginTop:'.2rem',letterSpacing:'.05em' }}>
+          {user?.designation && (
+            <div className="text-sm text-2" style={{
+              display: 'inline-block',
+              marginTop: '.25rem',
+              padding: '.2rem .55rem',
+              background: 'rgba(59, 130, 246, 0.1)',
+              color: '#1e40af',
+              borderRadius: '.25rem',
+              fontWeight: 500
+            }}>
+              {user.designation}
+            </div>
+          )}
+          <div style={{ fontFamily:'monospace',color:'var(--accent)',fontWeight:700,fontSize:'.82rem',marginTop:'.4rem',letterSpacing:'.05em' }}>
             {user?.employeeId}
           </div>
           <div className="text-xs text-2 mt-1">{user?.company?.name}</div>
@@ -86,13 +119,40 @@ export default function HomePage() {
             <span style={{ width:8,height:8,borderRadius:'50%',background:'var(--warn)',display:'inline-block' }} />
             Remarks — {MONTHS[now.getMonth()]}
           </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:'.35rem' }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:'.5rem' }}>
             {remarks.map(r => (
-              <div key={r.day} style={{ display:'flex', gap:'.65rem', alignItems:'flex-start', padding:'.45rem .6rem', background:'var(--bg3)', borderRadius:8 }}>
-                <div style={{ minWidth:28, fontWeight:700, fontSize:'.8rem', color:'var(--text2)', paddingTop:1 }}>{r.day}</div>
-                <div style={{ flex:1 }}>
-                  {r.status && <span className={`badge badge-${r.status}`} style={{ fontSize:'.65rem', padding:'1px 5px', marginBottom:3, display:'inline-block' }}>{r.status}</span>}
-                  <div className="text-sm" style={{ marginTop: r.status ? '.2rem' : 0 }}>{r.remark}</div>
+              <div key={r.day} style={{
+                padding: '.65rem .75rem',
+                background: 'var(--bg3)',
+                borderRadius: 8,
+                borderLeft: '3px solid var(--warn)',
+              }}>
+                <div className="flex items-center justify-between mb-1" style={{ flexWrap: 'wrap', gap: '.5rem' }}>
+                  <div style={{
+                    fontWeight: 700,
+                    fontSize: '.85rem',
+                    color: 'var(--text)',
+                    minWidth: 32
+                  }}>
+                    {r.day} {MONTHS[now.getMonth()].slice(0,3)}
+                  </div>
+                  {r.status && (
+                    <span className={`badge badge-${r.status}`} style={{
+                      fontSize: '.65rem',
+                      padding: '.25rem .5rem',
+                      fontWeight: 600
+                    }}>
+                      {r.status}
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm" style={{
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  color: 'var(--text2)',
+                  lineHeight: 1.4
+                }}>
+                  {r.remark}
                 </div>
               </div>
             ))}
@@ -104,14 +164,24 @@ export default function HomePage() {
       {upcoming.length > 0 && (
         <div className="card">
           <div className="font-600 mb-1 text-sm">Upcoming Holidays</div>
-          <div style={{ display:'flex',flexDirection:'column',gap:'.38rem' }}>
-            {upcoming.map(h => (
-              <div key={h._id} className="flex justify-between items-center"
-                style={{ padding:'.4rem .58rem',background:'var(--bg3)',borderRadius:7 }}>
-                <span className="font-600 text-sm">{h.name}</span>
-                <span className="text-xs text-2">{new Date((h.date?.split('T')[0] || h.date)+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
-              </div>
-            ))}
+          <div style={{ display:'flex',flexDirection:'column',gap:'.4rem' }}>
+            {upcoming.map(h => {
+              const holColor = getHolidayColor(h.name)
+              return (
+                <div key={h._id} className="flex justify-between items-center"
+                  style={{
+                    padding: '.55rem .75rem',
+                    background: holColor.bg,
+                    borderRadius: 8,
+                    borderLeft: `3px solid ${holColor.color}`
+                  }}>
+                  <span className="font-600 text-sm" style={{ color: holColor.color }}>{h.name}</span>
+                  <span className="text-xs" style={{ color: holColor.color, opacity: 0.7 }}>
+                    {new Date((h.date?.split('T')[0] || h.date)+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',weekday:'short'})}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

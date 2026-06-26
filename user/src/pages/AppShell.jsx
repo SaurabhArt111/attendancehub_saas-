@@ -41,10 +41,6 @@ export default function AppShell() {
             style={{ background: 'none', border: 'none', color: 'var(--text2)', cursor: 'pointer', padding: '.3rem', borderRadius: 6, display:'flex', alignItems:'center' }}>
             {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           </button>
-          <button onClick={logout}
-            style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '.8rem', padding: '.25rem .5rem', borderRadius: 6 }}>
-            LogOut
-          </button>
         </div>
       </header>
 

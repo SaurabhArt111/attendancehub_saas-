@@ -11,6 +11,28 @@ const TODAY_STATUS = {
   H:  { label: 'Holiday',  bg: 'rgba(245,158,11,0.12)',  color: 'var(--warn)',    dot: '#f59e0b' },
 }
 
+// Color palette for designations
+const DESIGNATION_COLORS = [
+  { bg: '#dbeafe', color: '#1e40af' }, // blue
+  { bg: '#dcfce7', color: '#166534' }, // green
+  { bg: '#fef08a', color: '#854d0e' }, // amber
+  { bg: '#fce7f3', color: '#be185d' }, // pink
+  { bg: '#e9d5ff', color: '#6b21a8' }, // purple
+  { bg: '#f0fdfa', color: '#134e4a' }, // teal
+]
+
+// Hash function to consistently assign color to designation
+function getDesignationColor(designation) {
+  if (!designation) return null
+  let hash = 0
+  for (let i = 0; i < designation.length; i++) {
+    hash = ((hash << 5) - hash) + designation.charCodeAt(i)
+    hash = hash & hash // Convert to 32-bit integer
+  }
+  const colorIndex = Math.abs(hash) % DESIGNATION_COLORS.length
+  return DESIGNATION_COLORS[colorIndex]
+}
+
 export default function EmployeesPage() {
   const [employees,    setEmployees]    = useState([])
   const [archived,     setArchived]     = useState([])
@@ -24,6 +46,23 @@ export default function EmployeesPage() {
   const [editEmp,      setEditEmp]      = useState(null)
   const [archiveModal, setArchiveModal] = useState(null) // emp to archive
   const [todayStatuses, setTodayStatuses] = useState({})
+
+  // Load today statuses from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('employee-today-statuses')
+    if (saved) {
+      try {
+        setTodayStatuses(JSON.parse(saved))
+      } catch (e) {
+        console.error('Failed to load statuses from localStorage', e)
+      }
+    }
+  }, [])
+
+  // Save today statuses to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('employee-today-statuses', JSON.stringify(todayStatuses))
+  }, [todayStatuses])
 
   const load = useCallback(async () => {
     try {
@@ -220,6 +259,8 @@ function TodayBadge({ status }) {
 
 function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onExport, onArchive, onTodayStatus }) {
   const initials = emp.username.slice(0,2).toUpperCase()
+  const designationColor = getDesignationColor(emp.designation)
+  
   return (
     <div className="emp-card slide-in">
       <div className="emp-card-header" onClick={onToggle}>
@@ -231,7 +272,19 @@ function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onExport, 
               <span className="tag" style={{ fontSize: '.7rem', fontFamily: 'monospace', letterSpacing:'.04em' }}>{emp.employeeId}</span>
             </div>
             <div className="text-xs text-2" style={{ marginTop:'.1rem', display:'flex', alignItems:'center', gap:'.5rem', flexWrap:'wrap' }}>
-              {emp.designation && <span>{emp.designation}</span>}
+              {emp.designation && (
+                <span style={{
+                  background: designationColor?.bg || '#f0f0f0',
+                  color: designationColor?.color || '#666',
+                  padding: '.2rem .55rem',
+                  borderRadius: '.25rem',
+                  fontWeight: 500,
+                  fontSize: '.75rem',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {emp.designation}
+                </span>
+              )}
               {emp.contact && <span>{emp.contact}</span>}
               <TodayBadge status={todayStatus} />
             </div>

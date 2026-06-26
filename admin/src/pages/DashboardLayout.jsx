@@ -78,12 +78,12 @@ export default function DashboardLayout() {
             <span className="topbar-title">{currentLabel}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme" style={{ marginRight: '0.25rem' }}>
-              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-            </button>
             {user?.company?.companyCode && (
               <span className="tag" id="desktop-company-code">{user.company.name}</span>
             )}
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme" style={{ marginRight: '0.25rem' }}>
+              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            </button>
           </div>
         </header>
 
