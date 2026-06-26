@@ -15,9 +15,9 @@ const TODAY_STATUS = {
 const DESIGNATION_COLORS = [
   { bg: '#dbeafe', color: '#1e40af' }, // blue
   { bg: '#dcfce7', color: '#166534' }, // green
-  { bg: '#fef08a', color: '#854d0e' }, // amber
+  { bg: '#fff7b8', color: '#854d0e' }, // amber
   { bg: '#fce7f3', color: '#be185d' }, // pink
-  { bg: '#e9d5ff', color: '#6b21a8' }, // purple
+  { bg: '#f2e5ff', color: '#6b21a8' }, // purple
   { bg: '#f0fdfa', color: '#134e4a' }, // teal
 ]
 
@@ -225,10 +225,6 @@ export default function EmployeesPage() {
                         {emp.archivedAt && <div className="text-xs text-2">Archived {new Date(emp.archivedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>}
                       </div>
                       <div className="flex gap-1" style={{ flexShrink: 0 }}>
-                        <button className="btn btn-secondary btn-sm" title="Export data"
-                          onClick={() => exportEmployee(emp)} style={{ padding: '.3rem .55rem' }}>
-                          <ExportIcon />
-                        </button>
                         <button className="btn btn-secondary btn-sm" onClick={() => restoreEmployee(emp._id, emp.username)}>Restore</button>
                         <button className="btn btn-danger btn-sm" onClick={() => permanentDelete(emp._id, emp.username)}>Delete</button>
                       </div>
@@ -295,9 +291,6 @@ function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onExport, 
             {emp.salaryType === 'daily' ? `Rs ${emp.salary}/day` : `Rs ${emp.salary?.toLocaleString()}/mo`}
           </span>
           <button className="btn btn-secondary btn-sm" onClick={e => { e.stopPropagation(); onEdit() }}>Edit</button>
-          <button className="btn btn-secondary btn-sm" title="Export data" onClick={e => { e.stopPropagation(); onExport() }} style={{ padding: '.35rem .55rem' }}>
-            <ExportIcon />
-          </button>
           <button className="btn btn-danger btn-sm" onClick={e => { e.stopPropagation(); onArchive() }}>Archive</button>
           <svg className={`chevron ${expanded ? 'open' : ''}`} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
         </div>
