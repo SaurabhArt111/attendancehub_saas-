@@ -69,33 +69,23 @@ export default function ReportsPage() {
     })
 
     const csv = [headerRow, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
-    const fileName = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
-
-    // Detect if running in WebToApp or similar native wrapper
-    const isNativeApp = window.location.protocol === 'file:' ||
-      navigator.userAgent.includes('WebToApp') ||
-      navigator.userAgent.includes('Cordova')
-
-    if (isNativeApp) {
-      // For native apps: redirect to browser for download
-      const encodedCsv = encodeURIComponent(csv)
-      const dataUrl = `data:text/csv;charset=utf-8,${encodedCsv}`
-
-      // Use a slight delay to show toast before redirecting
-      toast.success('Opening file download in your browser...')
-      setTimeout(() => {
-        window.open(dataUrl, '_blank')
-      }, 300)
-    } else {
-      // Standard download for web browsers
-      const blob = new Blob([csv], { type: 'text/csv' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = fileName
-      a.click()
-      URL.revokeObjectURL(url)
-    }
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    
+    // Create anchor element and open in default browser
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    
+    // Append to DOM, click, and remove
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    
+    // Clean up the object URL after a short delay
+    setTimeout(() => URL.revokeObjectURL(url), 100)
   }
 
   // Extract numeric advance from any remark, with or without the word "advance".
@@ -196,7 +186,7 @@ export default function ReportsPage() {
               <span>Download CSV</span>
             </button>
             <div className="text-xs text-2 reports-csv-hint" style={{ textAlign: 'right' }}>
-              Open AttendanceHub in a browser to save the Excel file
+              Opens in your default browser
             </div>
           </div>
         </div>
