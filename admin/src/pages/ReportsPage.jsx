@@ -42,7 +42,7 @@ export default function ReportsPage() {
     return a
   }, { employees: 0, present: 0, advance: 0, salaryAfterAdvance: 0 })
 
-  // ── CSV Download ──
+  // ── CSV Download (Opens in New Browser Tab) ──
   function downloadCSV() {
     const daysInMonth = report[0]?.daysInMonth || 30
     const headerRow = ['Sr.No.', 'Name', 'Designation', `Salary (${daysInMonth} days)`, 'Present', 'Total Salary', 'Advance/Remark', 'Net Salary', 'Signature']
@@ -69,23 +69,27 @@ export default function ReportsPage() {
     })
 
     const csv = [headerRow, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
+    const filename = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
     
-    // Create anchor element and open in default browser
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
-    a.target = '_blank'
-    a.rel = 'noopener noreferrer'
+    // Create a temporary link element
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
     
-    // Append to DOM, click, and remove
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    // Append to DOM and click to trigger download
+    document.body.appendChild(link)
+    link.click()
     
-    // Clean up the object URL after a short delay
-    setTimeout(() => URL.revokeObjectURL(url), 100)
+    // Also open in new browser tab for WebIntoApp compatibility
+    window.open(url, '_blank')
+    
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    }, 100)
   }
 
   // Extract numeric advance from any remark, with or without the word "advance".
@@ -186,7 +190,7 @@ export default function ReportsPage() {
               <span>Download CSV</span>
             </button>
             <div className="text-xs text-2 reports-csv-hint" style={{ textAlign: 'right' }}>
-              Opens in your default browser
+              Opens in your default browser to save the file
             </div>
           </div>
         </div>
