@@ -42,7 +42,7 @@ export default function ReportsPage() {
     return a
   }, { employees: 0, present: 0, advance: 0, salaryAfterAdvance: 0 })
 
-  // ── CSV Download (Opens in New Browser Tab) ──
+  // ── CSV Download ──
   function downloadCSV() {
     const daysInMonth = report[0]?.daysInMonth || 30
     const headerRow = ['Sr.No.', 'Name', 'Designation', `Salary (${daysInMonth} days)`, 'Present', 'Total Salary', 'Advance/Remark', 'Net Salary', 'Signature']
@@ -69,27 +69,13 @@ export default function ReportsPage() {
     })
 
     const csv = [headerRow, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
-    const filename = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
-    
-    // Create a temporary link element
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    
-    // Append to DOM and click to trigger download
-    document.body.appendChild(link)
-    link.click()
-    
-    // Also open in new browser tab for WebIntoApp compatibility
-    window.open(url, '_blank')
-    
-    // Cleanup
-    setTimeout(() => {
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    }, 100)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   // Extract numeric advance from any remark, with or without the word "advance".
@@ -190,7 +176,7 @@ export default function ReportsPage() {
               <span>Download CSV</span>
             </button>
             <div className="text-xs text-2 reports-csv-hint" style={{ textAlign: 'right' }}>
-              Opens in your default browser to save the file
+              Open AttendanceHub in a browser to save the Excel file
             </div>
           </div>
         </div>
