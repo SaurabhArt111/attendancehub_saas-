@@ -69,13 +69,33 @@ export default function ReportsPage() {
     })
 
     const csv = [headerRow, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    const fileName = `Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.csv`
+
+    // Detect if running in WebToApp or similar native wrapper
+    const isNativeApp = window.location.protocol === 'file:' ||
+      navigator.userAgent.includes('WebToApp') ||
+      navigator.userAgent.includes('Cordova')
+
+    if (isNativeApp) {
+      // For native apps: redirect to browser for download
+      const encodedCsv = encodeURIComponent(csv)
+      const dataUrl = `data:text/csv;charset=utf-8,${encodedCsv}`
+
+      // Use a slight delay to show toast before redirecting
+      toast.success('Opening file download in your browser...')
+      setTimeout(() => {
+        window.open(dataUrl, '_blank')
+      }, 300)
+    } else {
+      // Standard download for web browsers
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      a.click()
+      URL.revokeObjectURL(url)
+    }
   }
 
   // Extract numeric advance from any remark, with or without the word "advance".
