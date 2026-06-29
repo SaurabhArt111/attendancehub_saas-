@@ -3,8 +3,8 @@ import api from '../utils/api'
 import { toast } from './Toaster'
 import './AttendanceCalendar.css'
 
-const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 // Exported so EmployeeCard can read today's status without a separate fetch
 export function getTodayKey() {
@@ -14,15 +14,15 @@ export function getTodayKey() {
 
 export default function AttendanceCalendar({ employeeId, adminMode = false, onTodayStatus }) {
   const now = new Date()
-  const [year,  setYear]  = useState(now.getFullYear())
+  const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
-  const [data,  setData]  = useState({})
+  const [data, setData] = useState({})
   const [holidays, setHolidays] = useState([])
-  const [loading, setLoading]   = useState(true)
+  const [loading, setLoading] = useState(true)
   const [markModal, setMarkModal] = useState(null)
   const [savingDay, setSavingDay] = useState(null) // which day is being saved
 
-  const monthStr = `${year}-${String(month + 1).padStart(2,'0')}`
+  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth()
 
   // Full load — only on mount or month change
@@ -42,33 +42,33 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
         const todayKey = getTodayKey()
         onTodayStatus(newData[todayKey]?.status || null)
       }
-    } catch(e) { console.error('Calendar load error', e) }
+    } catch (e) { console.error('Calendar load error', e) }
     finally { setLoading(false) }
   }, [employeeId, monthStr])
 
   useEffect(() => { load() }, [load])
 
-  const today       = new Date(); today.setHours(0,0,0,0)
-  const daysInMonth = new Date(year, month+1, 0).getDate()
-  const firstDay    = new Date(year, month, 1).getDay()
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const firstDay = new Date(year, month, 1).getDay()
   const holidayDates = new Set(
     holidays
       .filter(h => h.date && h.date.split('T')[0].startsWith(monthStr))
       .map(h => h.date.split('T')[0].split('-')[2])
   )
-  const canGoNext = new Date(year, month+1, 1) <= today
+  const canGoNext = new Date(year, month + 1, 1) <= today
 
-  function prevMonth() { if (month === 0) { setYear(y => y-1); setMonth(11) } else setMonth(m => m-1) }
-  function nextMonth() { if (!canGoNext) return; if (month === 11) { setYear(y => y+1); setMonth(0) } else setMonth(m => m+1) }
+  function prevMonth() { if (month === 0) { setYear(y => y - 1); setMonth(11) } else setMonth(m => m - 1) }
+  function nextMonth() { if (!canGoNext) return; if (month === 11) { setYear(y => y + 1); setMonth(0) } else setMonth(m => m + 1) }
 
   function getDayMeta(d) {
-    const dayStr = String(d).padStart(2,'0')
-    const rec    = data[dayStr]
+    const dayStr = String(d).padStart(2, '0')
+    const rec = data[dayStr]
     const status = rec?.status
     const remark = rec?.remark || ''
-    const isHol  = holidayDates.has(dayStr)
-    const isFut  = new Date(year, month, d) > today
-    const isToday= new Date(year, month, d).toDateString() === today.toDateString()
+    const isHol = holidayDates.has(dayStr)
+    const isFut = new Date(year, month, d) > today
+    const isToday = new Date(year, month, d).toDateString() === today.toDateString()
     let cls = ''
     if (isHol && !status) cls = 'H'
     else if (isFut) cls = 'future'
@@ -79,8 +79,8 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
 
   // ── SEAMLESS single-day patch ──────────────────────────────
   async function markAttendance(day, status, remark) {
-    const dayStr  = String(day).padStart(2,'0')
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${dayStr}`
+    const dayStr = String(day).padStart(2, '0')
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${dayStr}`
     setSavingDay(day)
     try {
       await api.post('/attendance', { employeeId, date: dateStr, status, remark })
@@ -102,8 +102,8 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
   }
 
   async function clearAttendance(day) {
-    const dayStr  = String(day).padStart(2,'0')
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${dayStr}`
+    const dayStr = String(day).padStart(2, '0')
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${dayStr}`
     setSavingDay(day)
     try {
       await api.delete(`/attendance/${employeeId}/${dateStr}`)
@@ -128,12 +128,12 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
     if (!adminMode) return
     const { isFut } = getDayMeta(d)
     if (isFut) return
-    const dayStr = String(d).padStart(2,'0')
+    const dayStr = String(d).padStart(2, '0')
     setMarkModal({ day: d, existing: data[dayStr] })
   }
 
-  const P  = Object.values(data).filter(v => v.status === 'P').length
-  const A  = Object.values(data).filter(v => v.status === 'A').length
+  const P = Object.values(data).filter(v => v.status === 'P').length
+  const A = Object.values(data).filter(v => v.status === 'A').length
   const PP = Object.values(data).filter(v => v.status === 'PP').length
 
   return (
@@ -145,10 +145,62 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
       </div>
 
       <div className="stat-strip mb-2">
-        <div className="stat-chip"><span className="badge badge-P">P</span> {P}</div>
-        <div className="stat-chip"><span className="badge badge-A">A</span> {A}</div>
-        <div className="stat-chip"><span className="badge badge-PP">PP</span> {PP}</div>
-        {PP > 0 && <div className="stat-chip text-2 text-xs">Total present: {P + PP*2}</div>}
+        <button
+          className="stat-chip stat-btn"
+          disabled={!adminMode || savingDay}
+          onClick={() => {
+            const today = new Date().getDate()
+            setMarkModal({
+              day: today,
+              existing: data[getTodayKey()]
+            })
+          }}
+        >
+          <span className="badge badge-P">P</span>
+          <span>{P}</span>
+        </button>
+
+        <button
+          className="stat-chip stat-btn"
+          disabled={!adminMode || savingDay}
+          onClick={() => {
+            const today = new Date().getDate()
+            markAttendance(today, 'P', data[getTodayKey()]?.remark || '')
+          }}
+        >
+          <span className="badge badge-P">✔</span>
+          Mark Present
+        </button>
+
+        <button
+          className="stat-chip stat-btn"
+          disabled={!adminMode || savingDay}
+          onClick={() => {
+            const today = new Date().getDate()
+            markAttendance(today, 'A', data[getTodayKey()]?.remark || '')
+          }}
+        >
+          <span className="badge badge-A">✕</span>
+          Mark Absent
+        </button>
+
+        <button
+          className="stat-chip stat-btn"
+          disabled={!adminMode || savingDay}
+          onClick={() => {
+            const today = new Date().getDate()
+            markAttendance(today, 'PP', data[getTodayKey()]?.remark || '')
+          }}
+        >
+          <span className="badge badge-PP">2×</span>
+          Double
+        </button>
+
+        {PP > 0 && (
+          <div className="stat-chip">
+            Total Present : {P + PP * 2}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -158,10 +210,10 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
           {DAYS.map(d => <div key={d} className="cal-head">{d}</div>)}
           {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
           {Array.from({ length: daysInMonth }).map((_, i) => {
-            const d   = i + 1
+            const d = i + 1
             const { cls, remark, isFut } = getDayMeta(d)
             const clickable = adminMode && !isFut
-            const saving    = savingDay === d
+            const saving = savingDay === d
             return (
               <div key={d}
                 className={`cal-day ${cls} ${clickable ? 'clickable' : ''} ${saving ? 'cal-day-saving' : ''}`}
@@ -176,14 +228,14 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
       )}
 
       <div className="flex gap-2 mt-2" style={{ flexWrap: 'wrap', fontSize: '.73rem' }}>
-        {[{c:'P',l:'Present'},{c:'A',l:'Absent'},{c:'PP',l:'Double'},{c:'H',l:'Holiday'}].map(s => (
+        {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' }, { c: 'H', l: 'Holiday' }].map(s => (
           <span key={s.c} className="flex items-center gap-1">
-            <span className={`cal-day ${s.c}`} style={{ width:14,height:14,fontSize:9,borderRadius:4,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>{s.c}</span>
+            <span className={`cal-day ${s.c}`} style={{ width: 14, height: 14, fontSize: 9, borderRadius: 4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.c}</span>
             {s.l}
           </span>
         ))}
         <span className="flex items-center gap-1">
-          <span style={{ width:8,height:8,borderRadius:'50%',background:'var(--warn)',display:'inline-block',flexShrink:0 }} />
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warn)', display: 'inline-block', flexShrink: 0 }} />
           Remark
         </span>
       </div>
@@ -212,7 +264,7 @@ function MarkModal({ day, existing, onClose, onMark, onDelete }) {
         <div className="form-group">
           <label className="label">Status</label>
           <div className="flex gap-1">
-            {[{c:'P',l:'Present'},{c:'A',l:'Absent'},{c:'PP',l:'Double'}].map(s => (
+            {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' }].map(s => (
               <button key={s.c} type="button"
                 className={`btn btn-sm ${status === s.c ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ flex: 1 }}
