@@ -1,33 +1,22 @@
 {
-  "name": "attendancehub-backend",
-  "version": "2.0.0",
+  "name": "attendancehub-saas-backend",
+  "version": "1.0.0",
   "description": "AttendanceHub SaaS Backend",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "test": "node --test"
-  },
-  "keywords": [
-    "attendance",
-    "management",
-    "saas",
-    "mongodb",
-    "express"
-  ],
-  "license": "MIT",
-  "engines": {
-    "node": ">=18"
+    "dev": "nodemon src/server.js"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.0"
+    "mongoose": "^8.3.4",
+    "nanoid": "^3.3.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.0"
   }
 }

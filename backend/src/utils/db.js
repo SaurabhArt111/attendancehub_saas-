@@ -1,17 +1,13 @@
 const mongoose = require('mongoose');
 
-async function connectDB() {
+const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/attendancehub';
-
-    await mongoose.connect(mongoURI);
-
-    console.log('✓ MongoDB connected');
-    return mongoose.connection;
-  } catch (error) {
-    console.error('✗ MongoDB connection failed:', error.message);
+    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/attendancehub');
+    console.log(`MongoDB connected: ${conn.connection.host}`);
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
     process.exit(1);
   }
-}
+};
 
-module.exports = { connectDB };
+module.exports = connectDB;

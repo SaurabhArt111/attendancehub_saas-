@@ -1,38 +1,28 @@
-import axios from 'axios';
+import axios from 'axios'
 
-// Use environment variables for API base URL, fallback to localhost
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const isProd = import.meta.env.VITE_NODE_ENV === 'production'
+const baseURL = isProd
+  ? (import.meta.env.VITE_API_URL || 'http://localhost:5900/api')
+  : 'http://localhost:5900/api'
 
-const instance = axios.create({
-  baseURL: API_BASE,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const api = axios.create({ baseURL })
 
-// Add token to every request
-instance.interceptors.request.use(
-  config => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(cfg => {
+  const token = localStorage.getItem('adminToken')
+  if (token) cfg.headers.Authorization = `Bearer ${token}`
+  return cfg
+})
+
+api.interceptors.response.use(
+  r => r,
+  err => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('adminToken')
+      localStorage.removeItem('adminUser')
+      window.location.href = '/login'
     }
-    return config;
-  },
-  error => Promise.reject(error)
-);
-
-// Handle response errors
-instance.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('admin');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
+    return Promise.reject(err)
   }
-);
+)
 
-export default instance;
+export default api

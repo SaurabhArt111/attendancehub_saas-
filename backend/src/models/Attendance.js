@@ -1,32 +1,14 @@
 const mongoose = require('mongoose');
 
-// Monthly attendance structure: One document per employee per month
-// Example: { employeeId, companyId, month: "06-2026", days: { "1": { status: "P" }, "2": { status: "A", remark: "Sick" } } }
-const attendanceSchema = new mongoose.Schema(
-  {
-    companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
-    employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', required: true },
-    month: { type: String, required: true }, // Format: MM-YYYY (e.g., "06-2026")
-    days: {
-      type: Map,
-      of: new mongoose.Schema(
-        {
-          status: { type: String, enum: ['P', 'A', 'PP', 'H'], required: true }, // P=Present, A=Absent, PP=Double, H=Holiday
-          remark: { type: String, default: '' },
-        },
-        { _id: false }
-      ),
-      default: new Map(),
-    },
-  },
-  { timestamps: true }
-);
+// status: 'P' = Present, 'A' = Absent, 'PP' = Double
+const attendanceSchema = new mongoose.Schema({
+  companyId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Company',  required: true },
+  employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', required: true },
+  date:       { type: String, required: true },   // YYYY-MM-DD
+  status:     { type: String, enum: ['P', 'A', 'PP'], required: true },
+  remark:     { type: String, default: '' }
+});
 
-// Unique per employee per month
-attendanceSchema.index({ companyId: 1, employeeId: 1, month: 1 }, { unique: true });
-// For fast queries by company and month
-attendanceSchema.index({ companyId: 1, month: 1 });
-// For monthly reports
-attendanceSchema.index({ companyId: 1, month: 1, employeeId: 1 });
+attendanceSchema.index({ companyId: 1, employeeId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
