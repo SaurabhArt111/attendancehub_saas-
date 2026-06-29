@@ -168,7 +168,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
             markAttendance(today, 'P', data[getTodayKey()]?.remark || '')
           }}
         >
-          <span className="badge badge-P">✔</span>
+          {/* <span className="badge badge-P">P</span> */}
           P
         </button>
 
@@ -180,7 +180,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
             markAttendance(today, 'A', data[getTodayKey()]?.remark || '')
           }}
         >
-          <span className="badge badge-A">✕</span>
+          {/* <span className="badge badge-A">A</span> */}
           A
         </button>
 
@@ -192,7 +192,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
             markAttendance(today, 'PP', data[getTodayKey()]?.remark || '')
           }}
         >
-          <span className="badge badge-PP">2×</span>
+          {/* <span className="badge badge-PP">PP</span> */}
           PP
         </button>
 
