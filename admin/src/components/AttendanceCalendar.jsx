@@ -145,7 +145,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
       </div>
 
       <div className="stat-strip mb-2">
-        <button
+        {/* <button
           className="stat-chip stat-btn"
           disabled={!adminMode || savingDay}
           onClick={() => {
@@ -158,7 +158,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
         >
           <span className="badge badge-P">P</span>
           <span>{P}</span>
-        </button>
+        </button> */}
 
         <button
           className="stat-chip stat-btn"
@@ -169,7 +169,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
           }}
         >
           <span className="badge badge-P">✔</span>
-          Mark Present
+          P
         </button>
 
         <button
@@ -181,7 +181,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
           }}
         >
           <span className="badge badge-A">✕</span>
-          Mark Absent
+          A
         </button>
 
         <button
@@ -193,7 +193,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
           }}
         >
           <span className="badge badge-PP">2×</span>
-          Double
+          PP
         </button>
 
         {PP > 0 && (
