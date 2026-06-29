@@ -13,7 +13,7 @@ const companySchema = new mongoose.Schema(
 );
 
 // Index for faster lookups
-companySchema.index({ companyCode: 1 });
-companySchema.index({ email: 1 });
+// companySchema.index({ companyCode: 1 });
+// companySchema.index({ email: 1 });
 
 module.exports = mongoose.model('Company', companySchema);
