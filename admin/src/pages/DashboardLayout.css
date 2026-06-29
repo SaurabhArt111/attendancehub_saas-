@@ -206,6 +206,7 @@
   align-items: center;
   padding: 0 0.5rem;
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  margin-bottom: 50px; /* marin bottom for mobile navigation buttons*/
 }
 
 .bnav-item {
