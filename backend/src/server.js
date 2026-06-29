@@ -1,63 +1,44 @@
-'use strict';
 require('dotenv').config();
 const express = require('express');
-const cors    = require('cors');
-const os      = require('os');
-const http    = require('http');
-const connectDB = require('./utils/db');
+const cors = require('cors');
+const { connectDB } = require('./utils/db');
 
-const app  = express();
-const PORT = process.env.PORT || 5900;
+const app = express();
 
-const allowedOrigins = [
-  'https://attendancehub-saas.vercel.app',
-  'https://attendancehub-saas-employee.vercel.app',
-  ...(process.env.CORS_ORIGINS || '')
-    .split(',')
-    .map(origin => origin.trim())
-    .filter(Boolean)
-];
+// Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(cors());
 
-const corsOptions = {
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-};
+// Connect to MongoDB
+connectDB();
 
-app.use(cors(corsOptions));
-app.use(express.json());
-
-app.use('/api/company',      require('./routes/company'));
-app.use('/api/admin',        require('./routes/admin'));
-app.use('/api/employees',    require('./routes/employees'));
-app.use('/api/attendance',   require('./routes/attendance'));
-app.use('/api/holidays',     require('./routes/holidays'));
+// Routes
+app.use('/api/company', require('./routes/company'));
+app.use('/api/admin', require('./routes/admin'));
+app.use('/api/employees', require('./routes/employees'));
 app.use('/api/designations', require('./routes/designations'));
+app.use('/api/attendance', require('./routes/attendance'));
+app.use('/api/holidays', require('./routes/holidays'));
 
-app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
+// 404 handler
 app.use((req, res) => {
-  if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Route not found' });
   res.status(404).json({ error: 'Not found' });
 });
 
-connectDB().then(() => {
-  const server = http.createServer(app);
-  server.listen(PORT, '0.0.0.0', () => {
-    const nets = os.networkInterfaces();
-    let localIP = 'localhost';
-    outer: for (const iface of Object.values(nets)) {
-      if (!iface) continue;
-      for (const net of iface) {
-        if (net.family === 'IPv4' && !net.internal) { localIP = net.address; break outer; }
-      }
-    }
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`Network: http://${localIP}:${PORT}`);
-    console.log(`LAN: http://${localIP}:${PORT}`);
-  });
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: err.message || 'Internal server error' });
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✓ Server running on port ${PORT}`);
 });

@@ -1,200 +1,318 @@
-const router   = require('express').Router();
-const bcrypt   = require('bcryptjs');
-const jwt      = require('jsonwebtoken');
+const router = require('express').Router();
+const bcrypt = require('bcryptjs');
 const Employee = require('../models/Employee');
+const Attendance = require('../models/Attendance');
 const { verifyAdmin, verifyEmployee } = require('../middleware/auth');
 
-const JWT_SECRET  = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-key-2024';
-const ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-function randomChunk(length) {
-  let out = '';
-  for (let i = 0; i < length; i++) out += ID_ALPHABET[Math.floor(Math.random() * ID_ALPHABET.length)];
-  return out;
-}
-function employeePrefix(companyName) {
-  const words = companyName.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 1) return words[0].replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase().padEnd(3, 'X');
-  return words.slice(0, 3).map(w => (w.replace(/[^a-zA-Z]/g, '')[0] || 'X').toUpperCase()).join('').padEnd(3, 'X');
-}
-async function generateEmployeeId(companyId, companyName) {
-  const prefix = employeePrefix(companyName);
-  let id = `${prefix}${randomChunk(4)}`;
-  let exists = await Employee.findOne({ employeeId: id });
-  while (exists) { id = `${prefix}${randomChunk(4)}`; exists = await Employee.findOne({ employeeId: id }); }
-  return id;
+// Validate email
+function isValidEmail(email) {
+  if (!email) return true; // Optional field
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// POST /api/employees/login
-router.post('/login', async (req, res) => {
-  try {
-    const { employeeId, password } = req.body;
-    if (!employeeId || !password) return res.status(400).json({ error: 'Employee ID and password required' });
-    const emp = await Employee.findOne({ employeeId: { $regex: new RegExp(`^${escapeRegex(employeeId.trim())}$`, 'i') } });
-    if (!emp || !await bcrypt.compare(password, emp.password))
-      return res.status(401).json({ error: 'Invalid Employee ID or password' });
-    if (!emp.isActive) return res.status(403).json({ error: 'Account deactivated' });
-    const Company = require('../models/Company');
-    const company = await Company.findById(emp.companyId);
-    const token = jwt.sign({ id: emp._id, companyId: emp.companyId, username: emp.username, role: 'employee' }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, employee: { id: emp._id, username: emp.username, employeeId: emp.employeeId, contact: emp.contact, designation: emp.designation }, company: { name: company?.name, companyCode: company?.companyCode } });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
+// Validate contact
+function isValidContact(contact) {
+  if (!contact) return true; // Optional field
+  return /^\d{10}$/.test(contact.replace(/\D/g, ''));
+}
 
-// GET /api/employees/suggest-id
-router.get('/suggest-id', verifyAdmin, async (req, res) => {
-  try {
-    const Company = require('../models/Company');
-    const company = await Company.findById(req.admin.companyId);
-    const id = await generateEmployeeId(req.admin.companyId, company.name);
-    res.json({ employeeId: id });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// GET /api/employees  (active only)
+// GET /api/employees — list active employees
 router.get('/', verifyAdmin, async (req, res) => {
   try {
-    const employees = await Employee.find({ companyId: req.admin.companyId, archived: { $ne: true } }).select('-password').sort({ createdAt: 1 });
+    const employees = await Employee.find({
+      companyId: req.admin.companyId,
+      isActive: true,
+    })
+      .populate('designationId', 'name')
+      .select('-password')
+      .sort({ username: 1 });
+
     res.json(employees);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// GET /api/employees/archived
+// GET /api/employees/archived — list archived employees
 router.get('/archived', verifyAdmin, async (req, res) => {
   try {
-    const employees = await Employee.find({ companyId: req.admin.companyId, archived: true }).select('-password').sort({ archivedAt: -1 });
+    const employees = await Employee.find({
+      companyId: req.admin.companyId,
+      isActive: false,
+    })
+      .populate('designationId', 'name')
+      .select('-password')
+      .sort({ username: 1 });
+
     res.json(employees);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// POST /api/employees
+// Generate unique employee ID
+async function generateEmployeeId(companyId) {
+  const count = await Employee.countDocuments({ companyId });
+  const num = count + 1;
+  return `EMP${String(num).padStart(5, '0')}`;
+}
+
+// POST /api/employees — create new employee
 router.post('/', verifyAdmin, async (req, res) => {
   try {
-    const { username, employeeId, contact, password, salary, salaryType, designation } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
-    const companyId = req.admin.companyId;
-    if (await Employee.findOne({ companyId, username: { $regex: new RegExp(`^${username}$`, 'i') }, archived: { $ne: true } }))
-      return res.status(409).json({ error: 'Username already exists' });
-    let finalId = employeeId?.trim();
-    if (!finalId) {
-      const Company = require('../models/Company');
-      const company = await Company.findById(companyId);
-      finalId = await generateEmployeeId(companyId, company.name);
-    } else {
-      finalId = finalId.toUpperCase();
-      if (await Employee.findOne({ employeeId: { $regex: new RegExp(`^${escapeRegex(finalId)}$`, 'i') } }))
-        return res.status(409).json({ error: 'Employee ID already exists' });
+    const { username, email, contact, designationId, salaryType, salary, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Name and password are required' });
     }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    if (contact && !isValidContact(contact)) {
+      return res.status(400).json({ error: 'Contact must be 10 digits' });
+    }
+
+    // Generate unique employee ID
+    const employeeId = await generateEmployeeId(req.admin.companyId);
+
+    // Hash password
     const hashed = await bcrypt.hash(password, 10);
-    const emp = await Employee.create({ companyId, username, employeeId: finalId, contact: contact || '', password: hashed, salary: parseFloat(salary) || 0, salaryType: salaryType || 'monthly', designation: designation || '' });
-    res.status(201).json({ id: emp._id, username: emp.username, employeeId: emp.employeeId, contact: emp.contact, salary: emp.salary, salaryType: emp.salaryType, designation: emp.designation });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+
+    const employee = await Employee.create({
+      companyId: req.admin.companyId,
+      username: username.trim(),
+      employeeId,
+      email: email ? email.toLowerCase() : '',
+      contact: contact ? contact.trim() : '',
+      designationId: designationId || null,
+      salaryType: salaryType || 'monthly',
+      salary: salary || 0,
+      password: hashed,
+    });
+
+    res.status(201).json({
+      message: 'Employee created',
+      employee: {
+        id: employee._id,
+        username: employee.username,
+        employeeId: employee.employeeId,
+        email: employee.email,
+        contact: employee.contact,
+      },
+    });
+  } catch (e) {
+    console.error('Employee creation error:', e);
+    if (e.code === 11000) {
+      return res.status(409).json({ error: 'Employee ID already exists' });
+    }
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// POST /api/employees/bulk
+// POST /api/employees/bulk — bulk add employees
 router.post('/bulk', verifyAdmin, async (req, res) => {
   try {
-    const { employees } = req.body;
-    if (!Array.isArray(employees) || !employees.length) return res.status(400).json({ error: 'employees array required' });
-    const companyId = req.admin.companyId;
-    const Company   = require('../models/Company');
-    const company   = await Company.findById(companyId);
-    const results   = { created: [], failed: [] };
-    for (const emp of employees) {
-      try {
-        const { username, contact, password, salary, salaryType, designation } = emp;
-        if (!username || !password) { results.failed.push({ username, reason: 'Missing required fields' }); continue; }
-        const finalId = await generateEmployeeId(companyId, company.name);
-        const hashed  = await bcrypt.hash(password, 10);
-        const created = await Employee.create({ companyId, username, employeeId: finalId, contact: contact || '', password: hashed, salary: parseFloat(salary) || 0, salaryType: salaryType || 'monthly', designation: designation || '' });
-        results.created.push({ id: created._id, username, employeeId: finalId });
-      } catch (err) { results.failed.push({ username: emp.username, reason: err.message }); }
+    const { employees: employeeList } = req.body;
+
+    if (!Array.isArray(employeeList) || !employeeList.length) {
+      return res.status(400).json({ error: 'No employees provided' });
     }
-    res.status(207).json(results);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+
+    const created = [];
+    const failed = [];
+
+    for (const emp of employeeList) {
+      try {
+        if (!emp.username || !emp.password) {
+          failed.push({ username: emp.username || '(unnamed)', reason: 'Name and password required' });
+          continue;
+        }
+
+        if (emp.password.length < 6) {
+          failed.push({ username: emp.username, reason: 'Password min 6 chars' });
+          continue;
+        }
+
+        if (emp.email && !isValidEmail(emp.email)) {
+          failed.push({ username: emp.username, reason: 'Invalid email' });
+          continue;
+        }
+
+        if (emp.contact && !isValidContact(emp.contact)) {
+          failed.push({ username: emp.username, reason: 'Contact must be 10 digits' });
+          continue;
+        }
+
+        const employeeId = await generateEmployeeId(req.admin.companyId);
+        const hashed = await bcrypt.hash(emp.password, 10);
+
+        const newEmp = await Employee.create({
+          companyId: req.admin.companyId,
+          username: emp.username.trim(),
+          employeeId,
+          email: emp.email ? emp.email.toLowerCase() : '',
+          contact: emp.contact ? emp.contact.trim() : '',
+          designationId: emp.designationId || null,
+          salaryType: emp.salaryType || 'monthly',
+          salary: emp.salary || 0,
+          password: hashed,
+        });
+
+        created.push({
+          username: newEmp.username,
+          employeeId: newEmp.employeeId,
+          email: newEmp.email,
+        });
+      } catch (err) {
+        failed.push({
+          username: emp.username,
+          reason: err.message,
+        });
+      }
+    }
+
+    res.status(201).json({ created, failed });
+  } catch (e) {
+    console.error('Bulk add error:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// PUT /api/employees/:id
+// GET /api/employees/:id — get employee details
+router.get('/:id', verifyAdmin, async (req, res) => {
+  try {
+    const employee = await Employee.findOne({
+      _id: req.params.id,
+      companyId: req.admin.companyId,
+    })
+      .populate('designationId', 'name')
+      .select('-password');
+
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    res.json(employee);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// PUT /api/employees/:id — update employee
 router.put('/:id', verifyAdmin, async (req, res) => {
   try {
-    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId });
-    if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    const { salary, salaryType, contact, password, isActive, designation } = req.body;
-    if (salary      !== undefined) emp.salary      = parseFloat(salary) || 0;
-    if (salaryType  !== undefined) emp.salaryType  = salaryType;
-    if (contact     !== undefined) emp.contact     = contact;
-    if (isActive    !== undefined) emp.isActive    = isActive;
-    if (designation !== undefined) emp.designation = designation;
-    if (password) emp.password = await bcrypt.hash(password, 10);
-    await emp.save();
-    res.json({ message: 'Employee updated' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+    const { email, contact, designationId, salaryType, salary, password } = req.body;
+
+    const employee = await Employee.findOne({
+      _id: req.params.id,
+      companyId: req.admin.companyId,
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    if (contact && !isValidContact(contact)) {
+      return res.status(400).json({ error: 'Contact must be 10 digits' });
+    }
+
+    if (email) employee.email = email.toLowerCase();
+    if (contact) employee.contact = contact.trim();
+    if (designationId !== undefined) employee.designationId = designationId || null;
+    if (salaryType) employee.salaryType = salaryType;
+    if (salary !== undefined) employee.salary = salary;
+
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters' });
+      }
+      employee.password = await bcrypt.hash(password, 10);
+    }
+
+    await employee.save();
+
+    res.json({ message: 'Employee updated', employee });
+  } catch (e) {
+    console.error('Employee update error:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// DELETE /api/employees/:id  — now ARCHIVES instead of deleting
+// DELETE /api/employees/:id — archive employee
 router.delete('/:id', verifyAdmin, async (req, res) => {
   try {
-    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId });
-    if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    emp.archived   = true;
-    emp.archivedAt = new Date();
-    emp.isActive   = false;
-    await emp.save();
+    const employee = await Employee.findOne({
+      _id: req.params.id,
+      companyId: req.admin.companyId,
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    employee.isActive = false;
+    await employee.save();
+
     res.json({ message: 'Employee archived' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// POST /api/employees/:id/restore
+// POST /api/employees/:id/restore — restore archived employee
 router.post('/:id/restore', verifyAdmin, async (req, res) => {
   try {
-    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId, archived: true });
-    if (!emp) return res.status(404).json({ error: 'Archived employee not found' });
-    emp.archived   = false;
-    emp.archivedAt = undefined;
-    emp.isActive   = true;
-    await emp.save();
+    const employee = await Employee.findOne({
+      _id: req.params.id,
+      companyId: req.admin.companyId,
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    employee.isActive = true;
+    await employee.save();
+
     res.json({ message: 'Employee restored' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// DELETE /api/employees/:id/permanent  — hard delete (separate explicit action)
+// DELETE /api/employees/:id/permanent — permanently delete employee and their records
 router.delete('/:id/permanent', verifyAdmin, async (req, res) => {
   try {
-    const emp = await Employee.findOneAndDelete({ _id: req.params.id, companyId: req.admin.companyId, archived: true });
-    if (!emp) return res.status(404).json({ error: 'Archived employee not found' });
-    await require('../models/Attendance').deleteMany({ employeeId: req.params.id });
+    const employee = await Employee.findOne({
+      _id: req.params.id,
+      companyId: req.admin.companyId,
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    // Delete all attendance records
+    await Attendance.deleteMany({ employeeId: employee._id });
+
+    // Delete employee
+    await Employee.findByIdAndDelete(employee._id);
+
     res.json({ message: 'Employee permanently deleted' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// GET /api/employees/:id/export  — download this employee's data as JSON
-router.get('/:id/export', verifyAdmin, async (req, res) => {
-  try {
-    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId }).select('-password');
-    if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    const Attendance = require('../models/Attendance');
-    const records = await Attendance.find({ employeeId: req.params.id }).sort({ date: 1 });
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      employee: emp.toObject(),
-      attendanceRecords: records.map(r => r.toObject()),
-    };
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="employee_${emp.employeeId}_${emp.username}.json"`);
-    res.json(exportData);
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// GET /api/employees/me
-router.get('/me', verifyEmployee, async (req, res) => {
-  try {
-    const emp = await Employee.findById(req.employee.id).select('-password');
-    if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    res.json(emp);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error('Permanent delete error:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 module.exports = router;
