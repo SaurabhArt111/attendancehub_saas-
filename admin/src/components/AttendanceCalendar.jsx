@@ -161,7 +161,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
         </button> */}
 
         <button
-          className="stat-chip stat-btn"
+          className="stat-chip stat-btn badge-P"
           disabled={!adminMode || savingDay}
           onClick={() => {
             const today = new Date().getDate()
@@ -173,7 +173,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
         </button>
 
         <button
-          className="stat-chip stat-btn"
+          className="stat-chip stat-btn badge-A"
           disabled={!adminMode || savingDay}
           onClick={() => {
             const today = new Date().getDate()
@@ -185,7 +185,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
         </button>
 
         <button
-          className="stat-chip stat-btn"
+          className="stat-chip stat-btn badge-PP"
           disabled={!adminMode || savingDay}
           onClick={() => {
             const today = new Date().getDate()

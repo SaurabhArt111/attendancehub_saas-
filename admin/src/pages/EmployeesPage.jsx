@@ -153,7 +153,7 @@ export default function EmployeesPage() {
         </div>
         {uniqueDesignations.length > 0 && (
           <select className="input emp-filter-select" value={filterDesig} onChange={e => setFilterDesig(e.target.value)}>
-            <option value="">All Designations</option>
+            <option value="">Roles</option>
             {uniqueDesignations.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         )}
@@ -324,7 +324,7 @@ function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onExport, 
           </div>
           <div className="emp-actions" onClick={e => e.stopPropagation()}>
             <button className="emp-action-btn" title="Edit" onClick={onEdit}><EditIcon /></button>
-            <button className="emp-action-btn" title="Export" onClick={onExport}><ExportIcon /></button>
+            {/* <button className="emp-action-btn" title="Export" onClick={onExport}><ExportIcon /></button> */}
             <button className="emp-action-btn emp-action-danger" title="Archive" onClick={onArchive}><ArchiveIcon /></button>
           </div>
           <ChevronIcon className={`emp-chevron ${expanded ? 'open' : ''}`} />
@@ -544,9 +544,9 @@ function BulkModal({ designations, onClose, onDone }) {
             <tbody>
               {rows.map((r, i) => (
                 <tr key={i}>
-                  <td><input className="input" style={{ minWidth: 100 }} value={r.username} onChange={e => setRow(i, 'username', e.target.value)} /></td>
-                  <td><input className="input" style={{ minWidth: 90 }} value={r.contact}  onChange={e => setRow(i, 'contact', e.target.value)} /></td>
-                  <td><input className="input" type="password" style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i, 'password', e.target.value)} /></td>
+                  <td><input className="input" style={{ minWidth: 100 }} placeholder='Name' value={r.username} onChange={e => setRow(i, 'username', e.target.value)} /></td>
+                  <td><input className="input" style={{ minWidth: 90 }} placeholder='Contact' value={r.contact}  onChange={e => setRow(i, 'contact', e.target.value)} /></td>
+                  <td><input className="input" type="password" placeholder='pass****' style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i, 'password', e.target.value)} /></td>
                   <td>
                     <select className="input" style={{ minWidth: 110 }} value={r.designation} onChange={e => setRow(i, 'designation', e.target.value)}>
                       <option value="">None</option>
@@ -559,7 +559,7 @@ function BulkModal({ designations, onClose, onDone }) {
                       <option value="daily">Daily</option>
                     </select>
                   </td>
-                  <td><input className="input" type="number" style={{ minWidth: 70 }} value={r.salary} onChange={e => setRow(i, 'salary', e.target.value)} /></td>
+                  <td><input className="input" type="number" placeholder='salary' style={{ minWidth: 70 }} value={r.salary} onChange={e => setRow(i, 'salary', e.target.value)} /></td>
                   <td><button className="btn btn-danger btn-sm" onClick={() => remRow(i)} disabled={rows.length === 1}>×</button></td>
                 </tr>
               ))}
