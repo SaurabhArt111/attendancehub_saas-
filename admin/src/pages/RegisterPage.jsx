@@ -29,23 +29,23 @@ export default function RegisterPage() {
 
   if (done) return (
     <div className="auth-bg">
-      <div className="auth-card card fade-in" style={{ textAlign: 'center' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style={{ margin: '0 auto' }}>
+      <div className="auth-card card fade-in success-card">
+        <div className="success-icon-wrapper">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" className="success-icon">
             <circle cx="28" cy="28" r="28" fill="rgba(34,197,94,0.15)" />
-            <path d="M18 28l7 7 13-13" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M18 28l7 7 13-13" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
         <h2 className="auth-title">Company Registered</h2>
-        <p className="auth-sub" style={{ marginBottom: '1.5rem' }}>
+        <p className="auth-sub success-sub">
           Your company <strong>{done.name}</strong> has been registered.
         </p>
-        <div className="card card-sm" style={{ background: 'var(--bg3)', marginBottom: '1.5rem' }}>
+        <div className="card company-code-card">
           <div className="label">Your Company Code</div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent)', letterSpacing: '0.1em' }}>
+          <div className="company-code-display">
             {done.companyCode}
           </div>
-          <div className="text-sm text-2 mt-1">Save this code — you will need it to log in</div>
+          <div className="company-code-hint">Save this code — you will need it to log in</div>
         </div>
         <button className="btn btn-primary btn-block" onClick={() => nav('/setup', { state: { fromRegister: true } })}>
           Set Up Admin Account
@@ -59,11 +59,13 @@ export default function RegisterPage() {
       <div className="auth-card fade-in">
         <div className="auth-logo">AttendanceHub</div>
         <div className="step-dots">
-          <div className="step-dot active" /><div className="step-dot" /><div className="step-dot" />
+          <div className="step-dot active" />
+          <div className="step-dot" />
+          <div className="step-dot" />
         </div>
         <h1 className="auth-title">Register Your Company</h1>
         <p className="auth-sub">Create a workspace for your organization</p>
-        <form onSubmit={submit} className="card">
+        <form onSubmit={submit} className="card register-form">
           <div className="form-group">
             <label className="label">Company Name</label>
             <input className="input" placeholder="Acme Pvt Ltd" value={form.name} onChange={set('name')} required />
@@ -90,8 +92,8 @@ export default function RegisterPage() {
             {loading ? <span className="spinner" /> : 'Register Company'}
           </button>
         </form>
-        <p className="text-sm text-2 mt-2" style={{ textAlign: 'center' }}>
-          Already registered? <Link to="/login" style={{ color: 'var(--accent)' }}>Sign in</Link>
+        <p className="auth-footer">
+          Already registered? <Link to="/login" className="footer-link">Sign in</Link>
         </p>
       </div>
     </div>

@@ -545,7 +545,7 @@ function BulkModal({ designations, onClose, onDone }) {
               {rows.map((r, i) => (
                 <tr key={i}>
                   <td><input className="input" style={{ minWidth: 100 }} placeholder='Name' value={r.username} onChange={e => setRow(i, 'username', e.target.value)} /></td>
-                  <td><input className="input" style={{ minWidth: 90 }} placeholder='Contact' value={r.contact}  onChange={e => setRow(i, 'contact', e.target.value)} /></td>
+                  <td><input className="input" type='number' style={{ minWidth: 90 }} placeholder='Contact' value={r.contact}  onChange={e => setRow(i, 'contact', e.target.value)} /></td>
                   <td><input className="input" type="password" placeholder='password' style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i, 'password', e.target.value)} /></td>
                   <td>
                     <select className="input" style={{ minWidth: 110 }} value={r.designation} onChange={e => setRow(i, 'designation', e.target.value)}>

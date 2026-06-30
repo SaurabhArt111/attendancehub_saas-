@@ -46,9 +46,7 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* ─────────────────────────────────────────────────────────────
-   DATA TABLE SECTION - DESKTOP & MOBILE RESPONSIVE
-   ───────────────────────────────────────────────────────────── */
+/*  DATA TABLE SECTION - DESKTOP & MOBILE RESPONSIVE */
 
 .report-table-wrapper {
   overflow: hidden;
@@ -380,8 +378,21 @@
     justify-content: space-between;
     width: 100%;
   }
+
   .reports-download-btn {
     font-size: 0.78rem;
     padding: 0.38rem 0.7rem !important;
   }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  gap: .5rem;
 }
