@@ -153,7 +153,7 @@ export default function EmployeesPage() {
         </div>
         {uniqueDesignations.length > 0 && (
           <select className="input emp-filter-select" value={filterDesig} onChange={e => setFilterDesig(e.target.value)}>
-            <option value="">Roles</option>
+            <option value="">--Select--</option>
             {uniqueDesignations.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         )}
@@ -546,7 +546,7 @@ function BulkModal({ designations, onClose, onDone }) {
                 <tr key={i}>
                   <td><input className="input" style={{ minWidth: 100 }} placeholder='Name' value={r.username} onChange={e => setRow(i, 'username', e.target.value)} /></td>
                   <td><input className="input" style={{ minWidth: 90 }} placeholder='Contact' value={r.contact}  onChange={e => setRow(i, 'contact', e.target.value)} /></td>
-                  <td><input className="input" type="password" placeholder='pass****' style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i, 'password', e.target.value)} /></td>
+                  <td><input className="input" type="password" placeholder='password' style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i, 'password', e.target.value)} /></td>
                   <td>
                     <select className="input" style={{ minWidth: 110 }} value={r.designation} onChange={e => setRow(i, 'designation', e.target.value)}>
                       <option value="">None</option>

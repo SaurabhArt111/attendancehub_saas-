@@ -431,7 +431,7 @@
   }
 
   .emp-filter-select {
-    min-width: auto;
+    display: none;
   }
 
   .emp-stats {

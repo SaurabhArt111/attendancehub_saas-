@@ -21,7 +21,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 
 async function run() {
-  const uri = process.env.MONGODB_URI;
+  const uri = process.env.MONGO_URI;
   if (!uri) {
     console.error('MONGODB_URI not set in environment. Aborting.');
     process.exit(1);
