@@ -39,12 +39,19 @@ router.post('/login', async (req, res) => {
     if (!emp.isActive) return res.status(403).json({ error: 'Account deactivated' });
     const Company = require('../models/Company');
     const company = await Company.findById(emp.companyId);
-    const token = jwt.sign({ id: emp._id, companyId: emp.companyId, username: emp.username, role: 'employee' }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, employee: { id: emp._id, username: emp.username, employeeId: emp.employeeId, contact: emp.contact, designation: emp.designation }, company: { name: company?.name, companyCode: company?.companyCode } });
+    const token = jwt.sign(
+      { id: emp._id, companyId: emp.companyId, username: emp.username, role: 'employee' },
+      JWT_SECRET, { expiresIn: '7d' }
+    );
+    res.json({
+      token,
+      employee: { id: emp._id, username: emp.username, employeeId: emp.employeeId, contact: emp.contact, designation: emp.designation },
+      company: { name: company?.name, companyCode: company?.companyCode }
+    });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET /api/employees/suggest-id
+// GET /api/employees/suggest-id  — before /:id routes
 router.get('/suggest-id', verifyAdmin, async (req, res) => {
   try {
     const Company = require('../models/Company');
@@ -54,18 +61,29 @@ router.get('/suggest-id', verifyAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET /api/employees  (active only)
-router.get('/', verifyAdmin, async (req, res) => {
+// GET /api/employees/me  — before /:id routes
+router.get('/me', verifyEmployee, async (req, res) => {
   try {
-    const employees = await Employee.find({ companyId: req.admin.companyId, archived: { $ne: true } }).select('-password').sort({ createdAt: 1 });
+    const emp = await Employee.findById(req.employee.id).select('-password');
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    res.json(emp);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/employees/archived  — before /:id routes
+router.get('/archived', verifyAdmin, async (req, res) => {
+  try {
+    const employees = await Employee.find({ companyId: req.admin.companyId, archived: true })
+      .select('-password').sort({ archivedAt: -1 });
     res.json(employees);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET /api/employees/archived
-router.get('/archived', verifyAdmin, async (req, res) => {
+// GET /api/employees  (active only)
+router.get('/', verifyAdmin, async (req, res) => {
   try {
-    const employees = await Employee.find({ companyId: req.admin.companyId, archived: true }).select('-password').sort({ archivedAt: -1 });
+    const employees = await Employee.find({ companyId: req.admin.companyId, archived: { $ne: true } })
+      .select('-password').sort({ createdAt: 1 });
     res.json(employees);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -89,8 +107,15 @@ router.post('/', verifyAdmin, async (req, res) => {
         return res.status(409).json({ error: 'Employee ID already exists' });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const emp = await Employee.create({ companyId, username, employeeId: finalId, contact: contact || '', password: hashed, salary: parseFloat(salary) || 0, salaryType: salaryType || 'monthly', designation: designation || '' });
-    res.status(201).json({ id: emp._id, username: emp.username, employeeId: emp.employeeId, contact: emp.contact, salary: emp.salary, salaryType: emp.salaryType, designation: emp.designation });
+    const emp = await Employee.create({
+      companyId, username, employeeId: finalId, contact: contact || '',
+      password: hashed, salary: parseFloat(salary) || 0,
+      salaryType: salaryType || 'monthly', designation: designation || ''
+    });
+    res.status(201).json({
+      id: emp._id, username: emp.username, employeeId: emp.employeeId,
+      contact: emp.contact, salary: emp.salary, salaryType: emp.salaryType, designation: emp.designation
+    });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -98,7 +123,8 @@ router.post('/', verifyAdmin, async (req, res) => {
 router.post('/bulk', verifyAdmin, async (req, res) => {
   try {
     const { employees } = req.body;
-    if (!Array.isArray(employees) || !employees.length) return res.status(400).json({ error: 'employees array required' });
+    if (!Array.isArray(employees) || !employees.length)
+      return res.status(400).json({ error: 'employees array required' });
     const companyId = req.admin.companyId;
     const Company   = require('../models/Company');
     const company   = await Company.findById(companyId);
@@ -109,11 +135,38 @@ router.post('/bulk', verifyAdmin, async (req, res) => {
         if (!username || !password) { results.failed.push({ username, reason: 'Missing required fields' }); continue; }
         const finalId = await generateEmployeeId(companyId, company.name);
         const hashed  = await bcrypt.hash(password, 10);
-        const created = await Employee.create({ companyId, username, employeeId: finalId, contact: contact || '', password: hashed, salary: parseFloat(salary) || 0, salaryType: salaryType || 'monthly', designation: designation || '' });
+        const created = await Employee.create({
+          companyId, username, employeeId: finalId, contact: contact || '',
+          password: hashed, salary: parseFloat(salary) || 0,
+          salaryType: salaryType || 'monthly', designation: designation || ''
+        });
         results.created.push({ id: created._id, username, employeeId: finalId });
       } catch (err) { results.failed.push({ username: emp.username, reason: err.message }); }
     }
     res.status(207).json(results);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/employees/:id/export
+router.get('/:id/export', verifyAdmin, async (req, res) => {
+  try {
+    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId }).select('-password');
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    const Attendance = require('../models/Attendance');
+    const records = await Attendance.find({ employeeId: req.params.id }).sort({ month: 1 });
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      employee: emp.toObject(),
+      attendanceRecords: records.map(r => {
+        const obj = r.toObject();
+        // Convert Map to plain object
+        if (obj.days instanceof Map) obj.days = Object.fromEntries(obj.days);
+        return obj;
+      }),
+    };
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="employee_${emp.employeeId}_${emp.username}.json"`);
+    res.json(exportData);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -134,14 +187,12 @@ router.put('/:id', verifyAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// DELETE /api/employees/:id  — now ARCHIVES instead of deleting
+// DELETE /api/employees/:id  — archives
 router.delete('/:id', verifyAdmin, async (req, res) => {
   try {
     const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId });
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    emp.archived   = true;
-    emp.archivedAt = new Date();
-    emp.isActive   = false;
+    emp.archived = true; emp.archivedAt = new Date(); emp.isActive = false;
     await emp.save();
     res.json({ message: 'Employee archived' });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -152,48 +203,19 @@ router.post('/:id/restore', verifyAdmin, async (req, res) => {
   try {
     const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId, archived: true });
     if (!emp) return res.status(404).json({ error: 'Archived employee not found' });
-    emp.archived   = false;
-    emp.archivedAt = undefined;
-    emp.isActive   = true;
+    emp.archived = false; emp.archivedAt = undefined; emp.isActive = true;
     await emp.save();
     res.json({ message: 'Employee restored' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// DELETE /api/employees/:id/permanent  — hard delete (separate explicit action)
+// DELETE /api/employees/:id/permanent
 router.delete('/:id/permanent', verifyAdmin, async (req, res) => {
   try {
     const emp = await Employee.findOneAndDelete({ _id: req.params.id, companyId: req.admin.companyId, archived: true });
     if (!emp) return res.status(404).json({ error: 'Archived employee not found' });
     await require('../models/Attendance').deleteMany({ employeeId: req.params.id });
     res.json({ message: 'Employee permanently deleted' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// GET /api/employees/:id/export  — download this employee's data as JSON
-router.get('/:id/export', verifyAdmin, async (req, res) => {
-  try {
-    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId }).select('-password');
-    if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    const Attendance = require('../models/Attendance');
-    const records = await Attendance.find({ employeeId: req.params.id }).sort({ date: 1 });
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      employee: emp.toObject(),
-      attendanceRecords: records.map(r => r.toObject()),
-    };
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="employee_${emp.employeeId}_${emp.username}.json"`);
-    res.json(exportData);
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// GET /api/employees/me
-router.get('/me', verifyEmployee, async (req, res) => {
-  try {
-    const emp = await Employee.findById(req.employee.id).select('-password');
-    if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    res.json(emp);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

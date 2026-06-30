@@ -6,7 +6,7 @@ import './RegisterPage.css'
 
 export default function RegisterPage() {
   const nav = useNavigate()
-  const [form, setForm] = useState({ name: '', contact: '', password: '', confirm: '' })
+  const [form, setForm] = useState({ name: '', contact: '', email: '', password: '', confirm: '' })
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(null)
 
@@ -19,7 +19,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       const { data } = await api.post('/company/register', {
-        name: form.name, contact: form.contact, password: form.password
+        name: form.name, contact: form.contact, email: form.email, password: form.password
       })
       setDone(data)
     } catch (err) {
@@ -68,9 +68,15 @@ export default function RegisterPage() {
             <label className="label">Company Name</label>
             <input className="input" placeholder="Acme Pvt Ltd" value={form.name} onChange={set('name')} required />
           </div>
-          <div className="form-group">
-            <label className="label">Contact Number</label>
-            <input className="input" placeholder="9876543210" value={form.contact} onChange={set('contact')} required />
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="label">Contact Number</label>
+              <input className="input" placeholder="9876543210" value={form.contact} onChange={set('contact')} required />
+            </div>
+            <div className="form-group">
+              <label className="label">Company Email</label>
+              <input className="input" type="email" placeholder="company@email.com" value={form.email} onChange={set('email')} required />
+            </div>
           </div>
           <div className="form-group">
             <label className="label">Password</label>

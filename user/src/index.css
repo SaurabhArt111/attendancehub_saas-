@@ -527,7 +527,6 @@ body {
   position: sticky;
   bottom: 0;
   z-index: 20;
-  padding-bottom: 50px; /* padding bottom for mobile navigation buttons*/
 }
 
 .bnav-item {

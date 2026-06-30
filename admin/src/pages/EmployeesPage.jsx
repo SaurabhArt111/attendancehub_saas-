@@ -5,61 +5,54 @@ import AttendanceCalendar from '../components/AttendanceCalendar'
 import './EmployeesPage.css'
 
 const TODAY_STATUS = {
-  P:  { label: 'Present',  bg: 'rgba(16,185,129,0.15)',  color: 'var(--success)', dot: '#10b981' },
-  A:  { label: 'Absent',   bg: 'rgba(239,68,68,0.12)',   color: 'var(--danger)',  dot: '#ef4444' },
-  PP: { label: 'Double',   bg: 'rgba(167,139,250,0.15)', color: '#a78bfa',        dot: '#a78bfa' },
-  H:  { label: 'Holiday',  bg: 'rgba(245,158,11,0.12)',  color: 'var(--warn)',    dot: '#f59e0b' },
+  P:  { label: 'Present', bg: 'rgba(16,185,129,0.15)', color: 'var(--success)', dot: '#10b981' },
+  A:  { label: 'Absent',  bg: 'rgba(239,68,68,0.12)',  color: 'var(--danger)',  dot: '#ef4444' },
+  PP: { label: 'Double',  bg: 'rgba(167,139,250,0.15)',color: '#a78bfa',        dot: '#a78bfa' },
+  H:  { label: 'Holiday', bg: 'rgba(245,158,11,0.12)', color: 'var(--warn)',    dot: '#f59e0b' },
 }
 
-// Color palette for designations
-const DESIGNATION_COLORS = [
-  { bg: '#dbeafe', color: '#1e40af' }, // blue
-  { bg: '#dcfce7', color: '#166534' }, // green
-  { bg: '#fff7b8', color: '#854d0e' }, // amber
-  { bg: '#fce7f3', color: '#be185d' }, // pink
-  { bg: '#f2e5ff', color: '#6b21a8' }, // purple
-  { bg: '#f0fdfa', color: '#134e4a' }, // teal
+const DESG_COLORS = [
+  { bg: '#dbeafe', color: '#1e40af' },
+  { bg: '#dcfce7', color: '#166534' },
+  { bg: '#fef3c7', color: '#854d0e' },
+  { bg: '#fce7f3', color: '#be185d' },
+  { bg: '#ede9fe', color: '#6b21a8' },
+  { bg: '#ccfbf1', color: '#134e4a' },
 ]
 
-// Hash function to consistently assign color to designation
-function getDesignationColor(designation) {
-  if (!designation) return null
-  let hash = 0
-  for (let i = 0; i < designation.length; i++) {
-    hash = ((hash << 5) - hash) + designation.charCodeAt(i)
-    hash = hash & hash // Convert to 32-bit integer
-  }
-  const colorIndex = Math.abs(hash) % DESIGNATION_COLORS.length
-  return DESIGNATION_COLORS[colorIndex]
+function getDesignationColor(name) {
+  if (!name) return null
+  let h = 0
+  for (let i = 0; i < name.length; i++) { h = ((h << 5) - h) + name.charCodeAt(i); h |= 0 }
+  return DESG_COLORS[Math.abs(h) % DESG_COLORS.length]
+}
+
+function initials(name) {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
 }
 
 export default function EmployeesPage() {
-  const [employees,    setEmployees]    = useState([])
-  const [archived,     setArchived]     = useState([])
-  const [designations, setDesignations] = useState([])
-  const [search,       setSearch]       = useState('')
-  const [loading,      setLoading]      = useState(true)
-  const [showAdd,      setShowAdd]      = useState(false)
-  const [showBulk,     setShowBulk]     = useState(false)
-  const [showArchived, setShowArchived] = useState(false)
-  const [expanded,     setExpanded]     = useState(null)
-  const [editEmp,      setEditEmp]      = useState(null)
-  const [archiveModal, setArchiveModal] = useState(null) // emp to archive
+  const [employees,     setEmployees]     = useState([])
+  const [archived,      setArchived]      = useState([])
+  const [designations,  setDesignations]  = useState([])
+  const [search,        setSearch]        = useState('')
+  const [filterDesig,   setFilterDesig]   = useState('')
+  const [loading,       setLoading]       = useState(true)
+  const [showAdd,       setShowAdd]       = useState(false)
+  const [showBulk,      setShowBulk]      = useState(false)
+  const [showArchived,  setShowArchived]  = useState(false)
+  const [expanded,      setExpanded]      = useState(null)
+  const [editEmp,       setEditEmp]       = useState(null)
+  const [archiveModal,  setArchiveModal]  = useState(null)
   const [todayStatuses, setTodayStatuses] = useState({})
 
-  // Load today statuses from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('employee-today-statuses')
-    if (saved) {
-      try {
-        setTodayStatuses(JSON.parse(saved))
-      } catch (e) {
-        console.error('Failed to load statuses from localStorage', e)
-      }
-    }
+    if (saved) { try { setTodayStatuses(JSON.parse(saved)) } catch {} }
   }, [])
 
-  // Save today statuses to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('employee-today-statuses', JSON.stringify(todayStatuses))
   }, [todayStatuses])
@@ -80,13 +73,14 @@ export default function EmployeesPage() {
 
   useEffect(() => { load() }, [load])
 
-  const filtered = employees.filter(e =>
-    e.username.toLowerCase().includes(search.toLowerCase()) ||
-    e.employeeId.toLowerCase().includes(search.toLowerCase()) ||
-    (e.designation || '').toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = employees.filter(e => {
+    const q = search.toLowerCase()
+    const matchSearch = !q || e.username.toLowerCase().includes(q) ||
+      e.employeeId.toLowerCase().includes(q) || (e.designation || '').toLowerCase().includes(q)
+    const matchDesig = !filterDesig || e.designation === filterDesig
+    return matchSearch && matchDesig
+  })
 
-  // Export data as JSON file
   function exportEmployee(emp) {
     api.get(`/employees/${emp._id}/export`, { responseType: 'blob' })
       .then(res => {
@@ -102,7 +96,7 @@ export default function EmployeesPage() {
   async function archiveEmployee(id, name) {
     try {
       await api.delete(`/employees/${id}`)
-      toast.success(`${name} archived — restore anytime from Archived`)
+      toast.success(`${name} archived`)
       load()
     } catch (err) { toast.error(err.response?.data?.error || 'Archive failed') }
   }
@@ -124,44 +118,91 @@ export default function EmployeesPage() {
     } catch (err) { toast.error(err.response?.data?.error || 'Delete failed') }
   }
 
-  function handleTodayStatus(empId, status) {
-    setTodayStatuses(prev => ({ ...prev, [empId]: status }))
-  }
+  const uniqueDesignations = [...new Set(employees.map(e => e.designation).filter(Boolean))].sort()
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2" style={{ flexWrap: 'wrap', gap: '.65rem' }}>
-        <div style={{ minWidth: 0 }}>
-          <h1 className="font-700" style={{ fontSize: '1.2rem' }}>Employees</h1>
-          <div className="text-sm text-2">{employees.length} active{archived.length > 0 && ` · ${archived.length} archived`}</div>
+    <div className="emp-page">
+      {/* Header */}
+      <div className="emp-page-header">
+        <div>
+          <h1 className="emp-page-title">Employees</h1>
+          <div className="emp-page-meta">
+            {employees.length} active
+            {archived.length > 0 && <span className="emp-archived-chip" onClick={() => setShowArchived(true)}>
+              {archived.length} archived
+            </span>}
+          </div>
         </div>
-        <div className="flex gap-1" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {archived.length > 0 && (
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowArchived(true)}>
-              <ArchiveIcon /> Archived ({archived.length})
+        <div className="emp-header-actions">
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowBulk(true)}>
+            <BulkIcon /> Bulk Add
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>
+            <PlusIcon /> Add Employee
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="emp-filters">
+        <div className="search-wrap">
+          <SearchIcon />
+          <input className="input" placeholder="Search by name, ID, or designation..."
+            value={search} onChange={e => setSearch(e.target.value)} />
+          {search && <button className="search-clear" onClick={() => setSearch('')}>×</button>}
+        </div>
+        {uniqueDesignations.length > 0 && (
+          <select className="input emp-filter-select" value={filterDesig} onChange={e => setFilterDesig(e.target.value)}>
+            <option value="">All Designations</option>
+            {uniqueDesignations.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        )}
+      </div>
+
+      {/* Stats Bar */}
+      {employees.length > 0 && (
+        <div className="emp-stats">
+          <div className="emp-stat">
+            <span className="emp-stat-value">{employees.length}</span>
+            <span className="emp-stat-label">Active</span>
+          </div>
+          {uniqueDesignations.length > 0 && (
+            <div className="emp-stat">
+              <span className="emp-stat-value">{uniqueDesignations.length}</span>
+              <span className="emp-stat-label">Roles</span>
+            </div>
+          )}
+          {filterDesig && (
+            <div className="emp-stat">
+              <span className="emp-stat-value">{filtered.length}</span>
+              <span className="emp-stat-label">Filtered</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Employee List */}
+      {loading ? (
+        <div className="emp-loading"><span className="spinner" /><span>Loading employees...</span></div>
+      ) : filtered.length === 0 ? (
+        <div className="emp-empty">
+          <div className="emp-empty-icon">
+            <PeopleIcon />
+          </div>
+          <div className="emp-empty-title">
+            {search || filterDesig ? 'No employees match your filters' : 'No employees yet'}
+          </div>
+          <div className="emp-empty-sub">
+            {!search && !filterDesig && 'Add your first employee to get started'}
+          </div>
+          {(search || filterDesig) && (
+            <button className="btn btn-secondary btn-sm mt-2" onClick={() => { setSearch(''); setFilterDesig('') }}>
+              Clear Filters
             </button>
           )}
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowBulk(true)}>Bulk Add</button>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>Add</button>
-        </div>
-      </div>
-
-      <div className="search-wrap mb-2">
-        <svg className="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input className="input" placeholder="Search by name, ID, or designation..." value={search} onChange={e => setSearch(e.target.value)} />
-      </div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}><span className="spinner" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="empty card">
-          <div className="empty-icon">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          </div>
-          {search ? 'No employees match your search' : 'No employees yet.'}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '.55rem' }}>
+        <div className="emp-grid">
           {filtered.map(emp => (
             <EmployeeCard key={emp._id} emp={emp}
               expanded={expanded === emp._id}
@@ -170,7 +211,7 @@ export default function EmployeesPage() {
               onEdit={() => setEditEmp(emp)}
               onExport={() => exportEmployee(emp)}
               onArchive={() => setArchiveModal(emp)}
-              onTodayStatus={(s) => handleTodayStatus(emp._id, s)} />
+              onTodayStatus={s => setTodayStatuses(p => ({ ...p, [emp._id]: s }))} />
           ))}
         </div>
       )}
@@ -179,33 +220,34 @@ export default function EmployeesPage() {
       {showBulk && <BulkModal designations={designations} onClose={() => setShowBulk(false)} onDone={() => { setShowBulk(false); load() }} />}
       {editEmp  && <EditModal emp={editEmp} designations={designations} onClose={() => setEditEmp(null)} onDone={() => { setEditEmp(null); load() }} />}
 
-      {/* Archive confirmation */}
       {archiveModal && (
         <div className="overlay" onClick={() => setArchiveModal(null)}>
           <div className="modal" style={{ maxWidth: 380 }} onClick={e => e.stopPropagation()}>
             <h2 className="modal-title">Archive Employee</h2>
             <p className="text-sm text-2 mb-2">
-              <strong style={{ color: 'var(--text)' }}>{archiveModal.username}</strong> will be archived. Their attendance records are kept safe and the employee can be restored anytime.
+              <strong style={{ color: 'var(--text)' }}>{archiveModal.username}</strong> will be archived.
+              Attendance records are preserved and can be restored at any time.
             </p>
-            <div className="card" style={{ background: 'var(--bg-hover)', border: '1px solid var(--border)', padding: '.75rem 1rem', marginBottom: '1rem' }}>
-              <div className="text-xs text-2 mb-1" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>Before archiving, you can also:</div>
+            <div className="card mb-2" style={{ background: 'var(--bg-hover)', padding: '.75rem 1rem' }}>
+              <div className="text-xs text-2 mb-1 font-600" style={{ textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                Optional: Backup data first
+              </div>
               <button className="btn btn-secondary btn-sm" style={{ width: '100%', justifyContent: 'flex-start', gap: '.5rem' }}
-                onClick={() => { exportEmployee(archiveModal); }}>
-                <ExportIcon /> Download employee data as backup
+                onClick={() => exportEmployee(archiveModal)}>
+                <ExportIcon /> Download employee data
               </button>
             </div>
             <div className="flex gap-1">
               <button className="btn btn-secondary" onClick={() => setArchiveModal(null)}>Cancel</button>
               <div style={{ flex: 1 }} />
-              <button className="btn btn-danger" onClick={() => { const e = archiveModal; setArchiveModal(null); archiveEmployee(e._id, e.username) }}>
-                Archive
-              </button>
+              <button className="btn btn-danger" onClick={() => {
+                const e = archiveModal; setArchiveModal(null); archiveEmployee(e._id, e.username)
+              }}>Archive</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Archived employees panel */}
       {showArchived && (
         <div className="overlay" onClick={() => setShowArchived(false)}>
           <div className="modal" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
@@ -217,7 +259,7 @@ export default function EmployeesPage() {
                 {archived.map(emp => (
                   <div key={emp._id} className="card" style={{ padding: '.75rem 1rem' }}>
                     <div className="flex items-center gap-2">
-                      <div className="emp-avatar" style={{ opacity: 0.6 }}>{emp.username.slice(0,2).toUpperCase()}</div>
+                      <div className="emp-avatar emp-avatar-sm" style={{ opacity: 0.5 }}>{initials(emp.username)}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="font-600 text-sm">{emp.username}
                           <span className="tag" style={{ marginLeft: '.4rem', fontFamily: 'monospace', fontSize: '.68rem' }}>{emp.employeeId}</span>
@@ -241,60 +283,54 @@ export default function EmployeesPage() {
   )
 }
 
-function TodayBadge({ status }) {
-  if (!status) return null
-  const cfg = TODAY_STATUS[status]
-  if (!cfg) return null
-  return (
-    <span className="emp-today-badge" style={{ background: cfg.bg, color: cfg.color }}>
-      <span className="emp-today-dot" style={{ background: cfg.dot }} />
-      {cfg.label}
-    </span>
-  )
-}
-
 function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onExport, onArchive, onTodayStatus }) {
-  const initials = emp.username.slice(0,2).toUpperCase()
-  const designationColor = getDesignationColor(emp.designation)
-  
+  const dColor = getDesignationColor(emp.designation)
+  const todayCfg = todayStatus ? TODAY_STATUS[todayStatus] : null
+
   return (
-    <div className="emp-card slide-in">
-      <div className="emp-card-header" onClick={onToggle}>
-        <div className="flex items-center gap-2" style={{ minWidth: 0, flex: 1 }}>
-          <div className="emp-avatar">{initials}</div>
-          <div style={{ minWidth: 0 }}>
-            <div className="font-600" style={{ display:'flex', alignItems:'center', gap:'.4rem', flexWrap:'wrap' }}>
+    <div className={`emp-card ${expanded ? 'expanded' : ''}`}>
+      <div className="emp-card-main" onClick={onToggle}>
+        <div className="emp-card-left">
+          <div className="emp-avatar">
+            {initials(emp.username)}
+            {todayCfg && <span className="emp-status-dot" style={{ background: todayCfg.dot }} />}
+          </div>
+          <div className="emp-card-info">
+            <div className="emp-name">
               {emp.username}
-              <span className="tag" style={{ fontSize: '.7rem', fontFamily: 'monospace', letterSpacing:'.04em' }}>{emp.employeeId}</span>
+              <span className="emp-id-badge">{emp.employeeId}</span>
             </div>
-            <div className="text-xs text-2" style={{ marginTop:'.1rem', display:'flex', alignItems:'center', gap:'.5rem', flexWrap:'wrap' }}>
+            <div className="emp-meta">
               {emp.designation && (
-                <span style={{
-                  background: designationColor?.bg || '#f0f0f0',
-                  color: designationColor?.color || '#666',
-                  padding: '.2rem .55rem',
-                  borderRadius: '.25rem',
-                  fontWeight: 500,
-                  fontSize: '.75rem',
-                  whiteSpace: 'nowrap'
-                }}>
+                <span className="emp-desg-tag" style={{ background: dColor?.bg, color: dColor?.color }}>
                   {emp.designation}
                 </span>
               )}
-              {emp.contact && <span>{emp.contact}</span>}
-              <TodayBadge status={todayStatus} />
+              {emp.contact && <span className="emp-contact">{emp.contact}</span>}
+              {todayCfg && (
+                <span className="emp-today-badge" style={{ background: todayCfg.bg, color: todayCfg.color }}>
+                  <span className="emp-today-dot" style={{ background: todayCfg.dot }} />
+                  {todayCfg.label}
+                </span>
+              )}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1" style={{ flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <span className="tag" style={{ whiteSpace:'nowrap' }}>
-            {emp.salaryType === 'daily' ? `Rs ${emp.salary}/day` : `Rs ${emp.salary?.toLocaleString()}/mo`}
-          </span>
-          <button className="btn btn-secondary btn-sm" onClick={e => { e.stopPropagation(); onEdit() }}>Edit</button>
-          <button className="btn btn-danger btn-sm" onClick={e => { e.stopPropagation(); onArchive() }}>Archive</button>
-          <svg className={`chevron ${expanded ? 'open' : ''}`} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+
+        <div className="emp-card-right">
+          <div className="emp-salary">
+            <span className="emp-salary-amount">₹{emp.salary?.toLocaleString()}</span>
+            <span className="emp-salary-type">/{emp.salaryType === 'daily' ? 'day' : 'mo'}</span>
+          </div>
+          <div className="emp-actions" onClick={e => e.stopPropagation()}>
+            <button className="emp-action-btn" title="Edit" onClick={onEdit}><EditIcon /></button>
+            <button className="emp-action-btn" title="Export" onClick={onExport}><ExportIcon /></button>
+            <button className="emp-action-btn emp-action-danger" title="Archive" onClick={onArchive}><ArchiveIcon /></button>
+          </div>
+          <ChevronIcon className={`emp-chevron ${expanded ? 'open' : ''}`} />
         </div>
       </div>
+
       {expanded && (
         <div className="emp-card-body fade-in">
           <AttendanceCalendar employeeId={emp._id} adminMode onTodayStatus={onTodayStatus} />
@@ -303,9 +339,6 @@ function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onExport, 
     </div>
   )
 }
-
-function ArchiveIcon() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="5" rx="2"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg> }
-function ExportIcon()  { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> }
 
 function AddModal({ designations, onClose, onDone }) {
   const [form, setForm] = useState({ username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' })
@@ -335,24 +368,57 @@ function AddModal({ designations, onClose, onDone }) {
         <h2 className="modal-title">Add Employee</h2>
         <div className="form-group">
           <label className="label">Auto-Generated Employee ID</label>
-          {idLoading ? <div className="flex items-center gap-2"><span className="spinner" /><span className="text-sm text-2">Generating...</span></div>
-            : <div className="id-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>{suggestedId}</div>}
-          <div className="text-xs text-2 mt-1">Employee uses this mixed ID to log in</div>
+          {idLoading
+            ? <div className="flex items-center gap-2"><span className="spinner" /><span className="text-sm text-2">Generating...</span></div>
+            : <div className="id-badge"><IdIcon />{suggestedId}</div>}
+          <div className="text-xs text-2 mt-1">Employee uses this ID to log in</div>
         </div>
         <form onSubmit={submit}>
-          <div className="form-group"><label className="label">Full Name</label><input className="input" placeholder="John Doe" value={form.username} onChange={set('username')} required /></div>
-          <div className="grid-2">
-            <div className="form-group"><label className="label">Contact</label><input className="input" placeholder="9876543210" value={form.contact} onChange={set('contact')} /></div>
-            <div className="form-group"><label className="label">Designation</label><select className="input" value={form.designation} onChange={set('designation')}><option value="">None</option>{designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}</select></div>
+          <div className="form-group">
+            <label className="label">Full Name *</label>
+            <input className="input" placeholder="John Doe" value={form.username} onChange={set('username')} required />
           </div>
           <div className="grid-2">
-            <div className="form-group"><label className="label">Salary Type</label><select className="input" value={form.salaryType} onChange={set('salaryType')}><option value="monthly">Monthly</option><option value="daily">Daily rate</option></select></div>
-            <div className="form-group"><label className="label">{form.salaryType === 'daily' ? 'Daily Rate (Rs)' : 'Monthly Salary (Rs)'}</label><input className="input" type="number" placeholder="0" value={form.salary} onChange={set('salary')} /></div>
+            <div className="form-group">
+              <label className="label">Contact</label>
+              <input className="input" placeholder="9876543210" value={form.contact} onChange={set('contact')} />
+            </div>
+            <div className="form-group">
+              <label className="label">Designation</label>
+              {designations.length === 0 ? (
+                <div className="text-xs text-2" style={{ padding: '.5rem 0', color: 'var(--warn)' }}>
+                  No designations — create them in Designations first
+                </div>
+              ) : (
+                <select className="input" value={form.designation} onChange={set('designation')}>
+                  <option value="">None</option>
+                  {designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
+                </select>
+              )}
+            </div>
           </div>
-          <div className="form-group"><label className="label">Login Password</label><input className="input" type="password" placeholder="Min 6 characters" value={form.password} onChange={set('password')} required /></div>
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="label">Salary Type</label>
+              <select className="input" value={form.salaryType} onChange={set('salaryType')}>
+                <option value="monthly">Monthly Fixed</option>
+                <option value="daily">Daily Rate</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="label">{form.salaryType === 'daily' ? 'Daily Rate (₹)' : 'Monthly Salary (₹)'}</label>
+              <input className="input" type="number" min="0" placeholder="0" value={form.salary} onChange={set('salary')} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="label">Login Password *</label>
+            <input className="input" type="password" placeholder="Min 6 characters" value={form.password} onChange={set('password')} required />
+          </div>
           <div className="flex gap-1 mt-2">
             <button type="button" className="btn btn-secondary btn-block" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-block" disabled={loading || idLoading}>{loading ? <span className="spinner" /> : 'Add Employee'}</button>
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading || idLoading}>
+              {loading ? <span className="spinner" /> : 'Add Employee'}
+            </button>
           </div>
         </form>
       </div>
@@ -361,7 +427,10 @@ function AddModal({ designations, onClose, onDone }) {
 }
 
 function EditModal({ emp, designations, onClose, onDone }) {
-  const [form, setForm] = useState({ contact: emp.contact || '', salaryType: emp.salaryType || 'monthly', salary: emp.salary || '', designation: emp.designation || '', password: '' })
+  const [form, setForm] = useState({
+    contact: emp.contact || '', salaryType: emp.salaryType || 'monthly',
+    salary: emp.salary || '', designation: emp.designation || '', password: ''
+  })
   const [loading, setLoading] = useState(false)
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
 
@@ -382,20 +451,43 @@ function EditModal({ emp, designations, onClose, onDone }) {
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Edit — {emp.username}</h2>
-        <div className="id-badge mb-2">{emp.employeeId}</div>
+        <div className="id-badge mb-2"><IdIcon />{emp.employeeId}</div>
         <form onSubmit={submit}>
           <div className="grid-2">
-            <div className="form-group"><label className="label">Contact</label><input className="input" value={form.contact} onChange={set('contact')} /></div>
-            <div className="form-group"><label className="label">Designation</label><select className="input" value={form.designation} onChange={set('designation')}><option value="">None</option>{designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}</select></div>
+            <div className="form-group">
+              <label className="label">Contact</label>
+              <input className="input" value={form.contact} onChange={set('contact')} />
+            </div>
+            <div className="form-group">
+              <label className="label">Designation</label>
+              <select className="input" value={form.designation} onChange={set('designation')}>
+                <option value="">None</option>
+                {designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
+              </select>
+            </div>
           </div>
           <div className="grid-2">
-            <div className="form-group"><label className="label">Salary Type</label><select className="input" value={form.salaryType} onChange={set('salaryType')}><option value="monthly">Monthly</option><option value="daily">Daily rate</option></select></div>
-            <div className="form-group"><label className="label">{form.salaryType === 'daily' ? 'Daily Rate (Rs)' : 'Monthly Salary (Rs)'}</label><input className="input" type="number" value={form.salary} onChange={set('salary')} /></div>
+            <div className="form-group">
+              <label className="label">Salary Type</label>
+              <select className="input" value={form.salaryType} onChange={set('salaryType')}>
+                <option value="monthly">Monthly Fixed</option>
+                <option value="daily">Daily Rate</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="label">{form.salaryType === 'daily' ? 'Daily Rate (₹)' : 'Monthly Salary (₹)'}</label>
+              <input className="input" type="number" min="0" value={form.salary} onChange={set('salary')} />
+            </div>
           </div>
-          <div className="form-group"><label className="label">New Password (blank = keep)</label><input className="input" type="password" placeholder="New password" value={form.password} onChange={set('password')} /></div>
+          <div className="form-group">
+            <label className="label">New Password (blank = keep current)</label>
+            <input className="input" type="password" placeholder="Leave blank to keep" value={form.password} onChange={set('password')} />
+          </div>
           <div className="flex gap-1 mt-2">
             <button type="button" className="btn btn-secondary btn-block" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>{loading ? <span className="spinner" /> : 'Save'}</button>
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+              {loading ? <span className="spinner" /> : 'Save Changes'}
+            </button>
           </div>
         </form>
       </div>
@@ -404,12 +496,12 @@ function EditModal({ emp, designations, onClose, onDone }) {
 }
 
 function BulkModal({ designations, onClose, onDone }) {
-  const [rows, setRows] = useState([{ username:'', contact:'', password:'', salaryType:'monthly', salary:'', designation:'' }])
+  const [rows, setRows] = useState([{ username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' }])
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState(null)
 
   function setRow(i, k, v) { setRows(r => r.map((row, idx) => idx === i ? { ...row, [k]: v } : row)) }
-  function addRow() { setRows(r => [...r, { username:'', contact:'', password:'', salaryType:'monthly', salary:'', designation:'' }]) }
+  function addRow() { setRows(r => [...r, { username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' }]) }
   function remRow(i) { setRows(r => r.filter((_, idx) => idx !== i)) }
 
   async function submit() {
@@ -431,8 +523,8 @@ function BulkModal({ designations, onClose, onDone }) {
         <h2 className="modal-title">Bulk Add Results</h2>
         <div className="mb-2">
           <div className="text-success font-600 mb-1">{results.created.length} created</div>
-          {results.created.map((c,i) => <div key={i} className="text-sm">{c.username} — <span style={{fontFamily:'monospace',color:'var(--accent)'}}>{c.employeeId}</span></div>)}
-          {results.failed.map((f,i) => <div key={i} className="text-danger text-sm mt-1">{f.username}: {f.reason}</div>)}
+          {results.created.map((c, i) => <div key={i} className="text-sm">{c.username} — <span style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>{c.employeeId}</span></div>)}
+          {results.failed.map((f, i) => <div key={i} className="text-danger text-sm mt-1">{f.username}: {f.reason}</div>)}
         </div>
         <button className="btn btn-primary btn-block" onClick={onDone}>Done</button>
       </div>
@@ -443,20 +535,32 @@ function BulkModal({ designations, onClose, onDone }) {
     <div className="overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 720 }} onClick={e => e.stopPropagation()}>
         <h2 className="modal-title">Bulk Add Employees</h2>
-        <div className="text-xs text-2 mb-2">Employee IDs are auto-generated.</div>
+        <div className="text-xs text-2 mb-2">Employee IDs are auto-generated. Fill Name and Password for each row.</div>
         <div style={{ overflowX: 'auto' }}>
           <table className="tbl" style={{ minWidth: 600 }}>
-            <thead><tr><th>Name *</th><th>Contact</th><th>Password *</th><th>Designation</th><th>Type</th><th>Salary</th><th></th></tr></thead>
+            <thead>
+              <tr><th>Name *</th><th>Contact</th><th>Password *</th><th>Designation</th><th>Type</th><th>Salary</th><th></th></tr>
+            </thead>
             <tbody>
               {rows.map((r, i) => (
                 <tr key={i}>
-                  <td><input className="input" style={{ minWidth: 100 }} value={r.username} onChange={e => setRow(i,'username',e.target.value)} /></td>
-                  <td><input className="input" style={{ minWidth: 90 }} value={r.contact}  onChange={e => setRow(i,'contact', e.target.value)} /></td>
-                  <td><input className="input" type="password" style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i,'password',e.target.value)} /></td>
-                  <td><select className="input" style={{ minWidth: 100 }} value={r.designation} onChange={e => setRow(i,'designation',e.target.value)}><option value="">None</option>{designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}</select></td>
-                  <td><select className="input" style={{ minWidth: 90 }} value={r.salaryType} onChange={e => setRow(i,'salaryType',e.target.value)}><option value="monthly">Monthly</option><option value="daily">Daily</option></select></td>
-                  <td><input className="input" type="number" style={{ minWidth: 70 }} value={r.salary} onChange={e => setRow(i,'salary',e.target.value)} /></td>
-                  <td><button className="btn btn-danger btn-sm" onClick={() => remRow(i)} disabled={rows.length===1}>X</button></td>
+                  <td><input className="input" style={{ minWidth: 100 }} value={r.username} onChange={e => setRow(i, 'username', e.target.value)} /></td>
+                  <td><input className="input" style={{ minWidth: 90 }} value={r.contact}  onChange={e => setRow(i, 'contact', e.target.value)} /></td>
+                  <td><input className="input" type="password" style={{ minWidth: 90 }} value={r.password} onChange={e => setRow(i, 'password', e.target.value)} /></td>
+                  <td>
+                    <select className="input" style={{ minWidth: 110 }} value={r.designation} onChange={e => setRow(i, 'designation', e.target.value)}>
+                      <option value="">None</option>
+                      {designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <select className="input" style={{ minWidth: 90 }} value={r.salaryType} onChange={e => setRow(i, 'salaryType', e.target.value)}>
+                      <option value="monthly">Monthly</option>
+                      <option value="daily">Daily</option>
+                    </select>
+                  </td>
+                  <td><input className="input" type="number" style={{ minWidth: 70 }} value={r.salary} onChange={e => setRow(i, 'salary', e.target.value)} /></td>
+                  <td><button className="btn btn-danger btn-sm" onClick={() => remRow(i)} disabled={rows.length === 1}>×</button></td>
                 </tr>
               ))}
             </tbody>
@@ -472,3 +576,14 @@ function BulkModal({ designations, onClose, onDone }) {
     </div>
   )
 }
+
+// Icons
+function PlusIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> }
+function BulkIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> }
+function SearchIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> }
+function PeopleIcon() { return <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> }
+function EditIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> }
+function ExportIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> }
+function ArchiveIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="5" rx="2"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg> }
+function ChevronIcon({ className }) { return <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg> }
+function IdIcon() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg> }

@@ -10,7 +10,7 @@ export default function SetupPage() {
   const [companyData, setCompanyData] = useState(null)
   const [setupToken, setSetupToken] = useState('')
   const [cForm, setCForm] = useState({ companyCode: '', password: '' })
-  const [aForm, setAForm] = useState({ username: '', adminId: '', contact: '', password: '', confirm: '' })
+  const [aForm, setAForm] = useState({ username: '', adminId: '', contact: '', email: '', password: '', confirm: '' })
   const [loading, setLoading] = useState(false)
 
   const setC = k => e => setCForm(p => ({ ...p, [k]: e.target.value }))
@@ -45,10 +45,11 @@ export default function SetupPage() {
         username: aForm.username,
         adminId:  aForm.adminId,
         contact:  aForm.contact,
+        email:    aForm.email,
         password: aForm.password
       })
       localStorage.setItem('adminToken', data.token)
-      localStorage.setItem('adminUser', JSON.stringify(data.admin))
+      localStorage.setItem('adminUser', JSON.stringify({ ...data.admin, company: data.company }))
       toast.success('Admin account created successfully')
       nav('/employees')
     } catch (err) {
@@ -96,17 +97,23 @@ export default function SetupPage() {
           <form onSubmit={createAdmin} className="card">
             <div className="grid-2">
               <div className="form-group">
-                <label className="label">Admin Username</label>
-                <input className="input" placeholder="admin" value={aForm.username} onChange={setA('username')} required />
+                <label className="label">Admin Name</label>
+                <input className="input" placeholder="Your Name" value={aForm.username} onChange={setA('username')} required />
               </div>
               <div className="form-group">
                 <label className="label">Admin ID</label>
                 <input className="input" placeholder="ADM001" value={aForm.adminId} onChange={setA('adminId')} required />
               </div>
             </div>
-            <div className="form-group">
-              <label className="label">Contact Number</label>
-              <input className="input" placeholder="9876543210" value={aForm.contact} onChange={setA('contact')} />
+            <div className="grid-2">
+              <div className="form-group">
+                <label className="label">Contact Number</label>
+                <input className="input" placeholder="9876543210" value={aForm.contact} onChange={setA('contact')} />
+              </div>
+              <div className="form-group">
+                <label className="label">Email</label>
+                <input className="input" type="email" placeholder="admin@email.com" value={aForm.email} onChange={setA('email')} />
+              </div>
             </div>
             <div className="form-group">
               <label className="label">Password</label>

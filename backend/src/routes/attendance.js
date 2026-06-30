@@ -2,77 +2,79 @@ const router     = require('express').Router();
 const Attendance = require('../models/Attendance');
 const Employee   = require('../models/Employee');
 const { verifyAdmin, verifyEmployee } = require('../middleware/auth');
+const jwt        = require('jsonwebtoken');
 
 const VALID_STATUSES = ['P', 'A', 'PP'];
-const JWT_SECRET = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-key-2024';
+const JWT_SECRET     = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-key-2024';
 
-// GET /api/attendance/report/:month  — must be BEFORE /:employeeId/:month
+// Helper: convert "YYYY-MM" to "MM-YYYY"
+function toMonthKey(yearMonth) {
+  const [y, m] = yearMonth.split('-');
+  return `${m}-${y}`;
+}
+
+// GET /api/attendance/report/:month  (YYYY-MM)
 router.get('/report/:month', verifyAdmin, async (req, res) => {
   try {
-    const { month } = req.params;
+    const { month } = req.params;  // YYYY-MM
+    const monthKey  = toMonthKey(month);
+
     const employees = await Employee.find({ companyId: req.admin.companyId }).select('-password');
-    const records   = await Attendance.find({
-      companyId: req.admin.companyId,
-      date: { $gte: `${month}-01`, $lte: `${month}-31` }
-    });
+    const records   = await Attendance.find({ companyId: req.admin.companyId, month: monthKey });
 
-    // Group records by employeeId
+    // Index by employeeId
     const byEmp = {};
-    records.forEach(r => {
-      const eid = r.employeeId.toString();
-      if (!byEmp[eid]) byEmp[eid] = { P: 0, A: 0, PP: 0, remarks: [] };
-      byEmp[eid][r.status] = (byEmp[eid][r.status] || 0) + 1;
-      if (r.remark && r.remark.trim()) byEmp[eid].remarks.push(r.remark.trim());
-    });
+    for (const rec of records) {
+      byEmp[rec.employeeId.toString()] = rec.days;
+    }
 
-    // Days in month
     const [y, m] = month.split('-').map(Number);
     const daysInMonth = new Date(y, m, 0).getDate();
 
     const report = employees.map(e => {
-      const eid  = e._id.toString();
-      const data = byEmp[eid] || { P: 0, A: 0, PP: 0, remarks: [] };
-      const totalPresent = data.P + data.PP * 2;
+      const eid      = e._id.toString();
+      const daysMap  = byEmp[eid] || new Map();
+      let P = 0, A = 0, PP = 0;
+      const remarks  = [];
 
+      for (let d = 1; d <= daysInMonth; d++) {
+        const rec = daysMap.get ? daysMap.get(String(d)) : daysMap[String(d)];
+        if (!rec) continue;
+        if (rec.status === 'P')  P++;
+        if (rec.status === 'A')  A++;
+        if (rec.status === 'PP') PP++;
+        if (rec.remark && rec.remark.trim()) remarks.push(rec.remark.trim());
+      }
+
+      const totalPresent = P + PP * 2;
       let estimatedSalary = 0;
       if (e.salary) {
         if (e.salaryType === 'monthly') {
           estimatedSalary = e.salary;
         } else {
-          // daily: multiply by actual present count (P=1 PP=2)
           estimatedSalary = Math.round(e.salary * totalPresent);
         }
       }
 
       return {
-        id:             e._id,
-        username:       e.username,
-        employeeId:     e.employeeId,
-        designation:    e.designation || '',
-        salary:         e.salary,
-        salaryType:     e.salaryType,
-        daysInMonth,
-        P:              data.P,
-        A:              data.A,
-        PP:             data.PP,
-        totalPresent,
-        estimatedSalary,
-        remarks:        data.remarks
+        id: e._id, username: e.username, employeeId: e.employeeId,
+        designation: e.designation || '', salary: e.salary, salaryType: e.salaryType,
+        daysInMonth, P, A, PP, totalPresent, estimatedSalary, remarks
       };
     });
     res.json(report);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// GET /api/attendance/:employeeId/:month
+// GET /api/attendance/:employeeId/:month  (month = YYYY-MM)
 router.get('/:employeeId/:month', async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
-    const jwt     = require('jsonwebtoken');
     const decoded = jwt.verify(token, JWT_SECRET);
 
     const { employeeId, month } = req.params;
+    const monthKey = toMonthKey(month);
 
     if (decoded.role === 'admin') {
       const emp = await Employee.findOne({ _id: employeeId, companyId: decoded.companyId });
@@ -83,21 +85,21 @@ router.get('/:employeeId/:month', async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const records = await Attendance.find({
-      employeeId,
-      date: { $gte: `${month}-01`, $lte: `${month}-31` }
-    });
-
+    const record = await Attendance.findOne({ employeeId, month: monthKey });
+    // Convert Map to plain object for JSON response, zero-padding day keys
     const result = {};
-    records.forEach(r => {
-      const day = r.date.split('-')[2];
-      result[day] = { status: r.status, remark: r.remark };
-    });
+    if (record && record.days) {
+      const daysObj = record.days instanceof Map ? Object.fromEntries(record.days) : record.days;
+      Object.entries(daysObj).forEach(([day, val]) => {
+        const paddedDay = String(day).padStart(2, '0');
+        result[paddedDay] = { status: val.status, remark: val.remark || '' };
+      });
+    }
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// POST /api/attendance
+// POST /api/attendance  — mark or update a single day
 router.post('/', verifyAdmin, async (req, res) => {
   try {
     const { employeeId, date, status, remark } = req.body;
@@ -113,23 +115,32 @@ router.post('/', verifyAdmin, async (req, res) => {
     const emp = await Employee.findOne({ _id: employeeId, companyId: req.admin.companyId });
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
 
-    const record = await Attendance.findOneAndUpdate(
-      { companyId: req.admin.companyId, employeeId, date },
-      { companyId: req.admin.companyId, employeeId, date, status, remark: remark || '' },
+    // Build month key MM-YYYY and day key
+    const [y, m, d] = date.split('-');
+    const monthKey  = `${m}-${y}`;
+    const dayKey    = String(parseInt(d, 10)); // strip leading zero
+
+    await Attendance.findOneAndUpdate(
+      { companyId: req.admin.companyId, employeeId, month: monthKey },
+      { $set: { [`days.${dayKey}`]: { status, remark: remark || '' } } },
       { upsert: true, new: true }
     );
-    res.status(201).json(record);
+    res.status(201).json({ month: monthKey, day: dayKey, status, remark: remark || '' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// DELETE /api/attendance/:employeeId/:date
+// DELETE /api/attendance/:employeeId/:date  (date = YYYY-MM-DD)
 router.delete('/:employeeId/:date', verifyAdmin, async (req, res) => {
   try {
-    await Attendance.findOneAndDelete({
-      companyId:  req.admin.companyId,
-      employeeId: req.params.employeeId,
-      date:       req.params.date
-    });
+    const { employeeId, date } = req.params;
+    const [y, m, d] = date.split('-');
+    const monthKey  = `${m}-${y}`;
+    const dayKey    = String(parseInt(d, 10));
+
+    await Attendance.findOneAndUpdate(
+      { companyId: req.admin.companyId, employeeId, month: monthKey },
+      { $unset: { [`days.${dayKey}`]: '' } }
+    );
     res.json({ message: 'Deleted' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

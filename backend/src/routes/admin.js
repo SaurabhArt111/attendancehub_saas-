@@ -10,24 +10,19 @@ const JWT_SECRET = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-ke
 // POST /api/admin/setup — create primary admin (owner) after company login
 router.post('/setup', async (req, res) => {
   try {
-    const { companySetupToken, username, adminId, contact, password } = req.body;
+    const { companySetupToken, username, adminId, contact, email, password } = req.body;
     if (!companySetupToken || !username || !adminId || !password)
       return res.status(400).json({ error: 'Setup token, username, admin ID, and password required' });
     if (password.length < 6)
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
     let decoded;
-    try {
-      decoded = jwt.verify(companySetupToken, JWT_SECRET);
-    } catch {
-      return res.status(401).json({ error: 'Invalid or expired setup token' });
-    }
+    try { decoded = jwt.verify(companySetupToken, JWT_SECRET); }
+    catch { return res.status(401).json({ error: 'Invalid or expired setup token' }); }
     if (decoded.role !== 'company_setup')
       return res.status(403).json({ error: 'Invalid token type' });
 
     const companyId = decoded.companyId;
-
-    // Only one owner per company
     const existing = await Admin.findOne({ companyId, isOwner: true });
     if (existing) return res.status(409).json({ error: 'Primary admin already created for this company' });
 
@@ -37,15 +32,23 @@ router.post('/setup', async (req, res) => {
       return res.status(409).json({ error: 'Admin ID already exists' });
 
     const hashed = await bcrypt.hash(password, 10);
-    const admin  = await Admin.create({ companyId, username, adminId, contact: contact || '', password: hashed, isOwner: true });
+    const admin  = await Admin.create({
+      companyId, username, adminId, contact: contact || '',
+      email: email ? email.trim().toLowerCase() : '', password: hashed, isOwner: true
+    });
 
+    const company = await Company.findById(companyId).select('-password');
     const token = jwt.sign(
       { id: admin._id, companyId, username: admin.username, role: 'admin', isOwner: true },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({ token, admin: { id: admin._id, username: admin.username, adminId: admin.adminId, isOwner: true } });
+    res.status(201).json({
+      token,
+      admin: { id: admin._id, username: admin.username, adminId: admin.adminId, isOwner: true },
+      company: { name: company?.name, companyCode: company?.companyCode }
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -94,6 +97,39 @@ router.get('/me', verifyAdmin, async (req, res) => {
     const admin   = await Admin.findById(req.admin.id).select('-password');
     const company = await Company.findById(req.admin.companyId).select('-password');
     res.json({ admin, company });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// PUT /api/admin/update — update admin profile
+router.put('/update', verifyAdmin, async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.admin.id);
+    if (!admin) return res.status(404).json({ error: 'Admin not found' });
+
+    const { username, contact, email, currentPassword, newPassword } = req.body;
+
+    if (username && username !== admin.username) {
+      const conflict = await Admin.findOne({ companyId: admin.companyId, username, _id: { $ne: admin._id } });
+      if (conflict) return res.status(409).json({ error: 'Username already taken' });
+      admin.username = username.trim();
+    }
+    if (contact !== undefined) admin.contact = contact;
+    if (email   !== undefined) admin.email   = email.trim().toLowerCase();
+
+    if (newPassword) {
+      if (!currentPassword)
+        return res.status(400).json({ error: 'Current password required to change password' });
+      const valid = await bcrypt.compare(currentPassword, admin.password);
+      if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+      if (newPassword.length < 6)
+        return res.status(400).json({ error: 'New password must be at least 6 characters' });
+      admin.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    await admin.save();
+    res.json({ message: 'Profile updated', admin: { username: admin.username, contact: admin.contact, email: admin.email, adminId: admin.adminId } });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
