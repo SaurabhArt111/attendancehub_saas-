@@ -342,7 +342,7 @@ function AboutSection({ onBack }) {
               { q: '1. Register Your Company', a: 'Create your company account with a name, contact, email, and password. You\'ll receive a unique Company Code — save it as you\'ll need it to sign in.' },
               { q: '2. Set Up Admin Account', a: 'After registration, create your primary admin account with a name, Admin ID, and password. This admin has full access to manage the system.' },
               { q: '3. Create Designations', a: 'Before adding employees, go to Designations and create the job roles in your company — Manager, Driver, Sales Executive, etc. Employees are assigned from these.' },
-              { q: '4. Add Employees', a: 'Add employees individually or in bulk. Each gets an auto-generated Employee ID they use to log in. Set their salary type (monthly or daily rate) and designation.' },
+              { q: '4. Add Employees', a: 'Add employees individually or in bulk. Each gets an auto-generated Employee ID they use to log in. Set their monthly salary and designation.' },
             ]
           },
           {
@@ -350,7 +350,7 @@ function AboutSection({ onBack }) {
             icon: <CalIcon />,
             items: [
               { q: 'Marking Attendance', a: 'Open any employee\'s card on the Employees page. The calendar lets you tap any past date to mark P (Present), A (Absent), or PP (Double Shift). You can also add a remark per day for notes like advance payments.' },
-              { q: 'Attendance Status Types', a: 'P = Present (1 day), A = Absent, PP = Double Shift (counts as 2 days). For daily-rate employees, salary is calculated as daily rate × total present days.' },
+              { q: 'Attendance Status Types', a: 'P = Present (1 day), A = Absent, PP = Double Shift (counts as 2 days). Daily salary is calculated as monthly salary divided by the number of days in the selected month.' },
               { q: 'Adding Remarks', a: 'When marking attendance, you can add a remark to any day. This appears in monthly reports and is useful for tracking advances, penalties, or other notes.' },
               { q: 'Today\'s Status', a: 'Each employee card on the Employees page shows a colored dot indicating their attendance status for today, so you can see the day\'s summary at a glance.' },
             ]
@@ -368,7 +368,7 @@ function AboutSection({ onBack }) {
             title: 'Reports & Exports',
             icon: <ChartIcon />,
             items: [
-              { q: 'Monthly Reports', a: 'Go to Reports and select any month to see a full breakdown: total present, absent, double-shift days, and estimated salary for every employee. Daily-rate salaries are calculated based on actual present count.' },
+              { q: 'Monthly Reports', a: 'Go to Reports and select any month to see a full breakdown: total present, absent, double-shift days, and estimated salary for every employee. Salary is calculated as monthly salary divided by days in that month, then multiplied by present days.' },
               { q: 'CSV Export', a: 'Download the monthly report as a CSV file from the Reports page. The CSV can be opened in Excel or Google Sheets for payroll processing.' },
               { q: 'Employee Data Export', a: 'From the Employees page, you can export any individual employee\'s full profile and all their attendance history as a JSON file — useful as a backup before archiving.' },
             ]

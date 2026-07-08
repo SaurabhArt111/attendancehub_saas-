@@ -320,7 +320,7 @@ function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onExport, 
         <div className="emp-card-right">
           <div className="emp-salary">
             <span className="emp-salary-amount">₹{emp.salary?.toLocaleString()}</span>
-            <span className="emp-salary-type">/{emp.salaryType === 'daily' ? 'day' : 'mo'}</span>
+            <span className="emp-salary-type">/mo</span>
           </div>
           <div className="emp-actions" onClick={e => e.stopPropagation()}>
             <button className="emp-action-btn" title="Edit" onClick={onEdit}><EditIcon /></button>
@@ -341,7 +341,7 @@ function EmployeeCard({ emp, expanded, todayStatus, onToggle, onEdit, onExport, 
 }
 
 function AddModal({ designations, onClose, onDone }) {
-  const [form, setForm] = useState({ username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' })
+  const [form, setForm] = useState({ username: '', contact: '', password: '', salary: '', designation: '' })
   const [suggestedId, setSuggestedId] = useState('')
   const [loading, setLoading] = useState(false)
   const [idLoading, setIdLoading] = useState(true)
@@ -399,14 +399,7 @@ function AddModal({ designations, onClose, onDone }) {
           </div>
           <div className="grid-2">
             <div className="form-group">
-              <label className="label">Salary Type</label>
-              <select className="input" value={form.salaryType} onChange={set('salaryType')}>
-                <option value="monthly">Monthly Fixed</option>
-                <option value="daily">Daily Rate</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="label">{form.salaryType === 'daily' ? 'Daily Rate (₹)' : 'Monthly Salary (₹)'}</label>
+              <label className="label">Monthly Salary (₹)</label>
               <input className="input" type="number" min="0" placeholder="0" value={form.salary} onChange={set('salary')} />
             </div>
           </div>
@@ -428,7 +421,7 @@ function AddModal({ designations, onClose, onDone }) {
 
 function EditModal({ emp, designations, onClose, onDone }) {
   const [form, setForm] = useState({
-    contact: emp.contact || '', salaryType: emp.salaryType || 'monthly',
+    contact: emp.contact || '',
     salary: emp.salary || '', designation: emp.designation || '', password: ''
   })
   const [loading, setLoading] = useState(false)
@@ -437,7 +430,7 @@ function EditModal({ emp, designations, onClose, onDone }) {
   async function submit(e) {
     e.preventDefault()
     setLoading(true)
-    const payload = { contact: form.contact, salaryType: form.salaryType, salary: form.salary, designation: form.designation }
+    const payload = { contact: form.contact, salary: form.salary, designation: form.designation }
     if (form.password) payload.password = form.password
     try {
       await api.put(`/employees/${emp._id}`, payload)
@@ -468,14 +461,7 @@ function EditModal({ emp, designations, onClose, onDone }) {
           </div>
           <div className="grid-2">
             <div className="form-group">
-              <label className="label">Salary Type</label>
-              <select className="input" value={form.salaryType} onChange={set('salaryType')}>
-                <option value="monthly">Monthly Fixed</option>
-                <option value="daily">Daily Rate</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="label">{form.salaryType === 'daily' ? 'Daily Rate (₹)' : 'Monthly Salary (₹)'}</label>
+              <label className="label">Monthly Salary (₹)</label>
               <input className="input" type="number" min="0" value={form.salary} onChange={set('salary')} />
             </div>
           </div>
@@ -496,12 +482,12 @@ function EditModal({ emp, designations, onClose, onDone }) {
 }
 
 function BulkModal({ designations, onClose, onDone }) {
-  const [rows, setRows] = useState([{ username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' }])
+  const [rows, setRows] = useState([{ username: '', contact: '', password: '', salary: '', designation: '' }])
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState(null)
 
   function setRow(i, k, v) { setRows(r => r.map((row, idx) => idx === i ? { ...row, [k]: v } : row)) }
-  function addRow() { setRows(r => [...r, { username: '', contact: '', password: '', salaryType: 'monthly', salary: '', designation: '' }]) }
+  function addRow() { setRows(r => [...r, { username: '', contact: '', password: '', salary: '', designation: '' }]) }
   function remRow(i) { setRows(r => r.filter((_, idx) => idx !== i)) }
 
   async function submit() {
@@ -539,7 +525,7 @@ function BulkModal({ designations, onClose, onDone }) {
         <div style={{ overflowX: 'auto' }}>
           <table className="tbl" style={{ minWidth: 600 }}>
             <thead>
-              <tr><th>Name *</th><th>Contact</th><th>Password *</th><th>Designation</th><th>Type</th><th>Salary</th><th></th></tr>
+              <tr><th>Name *</th><th>Contact</th><th>Password *</th><th>Designation</th><th>Monthly Salary</th><th></th></tr>
             </thead>
             <tbody>
               {rows.map((r, i) => (
@@ -551,12 +537,6 @@ function BulkModal({ designations, onClose, onDone }) {
                     <select className="input" style={{ minWidth: 110 }} value={r.designation} onChange={e => setRow(i, 'designation', e.target.value)}>
                       <option value="">None</option>
                       {designations.map(d => <option key={d._id} value={d.name}>{d.name}</option>)}
-                    </select>
-                  </td>
-                  <td>
-                    <select className="input" style={{ minWidth: 90 }} value={r.salaryType} onChange={e => setRow(i, 'salaryType', e.target.value)}>
-                      <option value="monthly">Monthly</option>
-                      <option value="daily">Daily</option>
                     </select>
                   </td>
                   <td><input className="input" type="number" placeholder='salary' style={{ minWidth: 70 }} value={r.salary} onChange={e => setRow(i, 'salary', e.target.value)} /></td>

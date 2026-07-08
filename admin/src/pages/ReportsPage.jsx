@@ -45,10 +45,11 @@ export default function ReportsPage() {
   // ── CSV Download ──
   function downloadCSV() {
     const daysInMonth = report[0]?.daysInMonth || 30
-    const headerRow = ['Sr.No.', 'Name', 'Designation', `Salary (${daysInMonth} days)`, 'Present', 'Total Salary', 'Advance/Remark', 'Net Salary', 'Signature']
+    const headerRow = ['Sr.No.', 'Name', 'Designation', `Monthly Salary (${daysInMonth} days)`, 'Daily Salary', 'Present', 'Total Salary', 'Advance/Remark', 'Net Salary', 'Signature']
     const rows = report.map((r, idx) => {
       const present = r.totalPresent
-      const salaryLabel = r.salaryType === 'daily' ? `Rs ${r.salary}/day` : `Rs ${r.salary}/mo`
+      const salaryLabel = `Rs ${r.salary}/mo`
+      const dailySalary = `Rs ${(r.dailySalary || 0).toLocaleString()}/day`
       const totalSalary = r.estimatedSalary
 
       // Parse advance amounts from remarks
@@ -60,6 +61,7 @@ export default function ReportsPage() {
         r.username,
         r.designation || '-',
         salaryLabel,
+        dailySalary,
         present,
         totalSalary,
         r.remarks.join(', ') || '-',
@@ -230,7 +232,8 @@ export default function ReportsPage() {
                       </td>
                       <td className="text-sm text-2">{r.designation || '-'}</td>
                       <td className="text-sm" style={{ whiteSpace: 'nowrap' }}>
-                        {r.salary ? (r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`) : '-'}
+                        {r.salary ? `Rs ${r.salary?.toLocaleString()}/mo` : '-'}
+                        {r.salary ? <div className="text-xs text-2">Rs {(r.dailySalary || 0).toLocaleString()}/day</div> : null}
                       </td>
                       <td className="text-success font-600">{r.P || 0}</td>
                       <td style={{ color: '#a78bfa', fontWeight: 600 }}>{r.PP || 0}</td>
@@ -288,7 +291,8 @@ export default function ReportsPage() {
                         <div className="report-detail-row">
                           <span className="report-detail-label">Salary</span>
                           <span className="report-detail-value">
-                            {r.salaryType === 'daily' ? `Rs ${r.salary}/d` : `Rs ${r.salary?.toLocaleString()}`}
+                            Rs {r.salary?.toLocaleString()}/mo
+                            <span className="text-xs text-2"> (Rs {(r.dailySalary || 0).toLocaleString()}/day)</span>
                           </span>
                         </div>
                       )}

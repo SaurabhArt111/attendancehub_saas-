@@ -47,18 +47,14 @@ router.get('/report/:month', verifyAdmin, async (req, res) => {
       }
 
       const totalPresent = P + PP * 2;
-      let estimatedSalary = 0;
-      if (e.salary) {
-        if (e.salaryType === 'monthly') {
-          estimatedSalary = e.salary;
-        } else {
-          estimatedSalary = Math.round(e.salary * totalPresent);
-        }
-      }
+      const monthlySalary = e.salary || 0;
+      const dailySalary = daysInMonth > 0 ? monthlySalary / daysInMonth : 0;
+      const estimatedSalary = Math.round(dailySalary * totalPresent);
 
       return {
         id: e._id, username: e.username, employeeId: e.employeeId,
-        designation: e.designation || '', salary: e.salary, salaryType: e.salaryType,
+        designation: e.designation || '', salary: monthlySalary, salaryType: 'monthly',
+        dailySalary: Math.round(dailySalary * 100) / 100,
         daysInMonth, P, A, PP, totalPresent, estimatedSalary, remarks
       };
     });

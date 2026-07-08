@@ -91,7 +91,7 @@ router.get('/', verifyAdmin, async (req, res) => {
 // POST /api/employees
 router.post('/', verifyAdmin, async (req, res) => {
   try {
-    const { username, employeeId, contact, password, salary, salaryType, designation } = req.body;
+    const { username, employeeId, contact, password, salary, designation } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     const companyId = req.admin.companyId;
     if (await Employee.findOne({ companyId, username: { $regex: new RegExp(`^${username}$`, 'i') }, archived: { $ne: true } }))
@@ -110,7 +110,7 @@ router.post('/', verifyAdmin, async (req, res) => {
     const emp = await Employee.create({
       companyId, username, employeeId: finalId, contact: contact || '',
       password: hashed, salary: parseFloat(salary) || 0,
-      salaryType: salaryType || 'monthly', designation: designation || ''
+      salaryType: 'monthly', designation: designation || ''
     });
     res.status(201).json({
       id: emp._id, username: emp.username, employeeId: emp.employeeId,
@@ -131,14 +131,14 @@ router.post('/bulk', verifyAdmin, async (req, res) => {
     const results   = { created: [], failed: [] };
     for (const emp of employees) {
       try {
-        const { username, contact, password, salary, salaryType, designation } = emp;
+        const { username, contact, password, salary, designation } = emp;
         if (!username || !password) { results.failed.push({ username, reason: 'Missing required fields' }); continue; }
         const finalId = await generateEmployeeId(companyId, company.name);
         const hashed  = await bcrypt.hash(password, 10);
         const created = await Employee.create({
           companyId, username, employeeId: finalId, contact: contact || '',
           password: hashed, salary: parseFloat(salary) || 0,
-          salaryType: salaryType || 'monthly', designation: designation || ''
+          salaryType: 'monthly', designation: designation || ''
         });
         results.created.push({ id: created._id, username, employeeId: finalId });
       } catch (err) { results.failed.push({ username: emp.username, reason: err.message }); }
@@ -175,9 +175,9 @@ router.put('/:id', verifyAdmin, async (req, res) => {
   try {
     const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId });
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    const { salary, salaryType, contact, password, isActive, designation } = req.body;
+    const { salary, contact, password, isActive, designation } = req.body;
     if (salary      !== undefined) emp.salary      = parseFloat(salary) || 0;
-    if (salaryType  !== undefined) emp.salaryType  = salaryType;
+    emp.salaryType = 'monthly';
     if (contact     !== undefined) emp.contact     = contact;
     if (isActive    !== undefined) emp.isActive    = isActive;
     if (designation !== undefined) emp.designation = designation;
