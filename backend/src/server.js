@@ -9,14 +9,10 @@ const connectDB = require('./utils/db');
 const app  = express();
 const PORT = process.env.PORT || 5900;
 
-const allowedOrigins = [
-  'https://attendancehub-saas.vercel.app',
-  'https://attendancehub-saas-employee.vercel.app',
-  ...(process.env.CORS_ORIGINS || '')
-    .split(',')
-    .map(origin => origin.trim())
-    .filter(Boolean)
-];
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
 
 const corsOptions = {
   origin(origin, callback) {
