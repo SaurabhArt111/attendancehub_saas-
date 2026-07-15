@@ -65,9 +65,9 @@
 
 /* Update Notification */
 .pwa-update-notification {
-  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  background: linear-gradient(135deg, #4f8ef7 0%, #7C3AED 100%);
   color: white;
-  border-left: 4px solid #4F46E5;
+  border-left: 4px solid #4f8ef7;
 }
 
 .pwa-update-notification .pwa-notification-title,
