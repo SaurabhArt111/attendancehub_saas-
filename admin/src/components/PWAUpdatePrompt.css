@@ -7,7 +7,7 @@
   margin: 1rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
   backdrop-filter: blur(10px);
   animation: slideIn 0.3s ease-out;
   z-index: 9999;
@@ -16,6 +16,9 @@
   right: 1rem;
   max-width: calc(100% - 2rem);
   min-width: 300px;
+  background: var(--bg-card, #ffffff);
+  color: var(--text, #111827);
+  border: 1px solid var(--border, #e5e7eb);
 }
 
 @keyframes slideIn {
@@ -23,6 +26,7 @@
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -54,20 +58,20 @@
 
 .pwa-notification-title {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text, #1f2937);
 }
 
 .pwa-notification-message {
-  color: #6b7280;
+  color: var(--text-secondary, #6b7280);
   margin: 0;
   line-height: 1.5;
 }
 
 /* Update Notification */
 .pwa-update-notification {
-  background: linear-gradient(135deg, #4f8ef7 0%, #7C3AED 100%);
+  background: linear-gradient(135deg, var(--primary, #4f8ef7) 0%, var(--purple, #7c3aed) 100%);
   color: white;
-  border-left: 4px solid #4f8ef7;
+  border-left: 4px solid var(--primary, #4f8ef7);
 }
 
 .pwa-update-notification .pwa-notification-title,
@@ -77,9 +81,9 @@
 
 /* Install Notification */
 .pwa-install-notification {
-  background: linear-gradient(135deg, #06B6D4 0%, #0891B2 100%);
+  background: linear-gradient(135deg, var(--success, #06b6d4) 0%, var(--primary, #0891b2) 100%);
   color: white;
-  border-left: 4px solid #06B6D4;
+  border-left: 4px solid var(--success, #06b6d4);
 }
 
 .pwa-install-notification .pwa-notification-title,
@@ -89,9 +93,9 @@
 
 /* iOS Hint */
 .pwa-ios-hint {
-  background: linear-gradient(135deg, #F59E0B 0%, #F97316 100%);
+  background: linear-gradient(135deg, var(--warn, #f59e0b) 0%, var(--danger, #f97316) 100%);
   color: white;
-  border-left: 4px solid #F59E0B;
+  border-left: 4px solid var(--warn, #f59e0b);
 }
 
 .pwa-ios-hint .pwa-notification-title,
@@ -107,9 +111,9 @@
 
 /* Offline Indicator */
 .pwa-offline-notification {
-  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  background: linear-gradient(135deg, var(--danger, #ef4444) 0%, #dc2626 100%);
   color: white;
-  border-left: 4px solid #EF4444;
+  border-left: 4px solid var(--danger, #ef4444);
 }
 
 .pwa-offline-notification .pwa-notification-title,
@@ -147,13 +151,13 @@
 
 .pwa-update-notification .pwa-btn-primary,
 .pwa-install-notification .pwa-btn-primary {
-  background: white;
-  color: #1f2937;
+  background: var(--bg-card, #ffffff);
+  color: var(--text, #1f2937);
 }
 
 .pwa-update-notification .pwa-btn-primary:hover,
 .pwa-install-notification .pwa-btn-primary:hover {
-  background: #f3f4f6;
+  background: var(--bg-hover, #f3f4f6);
 }
 
 .pwa-update-notification .pwa-btn-secondary,

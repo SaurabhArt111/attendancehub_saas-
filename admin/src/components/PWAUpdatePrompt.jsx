@@ -4,8 +4,16 @@ import './PWAUpdatePrompt.css'
 
 export default function PWAUpdatePrompt() {
   const { updateAvailable, acceptUpdate, dismissUpdate } = usePWAUpdate()
-  const { canInstall, isIOS, promptInstall } = usePWAInstallPrompt()
+  const { canInstall, isIOS, promptInstall, dismissInstallPrompt } = usePWAInstallPrompt()
   const isOnline = usePWAOnlineStatus()
+
+  const handleInstall = async () => {
+    await promptInstall()
+  }
+
+  const handleDismissInstall = () => {
+    dismissInstallPrompt()
+  }
 
   return (
     <>
@@ -44,14 +52,14 @@ export default function PWAUpdatePrompt() {
           </div>
           <div className="pwa-notification-actions">
             <button 
-              onClick={dismissUpdate}
+              onClick={handleDismissInstall}
               className="pwa-btn pwa-btn-secondary"
               aria-label="Dismiss install prompt"
             >
               No Thanks
             </button>
             <button 
-              onClick={promptInstall}
+              onClick={handleInstall}
               className="pwa-btn pwa-btn-primary"
               aria-label="Install app"
             >

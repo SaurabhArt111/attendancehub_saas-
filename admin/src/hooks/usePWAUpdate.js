@@ -13,12 +13,11 @@ export function usePWAUpdate() {
     if (!('serviceWorker' in navigator)) return
 
     const handleUpdate = (reg) => {
-      // Check for updates periodically
-      const interval = setInterval(() => {
-        reg.update()
-      }, 60000) // Check every minute
+      const interval = window.setInterval(() => {
+        reg.update().catch(() => undefined)
+      }, 60000)
 
-      return () => clearInterval(interval)
+      return () => window.clearInterval(interval)
     }
 
     navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -26,12 +25,12 @@ export function usePWAUpdate() {
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing
 
+          if (!newWorker) return
+
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // A new service worker is ready
               setUpdateAvailable(true)
               setRegistration(reg)
-              console.log('PWA update available')
             }
           })
         })
@@ -42,19 +41,32 @@ export function usePWAUpdate() {
   }, [])
 
   const acceptUpdate = useCallback(() => {
-    if (!registration?.waiting) return
-
-    registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-    setUpdateAvailable(false)
-
-    // Reload after new worker takes control
-    let reloaded = false
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!reloaded) {
-        reloaded = true
+    const finishUpdate = () => {
+      setUpdateAvailable(false)
+      window.setTimeout(() => {
         window.location.reload()
-      }
-    })
+      }, 250)
+    }
+
+    if (registration?.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+      finishUpdate()
+      return
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (!reg) {
+          finishUpdate()
+          return
+        }
+
+        reg.update().then(() => finishUpdate()).catch(() => finishUpdate())
+      }).catch(() => finishUpdate())
+      return
+    }
+
+    finishUpdate()
   }, [registration])
 
   const dismissUpdate = useCallback(() => {
@@ -78,23 +90,19 @@ export function usePWAInstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
-    // Check device type
     const ua = window.navigator.userAgent
     setIsIOS(/iPad|iPhone|iPod/.test(ua))
     setIsAndroid(/Android/.test(ua))
 
-    // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true)
     }
 
-    // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault()
       setInstallPrompt(e)
     }
 
-    // Listen for app installed event
     const handleAppInstalled = () => {
       setIsInstalled(true)
       setInstallPrompt(null)
@@ -112,21 +120,33 @@ export function usePWAInstallPrompt() {
   const promptInstall = useCallback(async () => {
     if (!installPrompt) return
 
-    installPrompt.prompt()
-    const { outcome } = await installPrompt.userChoice
+    try {
+      installPrompt.prompt()
+      const { outcome } = await installPrompt.userChoice
 
-    if (outcome === 'accepted') {
+      if (outcome === 'accepted') {
+        setInstallPrompt(null)
+        setIsInstalled(true)
+      } else {
+        setInstallPrompt(null)
+      }
+    } catch (error) {
+      console.warn('PWA install prompt failed:', error)
       setInstallPrompt(null)
-      setIsInstalled(true)
     }
   }, [installPrompt])
+
+  const dismissInstallPrompt = useCallback(() => {
+    setInstallPrompt(null)
+  }, [])
 
   return {
     canInstall: !!installPrompt && !isInstalled,
     isIOS,
     isAndroid,
     isInstalled,
-    promptInstall
+    promptInstall,
+    dismissInstallPrompt
   }
 }
 
