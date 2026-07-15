@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Toaster from './components/Toaster'
+import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 import RegisterPage from './pages/RegisterPage'
 import LoginPage from './pages/LoginPage'
 import SetupPage from './pages/SetupPage'
@@ -19,6 +20,7 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Toaster />
+      <PWAUpdatePrompt />
       <Routes>
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />

@@ -85,14 +85,10 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
     try {
       await api.post('/attendance', { employeeId, date: dateStr, status, remark })
       // Patch just this day in local state — no full reload
-      setData(prev => {
-        const next = { ...prev, [dayStr]: { status, remark } }
-        // Notify parent if it's today
-        if (onTodayStatus && isCurrentMonth && dayStr === getTodayKey()) {
-          onTodayStatus(status)
-        }
-        return next
-      })
+      setData(prev => ({ ...prev, [dayStr]: { status, remark } }))
+      if (onTodayStatus && isCurrentMonth && dayStr === getTodayKey()) {
+        onTodayStatus(status)
+      }
       toast.success('Saved')
     } catch (err) {
       toast.error(err.response?.data?.error || 'Save failed')
@@ -111,11 +107,11 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
       setData(prev => {
         const next = { ...prev }
         delete next[dayStr]
-        if (onTodayStatus && isCurrentMonth && dayStr === getTodayKey()) {
-          onTodayStatus(null)
-        }
         return next
       })
+      if (onTodayStatus && isCurrentMonth && dayStr === getTodayKey()) {
+        onTodayStatus(null)
+      }
       toast.success('Cleared')
     } catch {
       toast.error('Clear failed')

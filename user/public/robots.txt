@@ -1,0 +1,17 @@
+User-agent: *
+Disallow: /login
+Disallow: /api
+Disallow: /profile
+Disallow: /attendance
+
+# Allow search engines to index public pages (if any)
+Allow: /
+
+# Sitemap (optional - add if you have one)
+# Sitemap: https://your-domain.com/sitemap.xml
+
+# Crawl delay (seconds)
+Crawl-delay: 1
+
+# Request rate
+Request-rate: 30/1m
