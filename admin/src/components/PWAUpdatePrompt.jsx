@@ -25,14 +25,14 @@ export default function PWAUpdatePrompt() {
             <p className="pwa-notification-message">A new version of AttendanceHub is ready.</p>
           </div>
           <div className="pwa-notification-actions">
-            <button 
+            <button
               onClick={dismissUpdate}
               className="pwa-btn pwa-btn-secondary"
               aria-label="Dismiss update notification"
             >
               Later
             </button>
-            <button 
+            <button
               onClick={acceptUpdate}
               className="pwa-btn pwa-btn-primary"
               aria-label="Install update and reload"
@@ -51,14 +51,14 @@ export default function PWAUpdatePrompt() {
             <p className="pwa-notification-message">Install AttendanceHub on your device for quick access.</p>
           </div>
           <div className="pwa-notification-actions">
-            <button 
+            <button
               onClick={handleDismissInstall}
               className="pwa-btn pwa-btn-secondary"
               aria-label="Dismiss install prompt"
             >
               No Thanks
             </button>
-            <button 
+            <button
               onClick={handleInstall}
               className="pwa-btn pwa-btn-primary"
               aria-label="Install app"
@@ -78,13 +78,22 @@ export default function PWAUpdatePrompt() {
               Tap <span className="pwa-icon">⬆️</span> Share, then "Add to Home Screen"
             </p>
           </div>
-          <button 
-            onClick={dismissUpdate}
-            className="pwa-btn pwa-btn-small"
-            aria-label="Dismiss tip"
-          >
-            ✕
-          </button>
+          <div className="pwa-notification-actions">
+            <button
+              onClick={handleDismissInstall}
+              className="pwa-btn pwa-btn-secondary"
+              aria-label="Dismiss install tip"
+            >
+              No Thanks
+            </button>
+            <button
+              onClick={handleInstall}
+              className="pwa-btn pwa-btn-primary"
+              aria-label="Install on iOS"
+            >
+              Install
+            </button>
+          </div>
         </div>
       )}
 
