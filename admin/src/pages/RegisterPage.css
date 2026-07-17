@@ -158,6 +158,14 @@ html, body, #root {
   text-align: center;
 }
 
+.company-code-copy-btn {
+  margin: 0.5rem auto 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 /* ======== Step Dots ======== */
 .step-dots {
   display: flex;

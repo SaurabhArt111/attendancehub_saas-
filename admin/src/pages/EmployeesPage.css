@@ -165,8 +165,8 @@
 
 /* ── Grid ── */
 .emp-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: .6rem;
 }
 
@@ -436,6 +436,10 @@
 
   .emp-stats {
     gap: .75rem;
+  }
+
+  .emp-grid {
+    grid-template-columns: 1fr;
   }
 }
 

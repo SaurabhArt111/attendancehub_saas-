@@ -262,12 +262,12 @@ body {
 }
 
 .tag {
-  background: var(--bg-hover);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.2rem 0.5rem;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text);
   font-weight: 500;
 }
 
@@ -470,4 +470,10 @@ body {
     right: 1rem;
     top: 1rem;
   }
+}
+
+.about-page {
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
 }

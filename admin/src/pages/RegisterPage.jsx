@@ -27,6 +27,21 @@ export default function RegisterPage() {
     } finally { setLoading(false) }
   }
 
+  const copyCompanyCode = async () => {
+    if (!done?.companyCode) return
+    if (!navigator.clipboard) {
+      toast.error('Copy not supported')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(done.companyCode)
+      toast.success('Company Code copied')
+    } catch {
+      toast.error('Copy failed')
+    }
+  }
+
   if (done) return (
     <div className="auth-bg">
       <div className="auth-card card fade-in success-card">
@@ -45,6 +60,9 @@ export default function RegisterPage() {
           <div className="company-code-display">
             {done.companyCode}
           </div>
+          <button type="button" className="btn btn-secondary btn-sm company-code-copy-btn" onClick={copyCompanyCode}>
+            Copy Code
+          </button>
           <div className="company-code-hint">Save this code — you will need it to log in</div>
         </div>
         <button className="btn btn-primary btn-block" onClick={() => nav('/setup', { state: { fromRegister: true } })}>
@@ -94,6 +112,9 @@ export default function RegisterPage() {
         </form>
         <p className="auth-footer">
           Already registered? <Link to="/login" className="footer-link">Sign in</Link>
+        </p>
+        <p className="text-sm text-2 mt-2">
+          Want to learn more? <Link to="/about" className="footer-link">About AttendanceHub</Link>
         </p>
       </div>
     </div>

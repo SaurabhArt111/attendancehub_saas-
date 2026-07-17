@@ -40,6 +40,7 @@ export default function PWAUpdatePrompt() {
           </div>
           <div className="pwa-notification-actions">
             <button
+              type="button"
               onClick={dismissUpdate}
               className="pwa-btn pwa-btn-secondary"
               aria-label="Dismiss update notification"
@@ -47,6 +48,7 @@ export default function PWAUpdatePrompt() {
               Later
             </button>
             <button
+              type="button"
               onClick={acceptUpdate}
               className="pwa-btn pwa-btn-primary"
               aria-label="Install update and reload"
@@ -66,6 +68,7 @@ export default function PWAUpdatePrompt() {
           </div>
           <div className="pwa-notification-actions">
             <button
+              type="button"
               onClick={handleDismissInstall}
               className="pwa-btn pwa-btn-secondary"
               aria-label="Dismiss install prompt"
@@ -73,6 +76,7 @@ export default function PWAUpdatePrompt() {
               No Thanks
             </button>
             <button
+              type="button"
               onClick={handleInstall}
               className="pwa-btn pwa-btn-primary"
               aria-label="Install app"
@@ -94,6 +98,7 @@ export default function PWAUpdatePrompt() {
           </div>
           <div className="pwa-notification-actions">
             <button
+              type="button"
               onClick={handleDismissInstall}
               className="pwa-btn pwa-btn-secondary"
               aria-label="Dismiss install tip"
@@ -101,6 +106,7 @@ export default function PWAUpdatePrompt() {
               No Thanks
             </button>
             <button
+              type="button"
               onClick={handleShare}
               className="pwa-btn pwa-btn-primary"
               aria-label="Share installation instructions"

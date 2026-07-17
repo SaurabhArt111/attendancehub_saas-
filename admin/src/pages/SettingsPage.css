@@ -79,37 +79,37 @@
   margin: 1.25rem 0 1rem;
 }
 
-/* ── Settings nav button (About page link) ── */
-.settings-nav-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  width: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text);
+/* ── Copyable settings values ── */
+.settings-copyable {
   cursor: pointer;
-  transition: all var(--tr);
-  box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
 }
 
-.settings-nav-btn:hover {
-  border-color: var(--primary);
-  background: var(--bg-hover);
+.settings-copyable::after {
+  content: 'Copy';
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity var(--tr);
+  margin-left: 0.35rem;
 }
 
-.settings-nav-btn svg:first-child {
+.settings-copyable:hover::after {
+  opacity: 1;
+}
+
+.copy-highlight {
   color: var(--primary);
 }
 
-.settings-nav-btn svg:last-child {
-  margin-left: auto;
-  color: var(--text-secondary);
+.company-code-copy-btn {
+  margin: 0.75rem auto 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ── About Page ── */

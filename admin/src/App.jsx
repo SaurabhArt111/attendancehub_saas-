@@ -11,6 +11,7 @@ import ReportsPage from './pages/ReportsPage'
 import HolidaysPage from './pages/HolidaysPage'
 import DesignationsPage from './pages/DesignationsPage'
 import SettingsPage from './pages/SettingsPage'
+import AboutPage from './pages/AboutPage'
 
 function RequireAuth({ children }) {
   return localStorage.getItem('adminToken') ? children : <Navigate to="/login" replace />
@@ -24,6 +25,7 @@ export default function App() {
       <Routes>
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/setup" element={<SetupPage />} />
         <Route path="/" element={<RequireAuth><DashboardLayout /></RequireAuth>}>
           <Route index element={<Navigate to="/employees" replace />} />

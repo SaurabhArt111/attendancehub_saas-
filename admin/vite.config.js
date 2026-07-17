@@ -13,7 +13,7 @@ export default defineConfig({
         name: 'AttendanceHub - Admin',
         short_name: 'AH Admin',
         description: 'Enterprise attendance management system for administrators',
-        theme_color: '#4f8ef7',
+        theme_color: '#111827',
         background_color: '#ffffff',
         display: 'standalone',
         scope: '/',
