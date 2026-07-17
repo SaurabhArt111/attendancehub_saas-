@@ -15,6 +15,20 @@ export default function PWAUpdatePrompt() {
     dismissInstallPrompt()
   }
 
+  const handleShare = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'AttendanceHub',
+          text: 'Install AttendanceHub on your iPhone by choosing Add to Home Screen.',
+          url: window.location.href,
+        })
+      } catch (error) {
+        console.warn('Share canceled or failed', error)
+      }
+    }
+  }
+
   return (
     <>
       {/* Update Available Notification */}
@@ -78,13 +92,22 @@ export default function PWAUpdatePrompt() {
               Tap <span className="pwa-icon">⬆️</span> Share, then "Add to Home Screen"
             </p>
           </div>
-          <button 
-            onClick={dismissUpdate}
-            className="pwa-btn pwa-btn-small"
-            aria-label="Dismiss tip"
-          >
-            ✕
-          </button>
+          <div className="pwa-notification-actions">
+            <button
+              onClick={handleDismissInstall}
+              className="pwa-btn pwa-btn-secondary"
+              aria-label="Dismiss install tip"
+            >
+              No Thanks
+            </button>
+            <button
+              onClick={handleShare}
+              className="pwa-btn pwa-btn-primary"
+              aria-label="Share installation instructions"
+            >
+              Share
+            </button>
+          </div>
         </div>
       )}
 
