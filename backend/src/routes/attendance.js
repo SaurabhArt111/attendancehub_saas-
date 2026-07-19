@@ -125,6 +125,49 @@ router.post('/', verifyAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/attendance/bulk  — mark the SAME day/status/remark for MULTIPLE employees at once
+router.post('/bulk', verifyAdmin, async (req, res) => {
+  try {
+    const { employeeIds, date, status, remark } = req.body;
+    if (!Array.isArray(employeeIds) || !employeeIds.length)
+      return res.status(400).json({ error: 'employeeIds array required' });
+    if (!date || !status)
+      return res.status(400).json({ error: 'date and status required' });
+    if (!VALID_STATUSES.includes(status))
+      return res.status(400).json({ error: `Invalid status. Allowed: ${VALID_STATUSES.join(', ')}` });
+
+    const today   = new Date(); today.setHours(0, 0, 0, 0);
+    const attDate = new Date(date + 'T00:00:00');
+    if (attDate > today) return res.status(400).json({ error: 'Cannot mark attendance for future dates' });
+
+    const [y, m, d] = date.split('-');
+    const monthKey  = `${m}-${y}`;
+    const dayKey    = String(parseInt(d, 10));
+
+    // Only touch employees that actually belong to this admin's company.
+    const validEmployees = await Employee.find({
+      _id: { $in: employeeIds }, companyId: req.admin.companyId
+    }).select('_id username');
+    const validIds = validEmployees.map(e => e._id.toString());
+    const skipped  = employeeIds.filter(id => !validIds.includes(String(id)));
+
+    await Promise.all(validIds.map(employeeId =>
+      Attendance.findOneAndUpdate(
+        { companyId: req.admin.companyId, employeeId, month: monthKey },
+        { $set: { [`days.${dayKey}`]: { status, remark: remark || '' } } },
+        { upsert: true, new: true }
+      )
+    ));
+
+    res.status(201).json({
+      month: monthKey, day: dayKey, status, remark: remark || '',
+      updated: validEmployees.map(e => ({ id: e._id, username: e.username })),
+      updatedCount: validIds.length,
+      skippedCount: skipped.length
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // DELETE /api/attendance/:employeeId/:date  (date = YYYY-MM-DD)
 router.delete('/:employeeId/:date', verifyAdmin, async (req, res) => {
   try {

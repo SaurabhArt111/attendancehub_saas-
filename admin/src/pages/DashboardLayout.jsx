@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { useThemePref } from '../utils/theme'
 import './DashboardLayout.css'
 
 const NAV = [
@@ -14,17 +15,13 @@ export default function DashboardLayout() {
   const nav = useNavigate()
   const loc = useLocation()
   const [open, setOpen] = useState(false)
-  const [theme, setTheme] = useState(() => localStorage.getItem('adminTheme') || 'dark')
+  const { pref: theme, resolved: resolvedTheme, setPref: setTheme } = useThemePref()
 
   const user = (() => { try { return JSON.parse(localStorage.getItem('adminUser') || '{}') } catch { return {} } })()
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('adminTheme', theme)
-  }, [theme])
-
+  // Quick topbar toggle cycles Light → Dark → System → Light …
   function toggleTheme() {
-    setTheme(p => p === 'dark' ? 'light' : 'dark')
+    setTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light')
   }
 
   function logout() {
@@ -81,8 +78,10 @@ export default function DashboardLayout() {
             {user?.company?.companyCode && (
               <span className="tag" id="desktop-company-code">{user.company.name}</span>
             )}
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme" style={{ marginRight: '0.25rem' }}>
-              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme"
+              title={theme === 'system' ? `System default (currently ${resolvedTheme})` : theme === 'dark' ? 'Dark — tap for System' : 'Light — tap for Dark'}
+              style={{ marginRight: '0.25rem' }}>
+              {theme === 'system' ? <SystemIcon /> : resolvedTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </button>
           </div>
         </header>
@@ -129,6 +128,16 @@ function MoonIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  )
+}
+
+function SystemIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="13" rx="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
     </svg>
   )
 }

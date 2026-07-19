@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom'
+import { useThemePref } from '../utils/theme'
 
 export default function ProfilePage() {
   const nav  = useNavigate()
   const user = (() => { try { return JSON.parse(localStorage.getItem('employeeUser') || '{}') } catch { return {} } })()
   const initials = user?.username?.slice(0,2).toUpperCase() || 'U'
+  const { pref: theme, resolved: resolvedTheme, setPref: setTheme } = useThemePref()
 
   function logout() {
     localStorage.removeItem('employeeToken')
@@ -66,6 +68,30 @@ export default function ProfilePage() {
             <span style={{ width:9,height:9,borderRadius:'50%',background:'var(--warn)',flexShrink:0 }} />
             <div><div className="font-600 text-sm">Remark</div><div className="text-xs text-2">Dot on calendar day — hover/tap to read</div></div>
           </div>
+        </div>
+      </div>
+
+      <div className="card mb-2">
+        <div className="font-600 mb-1 text-sm">Appearance</div>
+        <div className="text-xs text-2 mb-2">
+          {theme === 'system' ? `Following your device (currently ${resolvedTheme === 'dark' ? 'Dark' : 'Light'})` : theme === 'dark' ? 'Dark' : 'Light'}
+        </div>
+        <div style={{ display: 'inline-flex', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '.25rem', gap: '.25rem' }}>
+          {[
+            { v: 'light', label: 'Light' },
+            { v: 'dark', label: 'Dark' },
+            { v: 'system', label: 'System' },
+          ].map(o => (
+            <button key={o.v} type="button" onClick={() => setTheme(o.v)}
+              style={{
+                padding: '.45rem .85rem', border: 'none', borderRadius: 7, fontFamily: 'inherit',
+                fontSize: '.8rem', fontWeight: 600, cursor: 'pointer',
+                background: theme === o.v ? 'var(--accent)' : 'transparent',
+                color: theme === o.v ? '#fff' : 'var(--text2)'
+              }}>
+              {o.label}
+            </button>
+          ))}
         </div>
       </div>
 

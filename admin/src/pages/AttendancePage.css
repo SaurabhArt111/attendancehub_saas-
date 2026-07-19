@@ -1,0 +1,68 @@
+/* ── Mode tabs ── */
+.att-tabs {
+  display: inline-flex;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .25rem;
+  gap: .25rem;
+}
+
+.att-tab {
+  padding: .45rem .9rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tr);
+  white-space: nowrap;
+}
+
+.att-tab:hover {
+  color: var(--text);
+}
+
+.att-tab.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+/* ── Bulk-mark employee checklist ── */
+.att-bulk {
+  display: flex;
+  flex-direction: column;
+}
+
+.att-bulk-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.att-bulk-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .65rem .85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--tr);
+}
+
+.att-bulk-row:hover {
+  border-color: var(--primary);
+}
+
+.att-bulk-row.selected {
+  border-color: var(--primary);
+  background: var(--primary-glow);
+}

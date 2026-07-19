@@ -3,9 +3,41 @@ const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const Admin   = require('../models/Admin');
 const Company = require('../models/Company');
-const { verifyAdmin } = require('../middleware/auth');
+const Session = require('../models/Session');
+const { verifyAdmin, signToken, JWT_SECRET, SLIDING_MS } = require('../middleware/auth');
+const { getDeviceInfo } = require('../utils/deviceInfo');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-key-2024';
+const MAX_ADMIN_DEVICES = 3;
+
+// Creates a Session document for a freshly logged-in admin, evicting the
+// least-recently-active device if the account is already at the concurrent
+// device limit. Returns { session, evicted } where `evicted` is a boolean.
+async function createAdminSession(admin, req) {
+  const { userAgent, ip, deviceLabel, deviceType } = getDeviceInfo(req);
+  const now = new Date();
+
+  const activeSessions = await Session.find({
+    role: 'admin', userId: admin._id, revoked: false, expiresAt: { $gt: now }
+  }).sort({ lastActiveAt: 1 }); // oldest activity first
+
+  let evicted = false;
+  if (activeSessions.length >= MAX_ADMIN_DEVICES) {
+    const oldest = activeSessions[0];
+    oldest.revoked = true;
+    oldest.revokedAt = now;
+    oldest.revokedReason = 'device-limit';
+    await oldest.save();
+    evicted = true;
+  }
+
+  const session = await Session.create({
+    role: 'admin', userId: admin._id, companyId: admin.companyId,
+    userAgent, ip, deviceLabel, deviceType,
+    createdAt: now, lastActiveAt: now, expiresAt: new Date(now.getTime() + SLIDING_MS)
+  });
+
+  return { session, evicted };
+}
 
 // POST /api/admin/setup — create primary admin (owner) after company login
 router.post('/setup', async (req, res) => {
@@ -38,10 +70,9 @@ router.post('/setup', async (req, res) => {
     });
 
     const company = await Company.findById(companyId).select('-password');
-    const token = jwt.sign(
-      { id: admin._id, companyId, username: admin.username, role: 'admin', isOwner: true },
-      JWT_SECRET,
-      { expiresIn: '7d' }
+    const { session } = await createAdminSession(admin, req);
+    const token = signToken(
+      { id: admin._id, companyId, username: admin.username, role: 'admin', isOwner: true, sid: session._id.toString() }
     );
 
     res.status(201).json({
@@ -75,16 +106,16 @@ router.post('/login', async (req, res) => {
     if (!admin || !await bcrypt.compare(password, admin.password))
       return res.status(401).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign(
-      { id: admin._id, companyId: company._id, username: admin.username, role: 'admin', isOwner: admin.isOwner },
-      JWT_SECRET,
-      { expiresIn: '7d' }
+    const { session, evicted } = await createAdminSession(admin, req);
+    const token = signToken(
+      { id: admin._id, companyId: company._id, username: admin.username, role: 'admin', isOwner: admin.isOwner, sid: session._id.toString() }
     );
 
     res.json({
       token,
       admin: { id: admin._id, username: admin.username, adminId: admin.adminId, isOwner: admin.isOwner },
-      company: { name: company.name, companyCode: company.companyCode }
+      company: { name: company.name, companyCode: company.companyCode },
+      deviceLimitReached: evicted
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -133,6 +164,69 @@ router.put('/update', verifyAdmin, async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// ── Security & Sessions ─────────────────────────────────────────────
+
+// GET /api/admin/sessions — active (non-revoked, non-expired) devices
+router.get('/sessions', verifyAdmin, async (req, res) => {
+  try {
+    const sessions = await Session.find({
+      role: 'admin', userId: req.admin.id, revoked: false, expiresAt: { $gt: new Date() }
+    }).sort({ lastActiveAt: -1 });
+
+    res.json({
+      currentSessionId: req.admin.sid || null,
+      maxDevices: MAX_ADMIN_DEVICES,
+      sessions: sessions.map(s => ({
+        id: s._id, deviceLabel: s.deviceLabel, deviceType: s.deviceType, ip: s.ip,
+        createdAt: s.createdAt, lastActiveAt: s.lastActiveAt, expiresAt: s.expiresAt,
+        isCurrent: req.admin.sid === s._id.toString()
+      }))
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/admin/sessions/history — recent login history (active + revoked/expired)
+router.get('/sessions/history', verifyAdmin, async (req, res) => {
+  try {
+    const sessions = await Session.find({ role: 'admin', userId: req.admin.id })
+      .sort({ createdAt: -1 })
+      .limit(25);
+
+    const now = new Date();
+    res.json(sessions.map(s => ({
+      id: s._id, deviceLabel: s.deviceLabel, deviceType: s.deviceType, ip: s.ip,
+      createdAt: s.createdAt, lastActiveAt: s.lastActiveAt,
+      status: s.revoked ? (s.revokedReason === 'device-limit' ? 'signed-out (device limit)' : 'signed-out') :
+              (s.expiresAt < now ? 'expired' : 'active'),
+      isCurrent: req.admin.sid === s._id.toString()
+    })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/admin/sessions/:id/revoke — sign a specific device out
+router.post('/sessions/:id/revoke', verifyAdmin, async (req, res) => {
+  try {
+    const session = await Session.findOne({ _id: req.params.id, role: 'admin', userId: req.admin.id });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    session.revoked = true;
+    session.revokedAt = new Date();
+    session.revokedReason = 'user';
+    await session.save();
+    res.json({ message: 'Device signed out', wasCurrent: req.admin.sid === session._id.toString() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/admin/sessions/logout-others — sign out every device except this one
+router.post('/sessions/logout-others', verifyAdmin, async (req, res) => {
+  try {
+    const result = await Session.updateMany(
+      { role: 'admin', userId: req.admin.id, revoked: false, _id: { $ne: req.admin.sid } },
+      { $set: { revoked: true, revokedAt: new Date(), revokedReason: 'logout-others' } }
+    );
+    res.json({ message: 'Other devices signed out', count: result.modifiedCount || 0 });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 module.exports = router;

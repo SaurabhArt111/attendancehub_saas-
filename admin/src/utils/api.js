@@ -13,9 +13,19 @@ api.interceptors.request.use(cfg => {
   return cfg
 })
 
+// Sliding session: every authenticated response carries a freshly-signed JWT
+// (fresh 30-day expiry) in the `x-new-token` header. Swap it into storage so
+// the next request uses it — this is what keeps an active admin logged in
+// indefinitely, while a genuinely idle session still expires naturally.
+function captureRefreshedToken(response) {
+  const fresh = response?.headers?.['x-new-token']
+  if (fresh) localStorage.setItem('adminToken', fresh)
+}
+
 api.interceptors.response.use(
-  r => r,
+  r => { captureRefreshedToken(r); return r },
   err => {
+    if (err.response) captureRefreshedToken(err.response)
     if (err.response?.status === 401) {
       localStorage.removeItem('adminToken')
       localStorage.removeItem('adminUser')

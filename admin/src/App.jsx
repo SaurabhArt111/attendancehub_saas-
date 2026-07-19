@@ -12,6 +12,7 @@ import HolidaysPage from './pages/HolidaysPage'
 import DesignationsPage from './pages/DesignationsPage'
 import SettingsPage from './pages/SettingsPage'
 import AboutPage from './pages/AboutPage'
+import EmployeeDetailsPage from './pages/EmployeeDetails'
 
 function RequireAuth({ children }) {
   return localStorage.getItem('adminToken') ? children : <Navigate to="/login" replace />
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/" element={<RequireAuth><DashboardLayout /></RequireAuth>}>
           <Route index element={<Navigate to="/employees" replace />} />
           <Route path="employees" element={<EmployeesPage />} />
+          <Route path="employees/:id" element={<EmployeeDetailsPage />} />
           <Route path="attendance" element={<AttendancePage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="holidays" element={<HolidaysPage />} />

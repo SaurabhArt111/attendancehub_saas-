@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
+import { useThemePref, THEME_OPTIONS } from '../utils/theme'
 import './SettingsPage.css'
 
-const SECTION = { MAIN: 'main', COMPANY: 'company', ADMIN: 'admin' }
+const SECTION = { MAIN: 'main', COMPANY: 'company', ADMIN: 'admin', SESSIONS: 'sessions' }
 
 export default function SettingsPage() {
   const [section, setSection] = useState(SECTION.MAIN)
   const [company, setCompany] = useState(null)
   const [adminInfo, setAdminInfo] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [theme, setTheme] = useState(() => localStorage.getItem('adminTheme') || 'dark')
+  const { pref: theme, resolved: resolvedTheme, setPref: setTheme } = useThemePref()
 
   const storedUser = (() => { try { return JSON.parse(localStorage.getItem('adminUser') || '{}') } catch { return {} } })()
 
@@ -20,13 +21,6 @@ export default function SettingsPage() {
       .catch(() => { })
       .finally(() => setLoading(false))
   }, [])
-
-  function toggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    document.documentElement.setAttribute('data-theme', next)
-    localStorage.setItem('adminTheme', next)
-  }
 
   function copyToClipboard(value, label) {
     if (!value) return
@@ -56,6 +50,9 @@ export default function SettingsPage() {
   if (section === SECTION.ADMIN && adminInfo) {
     return <AdminEditSection admin={adminInfo} onBack={() => setSection(SECTION.MAIN)}
       onSaved={updated => { setAdminInfo(prev => ({ ...prev, ...updated })); setSection(SECTION.MAIN) }} />
+  }
+  if (section === SECTION.SESSIONS) {
+    return <SecuritySessionsSection onBack={() => setSection(SECTION.MAIN)} />
   }
   return (
     <div>
@@ -129,6 +126,19 @@ export default function SettingsPage() {
             )}
           </div>
 
+          {/* Security & Sessions */}
+          <div className="card">
+            <div className="settings-section-header">
+              <div>
+                <div className="font-700">Security & Sessions</div>
+                <div className="text-xs text-2 mt-1">Active devices, login history & security options</div>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setSection(SECTION.SESSIONS)}>
+                <ShieldIcon /> Manage
+              </button>
+            </div>
+          </div>
+
           {/* Appearance */}
           <div className="card">
             <div className="settings-section-header">
@@ -137,15 +147,14 @@ export default function SettingsPage() {
                 <div className="text-xs text-2 mt-1">Customize the interface</div>
               </div>
             </div>
-            <div className="settings-row mt-2">
+            <div className="settings-row mt-2" style={{ flexWrap: 'wrap', gap: '.75rem' }}>
               <div>
                 <div className="text-sm font-600">Theme</div>
-                <div className="text-xs text-2">Currently: {theme === 'dark' ? 'Dark' : 'Light'}</div>
+                <div className="text-xs text-2">
+                  {theme === 'system' ? `Following your device (currently ${resolvedTheme})` : theme === 'dark' ? 'Dark' : 'Light'}
+                </div>
               </div>
-              <button className="btn btn-secondary btn-sm" onClick={toggleTheme}>
-                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              </button>
+              <ThemeSegmented value={theme} onChange={setTheme} />
             </div>
           </div>
 
@@ -175,6 +184,25 @@ export default function SettingsPage() {
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+function ThemeSegmented({ value, onChange }) {
+  const OPTS = [
+    { v: 'light',  label: 'Light',  icon: <SunIcon /> },
+    { v: 'dark',   label: 'Dark',   icon: <MoonIcon /> },
+    { v: 'system', label: 'System', icon: <SystemIcon /> },
+  ]
+  return (
+    <div className="theme-segmented">
+      {OPTS.map(o => (
+        <button key={o.v} type="button"
+          className={`theme-segmented-btn ${value === o.v ? 'active' : ''}`}
+          onClick={() => onChange(o.v)}>
+          {o.icon} {o.label}
+        </button>
+      ))}
     </div>
   )
 }
@@ -251,57 +279,6 @@ function CompanyEditSection({ company, onBack, onSaved }) {
         </div>
       </form>
     </div>
-  )
-}
-
-function EditIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  )
-}
-
-function BackIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  )
-}
-
-function LogoutIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
-    </svg>
-  )
-}
-
-function SunIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5" />
-      <line x1="12" y1="1" x2="12" y2="3" />
-      <line x1="12" y1="21" x2="12" y2="23" />
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-      <line x1="1" y1="12" x2="3" y2="12" />
-      <line x1="21" y1="12" x2="23" y2="12" />
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-  )
-}
-
-function MoonIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
-    </svg>
   )
 }
 
@@ -383,3 +360,261 @@ function AdminEditSection({ admin, onBack, onSaved }) {
   )
 }
 
+function SecuritySessionsSection({ onBack }) {
+  const [sessions, setSessions] = useState(null)
+  const [history, setHistory] = useState(null)
+  const [maxDevices, setMaxDevices] = useState(3)
+  const [currentSessionId, setCurrentSessionId] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [showHistory, setShowHistory] = useState(false)
+  const [busyId, setBusyId] = useState(null)
+
+  function load() {
+    setLoading(true)
+    Promise.all([api.get('/admin/sessions'), api.get('/admin/sessions/history')])
+      .then(([sRes, hRes]) => {
+        setSessions(sRes.data.sessions)
+        setMaxDevices(sRes.data.maxDevices)
+        setCurrentSessionId(sRes.data.currentSessionId)
+        setHistory(hRes.data)
+      })
+      .catch(() => toast.error('Failed to load sessions'))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [])
+
+  async function revoke(id) {
+    setBusyId(id)
+    try {
+      const { data } = await api.post(`/admin/sessions/${id}/revoke`)
+      toast.success('Device signed out')
+      if (data.wasCurrent) {
+        localStorage.removeItem('adminToken')
+        localStorage.removeItem('adminUser')
+        window.location.href = '/login'
+        return
+      }
+      load()
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to sign out device') }
+    finally { setBusyId(null) }
+  }
+
+  async function logoutOthers() {
+    if (!confirm('Sign out every other device? They will need to log in again.')) return
+    try {
+      const { data } = await api.post('/admin/sessions/logout-others')
+      toast.success(`Signed out ${data.count} other device${data.count === 1 ? '' : 's'}`)
+      load()
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to sign out other devices') }
+  }
+
+  function timeAgo(dateStr) {
+    const diffMs = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diffMs / 60000)
+    if (mins < 1) return 'just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    return `${days}d ago`
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <button className="btn btn-secondary btn-sm" onClick={onBack}><BackIcon /> Back</button>
+        <h1 className="font-700" style={{ fontSize: '1.1rem' }}>Security & Sessions</h1>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '3rem' }}><span className="spinner" /></div>
+      ) : (
+        <div className="settings-container">
+          <div className="card">
+            <div className="settings-section-header">
+              <div>
+                <div className="font-700">Active Sessions</div>
+                <div className="text-xs text-2 mt-1">
+                  {sessions?.length || 0} of {maxDevices} devices signed in — the oldest device is
+                  signed out automatically when you log in on a {maxDevices + 1}
+                  {maxDevices + 1 === 4 ? 'th' : 'th'} device
+                </div>
+              </div>
+              {sessions?.length > 1 && (
+                <button className="btn btn-secondary btn-sm" onClick={logoutOthers}>
+                  <LogoutIcon /> Sign out others
+                </button>
+              )}
+            </div>
+            <div className="settings-list mt-2">
+              {(sessions || []).map(s => (
+                <div key={s.id} className="session-row">
+                  <div className="session-row-icon">
+                    {s.deviceType === 'mobile' ? <MobileIcon /> : s.deviceType === 'tablet' ? <TabletIcon /> : <DesktopIcon />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="font-600 text-sm flex items-center gap-2" style={{ flexWrap: 'wrap' }}>
+                      {s.deviceLabel}
+                      {s.isCurrent && <span className="tag" style={{ fontSize: '.65rem', color: 'var(--success)', borderColor: 'var(--success)' }}>This device</span>}
+                    </div>
+                    <div className="text-xs text-2 mt-1">
+                      Last active {timeAgo(s.lastActiveAt)} · Signed in {timeAgo(s.createdAt)} {s.ip ? `· ${s.ip}` : ''}
+                    </div>
+                  </div>
+                  <button className="btn btn-danger btn-sm" disabled={busyId === s.id} onClick={() => revoke(s.id)}>
+                    {busyId === s.id ? <span className="spinner" /> : 'Sign out'}
+                  </button>
+                </div>
+              ))}
+              {sessions?.length === 0 && <div className="text-sm text-2">No active sessions found.</div>}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="settings-section-header">
+              <div>
+                <div className="font-700">Login History</div>
+                <div className="text-xs text-2 mt-1">Recent sign-ins to your admin account</div>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowHistory(v => !v)}>
+                {showHistory ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showHistory && (
+              <div className="settings-list mt-2">
+                {(history || []).map(h => (
+                  <div key={h.id} className="session-row">
+                    <div className="session-row-icon">
+                      {h.deviceType === 'mobile' ? <MobileIcon /> : h.deviceType === 'tablet' ? <TabletIcon /> : <DesktopIcon />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="font-600 text-sm">{h.deviceLabel}</div>
+                      <div className="text-xs text-2 mt-1">
+                        {new Date(h.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        {h.ip ? ` · ${h.ip}` : ''}
+                      </div>
+                    </div>
+                    <span className={`tag session-status-${h.status.startsWith('active') ? 'active' : h.status.startsWith('signed-out') ? 'revoked' : 'expired'}`}>
+                      {h.status}
+                    </span>
+                  </div>
+                ))}
+                {history?.length === 0 && <div className="text-sm text-2">No login history yet.</div>}
+              </div>
+            )}
+          </div>
+
+          <div className="card">
+            <div className="font-700 mb-1">Security Options</div>
+            <div className="settings-list mt-1">
+              <div className="settings-row">
+                <div>
+                  <div className="text-sm font-600">Device limit</div>
+                  <div className="text-xs text-2">Max {maxDevices} devices signed in at once</div>
+                </div>
+              </div>
+              <div className="settings-row">
+                <div>
+                  <div className="text-sm font-600">Sliding sessions</div>
+                  <div className="text-xs text-2">Staying active keeps you signed in; 30 days idle signs you out</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EditIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  )
+}
+
+function BackIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  )
+}
+
+function LogoutIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  )
+}
+
+function ShieldIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  )
+}
+
+function DesktopIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="13" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  )
+}
+
+function MobileIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="6" y="2" width="12" height="20" rx="2" /><line x1="11" y1="18" x2="13" y2="18" />
+    </svg>
+  )
+}
+
+function TabletIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2" /><line x1="12" y1="18" x2="12.01" y2="18" />
+    </svg>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+    </svg>
+  )
+}
+
+function SystemIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="13" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  )
+}

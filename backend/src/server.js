@@ -21,6 +21,9 @@ const corsOptions = {
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  // x-new-token carries the refreshed sliding-session JWT on every authenticated
+  // response; browsers hide custom response headers from JS unless exposed here.
+  exposedHeaders: ['x-new-token'],
   credentials: true
 };
 

@@ -339,7 +339,7 @@
   }
 
   .bottom-nav {
-    height: calc(56px + env(safe-area-inset-bottom));
+    height: calc(64px + env(safe-area-inset-bottom));
     padding: 0.4rem 0.25rem 0;
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -361,7 +361,7 @@
   }
 
   .bottom-nav {
-    height: calc(48px + env(safe-area-inset-bottom));
+    height: calc(64px + env(safe-area-inset-bottom));
   }
 }
 
