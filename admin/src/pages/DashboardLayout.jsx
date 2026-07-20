@@ -5,11 +5,15 @@ import './DashboardLayout.css'
 
 const NAV = [
   { to: '/employees', label: 'Employees', icon: <PeopleIcon /> },
+  { to: '/my-employees', label: 'My Employees', icon: <RosterIcon /> },
   { to: '/reports', label: 'Reports', icon: <ChartIcon /> },
   { to: '/holidays', label: 'Holidays', icon: <HolIcon /> },
   { to: '/designations', label: 'Designations', icon: <TagIcon /> },
   { to: '/settings', label: 'Settings', icon: <GearIcon /> },
 ]
+
+// Bottom mobile nav stays focused on the most-used items so it doesn't overflow
+const BOTTOM_NAV = NAV.filter(n => n.to !== '/my-employees')
 
 export default function DashboardLayout() {
   const nav = useNavigate()
@@ -62,6 +66,11 @@ export default function DashboardLayout() {
           <button className="btn btn-secondary btn-sm btn-block" onClick={logout}>
             <LogoutIcon /> Sign Out
           </button>
+          <div className="sidebar-legal-links">
+            <NavLink to="/about" onClick={() => setOpen(false)}>About</NavLink>
+            <span>·</span>
+            <NavLink to="/privacy-policy" onClick={() => setOpen(false)}>Privacy Policy</NavLink>
+          </div>
         </div>
       </aside>
 
@@ -92,7 +101,7 @@ export default function DashboardLayout() {
 
         {/* Mobile bottom nav */}
         <nav className="bottom-nav">
-          {NAV.map(n => {
+          {BOTTOM_NAV.map(n => {
             const active = loc.pathname.startsWith(n.to)
             return (
               <button key={n.to} className={`bnav-item ${active ? 'active' : ''}`}
@@ -109,6 +118,7 @@ export default function DashboardLayout() {
 }
 
 function PeopleIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> }
+function RosterIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="16" rx="2" /><line x1="7" y1="9" x2="17" y2="9" /><line x1="7" y1="13" x2="17" y2="13" /><line x1="7" y1="17" x2="13" y2="17" /></svg> }
 function ChartIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /><line x1="2" y1="20" x2="22" y2="20" /></svg> }
 function HolIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M12 8v4l2 2" /></svg> }
 function TagIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg> }

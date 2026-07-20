@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import { useThemePref, THEME_OPTIONS } from '../utils/theme'
@@ -155,6 +156,22 @@ export default function SettingsPage() {
                 </div>
               </div>
               <ThemeSegmented value={theme} onChange={setTheme} />
+            </div>
+          </div>
+
+          {/* Legal & Info */}
+          <div className="card">
+            <div className="font-700 mb-1">Legal & Info</div>
+            <div className="text-sm text-2 mb-2">Learn more about AttendanceHub and how your data is handled</div>
+            <div className="settings-list">
+              <Link to="/about" className="settings-row" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <span className="text-sm text-2">About AttendanceHub</span>
+                <span className="font-600 text-sm" style={{ color: 'var(--primary)' }}>View →</span>
+              </Link>
+              <Link to="/privacy-policy" className="settings-row" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <span className="text-sm text-2">Privacy Policy</span>
+                <span className="font-600 text-sm" style={{ color: 'var(--primary)' }}>View →</span>
+              </Link>
             </div>
           </div>
 

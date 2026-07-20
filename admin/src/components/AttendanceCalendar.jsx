@@ -12,7 +12,7 @@ export function getTodayKey() {
   return String(now.getDate()).padStart(2, '0')
 }
 
-export default function AttendanceCalendar({ employeeId, adminMode = false, onTodayStatus }) {
+export default function AttendanceCalendar({ employeeId, adminMode = false, onTodayStatus, summaryFooter = false }) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
@@ -223,19 +223,41 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
         </div>
       )}
 
-      {/* Legend for calendar */}
-      <div className="flex gap-2 mt-2" style={{ flexWrap: 'wrap', fontSize: '.73rem' }}>
-        {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' }, { c: 'H', l: 'Holiday' }].map(s => (
-          <span key={s.c} className="flex items-center gap-1">
-            <span className={`cal-day ${s.c}`} style={{ width: 14, height: 14, fontSize: 9, borderRadius: 4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.c}</span>
-            {s.l}
+      {/* Legend for calendar (or a Present/Absent month summary, when requested) */}
+      {summaryFooter ? (
+        <div className="cal-month-summary mt-2">
+          <div className="cal-month-summary-item">
+            <span className="cal-month-summary-dot" style={{ background: 'var(--success)' }} />
+            <span className="cal-month-summary-label">Present</span>
+            <span className="cal-month-summary-value text-success">{P + PP}</span>
+          </div>
+          <div className="cal-month-summary-item">
+            <span className="cal-month-summary-dot" style={{ background: 'var(--danger)' }} />
+            <span className="cal-month-summary-label">Absent</span>
+            <span className="cal-month-summary-value text-danger">{A}</span>
+          </div>
+          {PP > 0 && (
+            <div className="cal-month-summary-item">
+              <span className="cal-month-summary-dot" style={{ background: '#a78bfa' }} />
+              <span className="cal-month-summary-label">Double</span>
+              <span className="cal-month-summary-value" style={{ color: '#a78bfa' }}>{PP}</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex gap-2 mt-2" style={{ flexWrap: 'wrap', fontSize: '.73rem' }}>
+          {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' }, { c: 'H', l: 'Holiday' }].map(s => (
+            <span key={s.c} className="flex items-center gap-1">
+              <span className={`cal-day ${s.c}`} style={{ width: 14, height: 14, fontSize: 9, borderRadius: 4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.c}</span>
+              {s.l}
+            </span>
+          ))}
+          <span className="flex items-center gap-1">
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warn)', display: 'inline-block', flexShrink: 0 }} />
+            Remark
           </span>
-        ))}
-        <span className="flex items-center gap-1">
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warn)', display: 'inline-block', flexShrink: 0 }} />
-          Remark
-        </span>
-      </div>
+        </div>
+      )}
 
       {markModal && (
         <MarkModal

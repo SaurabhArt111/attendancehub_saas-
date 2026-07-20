@@ -373,6 +373,27 @@
   border-color: var(--danger);
 }
 
+.emp-next-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--tr);
+  flex-shrink: 0;
+}
+
+.emp-next-btn:hover {
+  background: var(--bg-active);
+  color: var(--text);
+  border-color: var(--primary);
+}
+
 .emp-chevron {
   color: var(--text-secondary);
   transition: transform .2s ease;

@@ -1,17 +1,30 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import './DesignationsPage.css'
 
+function initials(name) {
+  const parts = (name || '').trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  return (name || '').slice(0, 2).toUpperCase()
+}
+
 export default function DesignationsPage() {
+  const navigate = useNavigate()
   const [list,    setList]    = useState([])
+  const [employees, setEmployees] = useState([])
   const [name,    setName]    = useState('')
   const [loading, setLoading] = useState(false)
   const [renameId, setRenameId] = useState(null)
   const [renameName, setRenameName] = useState('')
   const [renaming, setRenaming] = useState(false)
+  const [openDesig, setOpenDesig] = useState(null)
 
-  const load = () => api.get('/designations').then(r => setList(r.data)).catch(() => toast.error('Load failed'))
+  const load = () => Promise.all([
+    api.get('/designations').then(r => setList(r.data)),
+    api.get('/employees').then(r => setEmployees(r.data)),
+  ]).catch(() => toast.error('Load failed'))
   useEffect(() => { load() }, [])
 
   async function add(e) {
@@ -85,28 +98,74 @@ export default function DesignationsPage() {
           No designations yet. Add your first one above.
         </div>
       ) : (
-        <div className="card" style={{ padding: 0 }}>
-          <table className="tbl">
-            <thead>
-              <tr><th>#</th><th>Designation</th><th style={{ textAlign: 'right' }}>Actions</th></tr>
-            </thead>
-            <tbody>
-              {list.map((d, i) => (
-                <tr key={d._id}>
-                  <td className="text-2 text-sm">{i + 1}</td>
-                  <td className="font-600">{d.name}</td>
-                  <td>
-                    <div className="flex gap-1" style={{ justifyContent: 'flex-end' }}>
-                      <button className="btn btn-secondary btn-sm" onClick={() => startRename(d)}>Rename</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => del(d._id, d.name)}>Remove</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="desig-grid">
+          {list.map(d => {
+            const emps = employees.filter(e => e.designation === d.name)
+            const totalSalary = emps.reduce((s, e) => s + (e.salary || 0), 0)
+            return (
+              <div key={d._id} className="desig-card" onClick={() => setOpenDesig(d)}>
+                <div className="desig-card-top">
+                  <div className="desig-card-name">{d.name}</div>
+                  <span className="desig-card-count">{emps.length} employee{emps.length === 1 ? '' : 's'}</span>
+                </div>
+                <div className="desig-card-sub text-xs text-2">
+                  {emps.length > 0 ? `₹${totalSalary.toLocaleString()}/mo payroll` : 'No employees assigned yet'}
+                </div>
+                <div className="desig-card-actions" onClick={e => e.stopPropagation()}>
+                  <button className="btn btn-secondary btn-sm" onClick={() => startRename(d)}>Rename</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => del(d._id, d.name)}>Remove</button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
+
+      {/* Employees within a designation */}
+      {openDesig && (() => {
+        const emps = employees.filter(e => e.designation === openDesig.name)
+        const totalSalary = emps.reduce((s, e) => s + (e.salary || 0), 0)
+        const avgSalary = emps.length ? Math.round(totalSalary / emps.length) : 0
+        return (
+          <div className="overlay" onClick={() => setOpenDesig(null)}>
+            <div className="modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+              <h2 className="modal-title">{openDesig.name}</h2>
+              <div className="desig-modal-stats mb-2">
+                <div className="desig-modal-stat">
+                  <div className="font-700" style={{ fontSize: '1.15rem' }}>{emps.length}</div>
+                  <div className="text-xs text-2">Employees</div>
+                </div>
+                <div className="desig-modal-stat">
+                  <div className="font-700" style={{ fontSize: '1.15rem' }}>₹{totalSalary.toLocaleString()}</div>
+                  <div className="text-xs text-2">Total payroll/mo</div>
+                </div>
+                <div className="desig-modal-stat">
+                  <div className="font-700" style={{ fontSize: '1.15rem' }}>₹{avgSalary.toLocaleString()}</div>
+                  <div className="text-xs text-2">Avg salary/mo</div>
+                </div>
+              </div>
+              {emps.length === 0 ? (
+                <div className="text-sm text-2">No employees have this designation yet.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+                  {emps.map(emp => (
+                    <div key={emp._id} className="card desig-emp-row"
+                      onClick={() => navigate(`/employees/${emp._id}`)}>
+                      <div className="emp-avatar emp-avatar-sm">{initials(emp.username)}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="font-600 text-sm">{emp.username} <span className="emp-id-badge">{emp.employeeId}</span></div>
+                        <div className="text-xs text-2 mt-1">{emp.contact}{emp.salary ? ` · ₹${emp.salary.toLocaleString()}/mo` : ''}</div>
+                      </div>
+                      <ChevronRightIcon />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button className="btn btn-secondary btn-block mt-2" onClick={() => setOpenDesig(null)}>Close</button>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Rename Modal */}
       {renameId && (
@@ -131,4 +190,8 @@ export default function DesignationsPage() {
       )}
     </div>
   )
+}
+
+function ChevronRightIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-secondary)', flexShrink: 0 }}><path d="m9 18 6-6-6-6" /></svg>
 }

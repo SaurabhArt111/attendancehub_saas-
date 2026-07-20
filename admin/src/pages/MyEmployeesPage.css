@@ -1,0 +1,71 @@
+.myemp-table-wrapper {
+  overflow: hidden;
+}
+
+.myemp-table-desktop {
+  display: block;
+  overflow-x: auto;
+}
+
+.myemp-table-mobile {
+  display: none;
+}
+
+.myemp-proof-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .2rem .55rem;
+  border-radius: 99px;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+.myemp-proof-yes {
+  background: var(--success-glow);
+  color: var(--success);
+}
+
+.myemp-proof-no {
+  background: var(--warn-glow);
+  color: var(--warn);
+}
+
+@media (max-width: 860px) {
+  .myemp-table-desktop {
+    display: none;
+  }
+
+  .myemp-table-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    padding: .85rem;
+  }
+
+  .myemp-mobile-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .9rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+
+  .myemp-mobile-details {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    padding: .6rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    font-size: .82rem;
+  }
+
+  .myemp-mobile-details > div {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+  }
+}

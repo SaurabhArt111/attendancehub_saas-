@@ -477,3 +477,14 @@ body {
   max-width: 800px;
   margin: 0 auto;
 }
+
+.footer-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--tr);
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}

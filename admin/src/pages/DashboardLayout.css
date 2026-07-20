@@ -82,6 +82,30 @@
   gap: 0.5rem;
 }
 
+.sidebar-legal-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+}
+
+.sidebar-legal-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.sidebar-legal-links a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.sidebar-legal-links span {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
 /* Main Content Area */
 .main-content {
   flex: 1;

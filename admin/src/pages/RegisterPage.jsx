@@ -116,6 +116,9 @@ export default function RegisterPage() {
         <p className="text-sm text-2 mt-2">
           Want to learn more? <Link to="/about" className="footer-link">About AttendanceHub</Link>
         </p>
+        <p className="text-sm text-2 mt-1">
+          <Link to="/privacy-policy" className="footer-link">Privacy Policy</Link>
+        </p>
       </div>
     </div>
   )

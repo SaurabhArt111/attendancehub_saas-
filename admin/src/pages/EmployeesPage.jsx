@@ -383,6 +383,8 @@ function EmployeeCard({ emp, expanded, todayStatus, selectMode, selected, onTogg
     else onToggle()
   }
 
+  // Collapsed: just name + designation + a "next" (expand) button.
+  // Expanded: full identity block (name, ID, designation, mobile) plus salary/actions.
   return (
     <div className={`emp-card ${expanded ? 'expanded' : ''} ${selectMode ? 'selectable' : ''} ${selected ? 'selected' : ''}`}>
       <div className="emp-card-main" onClick={handleMainClick}>
@@ -396,49 +398,71 @@ function EmployeeCard({ emp, expanded, todayStatus, selectMode, selected, onTogg
             {initials(emp.username)}
             {todayCfg && <span className="emp-status-dot" style={{ background: todayCfg.dot }} />}
           </div>
-          <div className="emp-card-info">
-            <div className="emp-name">
-              {emp.username}
-              <span className="emp-id-badge">{emp.employeeId}</span>
-              {emp.hasIdProof && <span className="emp-idproof-chip" title="Identification proof on file"><IdIcon /></span>}
+
+          {!expanded ? (
+            /* ── Collapsed: name & designation only ── */
+            <div className="emp-card-info">
+              <div className="emp-name">{emp.username}</div>
+              <div className="emp-meta">
+                {emp.designation ? (
+                  <span className="emp-desg-tag" style={{ background: dColor?.bg, color: dColor?.color }}>
+                    {emp.designation}
+                  </span>
+                ) : <span className="text-xs text-2">No designation</span>}
+              </div>
             </div>
-            <div className="emp-meta">
-              {emp.designation && (
-                <span className="emp-desg-tag" style={{ background: dColor?.bg, color: dColor?.color }}>
-                  {emp.designation}
-                </span>
-              )}
-              {emp.contact && <span className="emp-contact">{emp.contact}</span>}
-              {!emp.hasPassword && <span className="emp-nopass-tag" title="Employee cannot log in yet">No password set</span>}
-              {todayCfg && (
-                <span className="emp-today-badge" style={{ background: todayCfg.bg, color: todayCfg.color }}>
-                  <span className="emp-today-dot" style={{ background: todayCfg.dot }} />
-                  {todayCfg.label}
-                </span>
-              )}
+          ) : (
+            /* ── Expanded: full info — name, ID, designation, mobile ── */
+            <div className="emp-card-info">
+              <div className="emp-name">
+                {emp.username}
+                <span className="emp-id-badge">{emp.employeeId}</span>
+                {emp.hasIdProof && <span className="emp-idproof-chip" title="Identification proof on file"><IdIcon /></span>}
+              </div>
+              <div className="emp-meta">
+                {emp.designation && (
+                  <span className="emp-desg-tag" style={{ background: dColor?.bg, color: dColor?.color }}>
+                    {emp.designation}
+                  </span>
+                )}
+                {emp.contact && <span className="emp-contact">{emp.contact}</span>}
+                {!emp.hasPassword && <span className="emp-nopass-tag" title="Employee cannot log in yet">No password set</span>}
+                {todayCfg && (
+                  <span className="emp-today-badge" style={{ background: todayCfg.bg, color: todayCfg.color }}>
+                    <span className="emp-today-dot" style={{ background: todayCfg.dot }} />
+                    {todayCfg.label}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {!selectMode && (
           <div className="emp-card-right">
-            <div className="emp-salary">
-              <span className="emp-salary-amount">₹{emp.salary?.toLocaleString()}</span>
-              <span className="emp-salary-type">/mo</span>
-            </div>
-            <div className="emp-actions" onClick={e => e.stopPropagation()}>
-              <button className="emp-action-btn" title="View profile" onClick={onView}><EyeIcon /></button>
-              <button className="emp-action-btn" title="Edit" onClick={onEdit}><EditIcon /></button>
-              <button className="emp-action-btn emp-action-danger" title="Archive" onClick={onArchive}><ArchiveIcon /></button>
-            </div>
-            <ChevronIcon className={`emp-chevron ${expanded ? 'open' : ''}`} />
+            {expanded && (
+              <>
+                <div className="emp-salary">
+                  <span className="emp-salary-amount">₹{emp.salary?.toLocaleString()}</span>
+                  <span className="emp-salary-type">/mo</span>
+                </div>
+                <div className="emp-actions" onClick={e => e.stopPropagation()}>
+                  <button className="emp-action-btn" title="View profile" onClick={onView}><EyeIcon /></button>
+                  <button className="emp-action-btn" title="Edit" onClick={onEdit}><EditIcon /></button>
+                  <button className="emp-action-btn emp-action-danger" title="Archive" onClick={onArchive}><ArchiveIcon /></button>
+                </div>
+              </>
+            )}
+            <button className="emp-next-btn" title={expanded ? 'Collapse' : 'View details'} onClick={e => { e.stopPropagation(); onToggle() }}>
+              <ChevronIcon className={`emp-chevron ${expanded ? 'open' : ''}`} />
+            </button>
           </div>
         )}
       </div>
 
       {expanded && !selectMode && (
         <div className="emp-card-body fade-in">
-          <AttendanceCalendar employeeId={emp._id} adminMode onTodayStatus={onTodayStatus} />
+          <AttendanceCalendar employeeId={emp._id} adminMode onTodayStatus={onTodayStatus} summaryFooter />
         </div>
       )}
     </div>

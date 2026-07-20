@@ -396,3 +396,94 @@
   border-radius: var(--radius);
   gap: .5rem;
 }
+
+/* Clickable employee name -> individual attendance calendar */
+.report-name-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.report-name-link:hover {
+  text-decoration: underline;
+}
+
+/* Inline "Set Salary" fallback for rows missing salary data */
+.report-set-salary-link {
+  background: var(--warn-glow);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--warn);
+  padding: .25rem .6rem;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.report-set-salary-link:hover {
+  background: var(--warn);
+  color: #fff;
+}
+
+/* ── Print / Export as PDF ── */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .no-print,
+  .sidebar,
+  .topbar,
+  .bottom-nav,
+  .sidebar-backdrop {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
+
+  .page-wrap {
+    padding: 0 !important;
+  }
+
+  body, .card, .report-table-wrapper {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border-color: #ccc !important;
+  }
+
+  .tbl th, .tbl td {
+    color: #000 !important;
+    border-color: #ccc !important;
+  }
+
+  .report-table-desktop {
+    display: block !important;
+  }
+
+  .report-table-mobile {
+    display: none !important;
+  }
+
+  .reports-print-header {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .reports-print-header h1 {
+    font-size: 1.1rem;
+    margin-bottom: .25rem;
+  }
+}

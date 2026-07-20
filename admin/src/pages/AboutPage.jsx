@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import './SettingsPage.css'
 
 export default function AboutPage() {
@@ -55,6 +56,10 @@ export default function AboutPage() {
             ))}
           </div>
         ))}
+
+        <div className="text-sm text-2" style={{ textAlign: 'center' }}>
+          <Link to="/privacy-policy" className="footer-link">Privacy Policy</Link>
+        </div>
       </div>
     </section>
   )

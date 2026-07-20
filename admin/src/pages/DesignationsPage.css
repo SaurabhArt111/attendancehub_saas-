@@ -33,3 +33,91 @@
 .text-right {
   text-align: right;
 }
+
+/* ── Designation card grid ── */
+.desig-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: .75rem;
+}
+
+.desig-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color var(--tr), box-shadow var(--tr), transform var(--tr);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.desig-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary-glow);
+  transform: translateY(-1px);
+}
+
+.desig-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.desig-card-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.desig-card-count {
+  background: var(--primary-glow);
+  color: var(--primary);
+  border-radius: 99px;
+  padding: .15rem .55rem;
+  font-size: .7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.desig-card-sub {
+  margin-top: -.15rem;
+}
+
+.desig-card-actions {
+  display: flex;
+  gap: .5rem;
+  margin-top: .25rem;
+}
+
+/* ── Designation modal ── */
+.desig-modal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .5rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .75rem;
+  text-align: center;
+}
+
+.desig-emp-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .75rem 1rem;
+  cursor: pointer;
+  transition: border-color var(--tr);
+}
+
+.desig-emp-row:hover {
+  border-color: var(--primary);
+}
+
+@media (max-width: 480px) {
+  .desig-grid {
+    grid-template-columns: 1fr;
+  }
+}

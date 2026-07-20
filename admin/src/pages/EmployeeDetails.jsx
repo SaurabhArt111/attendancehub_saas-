@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
+import AttendanceCalendar from '../components/AttendanceCalendar'
 import './EmployeesPage.css'
 
 const EMPTY_FORM = {
@@ -19,6 +20,7 @@ const EMPTY_FORM = {
 export default function EmployeeDetailsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [employee, setEmployee] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [loading, setLoading] = useState(true)
@@ -27,7 +29,10 @@ export default function EmployeeDetailsPage() {
   const [existingProofUrl, setExistingProofUrl] = useState(null)
   const [hasExistingProof, setHasExistingProof] = useState(false)
   const [removingProof, setRemovingProof] = useState(false)
-  const [activeTab, setActiveTab] = useState('overview')
+  const requestedTab = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState(
+    ['overview', 'edit', 'documents', 'attendance'].includes(requestedTab) ? requestedTab : 'overview'
+  )
 
   useEffect(() => {
     let ignore = false
@@ -215,6 +220,7 @@ export default function EmployeeDetailsPage() {
         <section className="profile-card profile-tabs">
           <div className="profile-tab-list">
             <button className={`profile-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Overview</button>
+            <button className={`profile-tab ${activeTab === 'attendance' ? 'active' : ''}`} onClick={() => setActiveTab('attendance')}>Attendance</button>
             <button className={`profile-tab ${activeTab === 'edit' ? 'active' : ''}`} onClick={() => setActiveTab('edit')}>Edit Profile</button>
             <button className={`profile-tab ${activeTab === 'documents' ? 'active' : ''}`} onClick={() => setActiveTab('documents')}>Documents</button>
           </div>
@@ -235,6 +241,13 @@ export default function EmployeeDetailsPage() {
                 <div className="profile-info-row"><span>Salary type</span><strong>{employee.salaryType === 'daily' ? 'Daily' : 'Monthly'}</strong></div>
                 <div className="profile-info-row"><span>Status</span><strong>{employee.isActive === false ? 'Inactive' : 'Active'}</strong></div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'attendance' && (
+            <div className="profile-panel fade-in">
+              <h3>Monthly attendance calendar</h3>
+              <AttendanceCalendar employeeId={id} adminMode />
             </div>
           )}
 
