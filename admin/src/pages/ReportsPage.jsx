@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { jsPDF } from 'jspdf'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import './EmployeesPage.css'
@@ -117,52 +116,8 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url)
   }
 
-  // ── Download PDF directly (no browser print dialog) ──
-  function downloadPDF() {
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' })
-    const margin = 40
-    const pageWidth = doc.internal.pageSize.getWidth()
-    const pageHeight = doc.internal.pageSize.getHeight()
-    const maxY = pageHeight - margin
-    let y = margin
-
-    const addLine = (text, fontSize = 10, weight = 'normal') => {
-      doc.setFontSize(fontSize)
-      doc.setFont('helvetica', weight)
-      const lines = doc.splitTextToSize(text, pageWidth - margin * 2)
-      lines.forEach(line => {
-        if (y > maxY) {
-          doc.addPage()
-          y = margin
-        }
-        doc.text(line, margin, y)
-        y += fontSize + 4
-      })
-    }
-
-    addLine(`${company?.name || 'Attendance Report'}`, 16, 'bold')
-    addLine(`Monthly Report — ${MONTHS[month]} ${year}`, 11)
-    addLine(`Generated ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`, 10)
-    y += 8
-
-    addLine('Summary', 12, 'bold')
-    addLine(`Total Employees: ${totals.employees}`)
-    addLine(`Total Present: ${totals.present}`)
-    addLine(`Total Advance: Rs ${totals.advance.toLocaleString()}`)
-    addLine(`Salary After Advance: Rs ${totals.salaryAfterAdvance.toLocaleString()}`)
-    y += 6
-
-    addLine('Employees', 12, 'bold')
-    filteredReport.forEach((r, idx) => {
-      const { gross, overtime, deductions, net } = salaryBreakdown(r)
-      addLine(`${idx + 1}. ${r.username} (${r.employeeId})`, 10, 'bold')
-      addLine(`Designation: ${r.designation || '-'} | P: ${r.P || 0} | PP: ${r.PP || 0}`)
-      addLine(`Gross: Rs ${gross.toLocaleString()} | Overtime: Rs ${overtime.toLocaleString()} | Deductions: Rs ${deductions.toLocaleString()} | Net: Rs ${net.toLocaleString()}`)
-      addLine(`Remarks: ${r.remarks.join(', ') || '-'}`)
-      y += 4
-    })
-
-    doc.save(`Attendance_${company?.name || 'Report'}_${MONTHS[month]}_${year}.pdf`)
+  function printReport() {
+    window.print()
   }
 
   return (
@@ -255,7 +210,7 @@ export default function ReportsPage() {
               </button>
               <button
                 className="btn btn-secondary btn-sm reports-download-btn"
-                onClick={downloadPDF}
+                onClick={printReport}
                 disabled={!filteredReport.length}
                 style={{
                   display: 'flex',
@@ -271,11 +226,11 @@ export default function ReportsPage() {
                   <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                   <rect x="6" y="14" width="12" height="8" />
                 </svg>
-                <span>Download PDF</span>
+                <span>Print / Export PDF</span>
               </button>
             </div>
             <div className="text-xs text-2 reports-csv-hint no-print" style={{ textAlign: 'right' }}>
-              PDF will be downloaded automatically
+              PDF: choose "Save as PDF" in the print dialog
             </div>
           </div>
         </div>
