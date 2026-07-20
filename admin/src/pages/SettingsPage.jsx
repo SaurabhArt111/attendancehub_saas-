@@ -166,7 +166,7 @@ export default function SettingsPage() {
               {[
                 { code: 'P', label: 'Present', desc: 'Employee was present for regular hours', cls: 'badge-P' },
                 { code: 'A', label: 'Absent', desc: 'Employee was absent', cls: 'badge-A' },
-                { code: 'PP', label: 'Double', desc: 'Employee worked a double shift (+2 days)', cls: 'badge-PP' },
+                { code: 'PP', label: 'Double', desc: 'Employee worked a double shift', cls: 'badge-PP' },
               ].map(s => (
                 <div key={s.code} className="settings-legend-item">
                   <span className={`badge ${s.cls}`}>{s.code}</span>

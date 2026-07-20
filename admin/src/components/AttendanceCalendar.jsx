@@ -223,6 +223,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
         </div>
       )}
 
+      {/* Legend for calendar */}
       <div className="flex gap-2 mt-2" style={{ flexWrap: 'wrap', fontSize: '.73rem' }}>
         {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' }, { c: 'H', l: 'Holiday' }].map(s => (
           <span key={s.c} className="flex items-center gap-1">

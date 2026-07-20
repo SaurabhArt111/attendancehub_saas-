@@ -156,7 +156,7 @@ export default function ReportsPage() {
           </div>
 
           {/* Download CSV Button — always visible */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+          <div className="reports-download-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
             <button
               className="btn btn-success btn-sm reports-download-btn"
               onClick={downloadCSV}

@@ -60,8 +60,7 @@ export default function DesignationsPage() {
     <div>
       <h1 className="font-700 mb-1" style={{ fontSize: '1.2rem' }}>Designations</h1>
       <p className="text-sm text-2 mb-2">
-        Create job titles/roles for your employees. Renaming a designation automatically updates all employees assigned to it.
-        Designations in use cannot be deleted — reassign employees first.
+        Create job titles/roles for your employees.
       </p>
 
       <div className="card mb-2">
