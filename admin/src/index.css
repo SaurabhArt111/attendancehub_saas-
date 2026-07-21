@@ -488,3 +488,15 @@ body {
 .footer-link:hover {
   text-decoration: underline;
 }
+
+.employee-page-url {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.employee-page-url a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--tr);
+  margin: 10px;
+}

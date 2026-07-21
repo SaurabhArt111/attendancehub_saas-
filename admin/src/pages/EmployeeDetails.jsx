@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
@@ -336,6 +336,14 @@ export default function EmployeeDetailsPage() {
               </div>
             </div>
           )}
+
+          <div className="employee-page-url">
+            <span>Go to Employee's Login Page:
+              <Link to={import.meta.env.VITE_USER_LOGIN_PAGE} target="_blank" rel="noopener noreferrer">
+                Employee Login
+              </Link>   
+            </span>
+          </div>
         </section>
       </div>
     </div>
