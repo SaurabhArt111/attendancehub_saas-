@@ -11,17 +11,17 @@ timeout /t 2
 REM Get the directory where this script is located
 cd /d "%~dp0"
 
-REM Start backend in new window
+REM Start Backend in new window
 echo Starting backend...
 start "backend - Overlay Lounge" cmd /k "cd backend && npm run dev"
 timeout /t 2
 
-REM Start admin in new window
+REM Start Admin in new window
 echo Starting admin...
 start "admin" cmd /k "cd admin && npm run dev"
 timeout /t 2
 
-REM Start Manager user in new window
-echo Starting Manager...
+REM Start User in new window
+echo Starting User...
 start "user" cmd /k "cd user && npm run dev"
 timeout /t 2
