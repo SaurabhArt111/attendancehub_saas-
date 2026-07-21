@@ -298,12 +298,12 @@ export default function ReportsPage() {
                   <tr>
                     <th>#</th>
                     <th>Name</th>
-                    <th>Desig.</th>
+                    {/* <th>Desig.</th> */}
                     <th><span className="badge badge-P">P</span></th>
                     <th><span className="badge badge-PP">PP</span></th>
                     <th>Gross Salary</th>
-                    <th>Overtime/PP Pay</th>
-                    <th>Deductions/Advances</th>
+                    <th>Overtime Pay</th>
+                    <th>Advances</th>
                     <th>Net Pay</th>
                     <th className="no-print">Remarks</th>
                   </tr>
@@ -314,14 +314,14 @@ export default function ReportsPage() {
                     const hasSalary = !!r.salary
                     return (
                       <tr key={r.id}>
-                        <td className="text-2 text-sm">{idx + 1}</td>
+                        <td className="text-2 text-sm">{idx + 1}</td> {/*Sr No.*/}
                         <td className="font-600">
                           <button className="report-name-link" onClick={() => navigate(`/employees/${r.id}?tab=attendance`)}>
                             {r.username}
+                            <div className="text-xs text-2" style={{ fontFamily: 'monospace' }}>{r.designation || '-'}</div>
                           </button>
-                          <div className="text-xs text-2" style={{ fontFamily: 'monospace' }}>{r.employeeId}</div>
                         </td>
-                        <td className="text-sm text-2">{r.designation || '-'}</td>
+                        {/* <td className="text-sm text-2">{r.designation || '-'}</td> */}
                         <td className="text-success font-600">{r.P || 0}</td>
                         <td style={{ color: '#a78bfa', fontWeight: 600 }}>{r.PP || 0}</td>
                         <td className="text-sm" style={{ whiteSpace: 'nowrap' }}>

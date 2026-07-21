@@ -127,8 +127,9 @@ export default function SettingsPage() {
             )}
           </div>
 
-          {/* Security & Sessions */}
+          {/* Security & Sessions & Login Code for another sessions */}
           <div className="card">
+
             <div className="settings-section-header">
               <div>
                 <div className="font-700">Security & Sessions</div>
@@ -138,6 +139,18 @@ export default function SettingsPage() {
                 <ShieldIcon /> Manage
               </button>
             </div>
+
+            {/* Login Code for Another Session */}
+            <div className="settings-section-header">
+              <div>
+                <div className="font-700"></div>
+                <div className="text-xs text-2 mt-1"></div>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => setSection(SECTION.SESSIONS)}>
+                {/* icon and text */}
+              </button>
+            </div>
+
           </div>
 
           {/* Appearance */}
@@ -207,8 +220,8 @@ export default function SettingsPage() {
 
 function ThemeSegmented({ value, onChange }) {
   const OPTS = [
-    { v: 'light',  label: 'Light',  icon: <SunIcon /> },
-    { v: 'dark',   label: 'Dark',   icon: <MoonIcon /> },
+    { v: 'light', label: 'Light', icon: <SunIcon /> },
+    { v: 'dark', label: 'Dark', icon: <MoonIcon /> },
     { v: 'system', label: 'System', icon: <SystemIcon /> },
   ]
   return (
