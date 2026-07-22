@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
+import BackButton from '../components/BackButton'
 import './EmployeesPage.css'
 
 const EMPTY_FORM = {
@@ -174,9 +175,7 @@ export default function EmployeeDetailsPage() {
     <div className="emp-page">
       <div className="emp-page-header">
         <div>
-          <button className="btn btn-secondary btn-sm mb-2" onClick={() => navigate('/employees')}>
-            ← Back to employees
-          </button>
+          <div className="mb-2"><BackButton fallback="/employees" /></div>
           <h1 className="emp-page-title">{employee.username}</h1>
           <div className="emp-page-meta">
             <span className="id-badge"><IdIcon />{employee.employeeId}</span>

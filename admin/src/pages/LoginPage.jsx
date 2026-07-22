@@ -1,14 +1,22 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import './LoginPage.css'
+
+const POLL_MS = 2500
 
 export default function LoginPage() {
   const nav = useNavigate()
   const [form, setForm] = useState({ companyCode: '', username: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [fieldError, setFieldError] = useState({})
+
+  // Set once a login attempt comes back requiring approval from an
+  // already-trusted device (the account is signed in elsewhere).
+  const [pending, setPending] = useState(null) // { pendingId, code, deviceLabel, expiresAt }
+  const [pendingStatus, setPendingStatus] = useState('pending') // pending | denied | expired
+  const pollRef = useRef(null)
 
   const set = k => e => {
     setForm(p => ({ ...p, [k]: e.target.value }))
@@ -26,6 +34,13 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const { data } = await api.post('/admin/login', form)
+
+      if (data.requiresApproval) {
+        setPending({ pendingId: data.pendingId, code: data.code, deviceLabel: data.deviceLabel, expiresAt: data.expiresAt })
+        setPendingStatus('pending')
+        return
+      }
+
       localStorage.setItem('adminToken', data.token)
       localStorage.setItem('adminUser', JSON.stringify({ ...data.admin, company: data.company }))
       nav('/employees')
@@ -37,6 +52,84 @@ export default function LoginPage() {
       else setFieldError({ password: msg })
       toast.error(msg)
     } finally { setLoading(false) }
+  }
+
+  // Poll for the trusted device approving/denying this sign-in.
+  useEffect(() => {
+    if (!pending) return
+
+    async function check() {
+      try {
+        const { data } = await api.get(`/admin/pending-login/${pending.pendingId}/status`)
+        if (data.status === 'approved') {
+          window.clearInterval(pollRef.current)
+          localStorage.setItem('adminToken', data.token)
+          localStorage.setItem('adminUser', JSON.stringify({ ...data.admin, company: data.company }))
+          toast.success('Sign-in approved')
+          nav('/employees')
+        } else if (data.status === 'denied' || data.status === 'expired') {
+          window.clearInterval(pollRef.current)
+          setPendingStatus(data.status)
+        }
+      } catch {
+        // transient network hiccup — keep polling
+      }
+    }
+
+    check()
+    pollRef.current = window.setInterval(check, POLL_MS)
+    return () => window.clearInterval(pollRef.current)
+  }, [pending, nav])
+
+  function cancelPending() {
+    window.clearInterval(pollRef.current)
+    setPending(null)
+    setPendingStatus('pending')
+  }
+
+  if (pending) {
+    return (
+      <div className="auth-bg">
+        <div className="auth-card fade-in">
+          <div className="auth-logo">AttendanceHub</div>
+          <h1 className="auth-title">Approve this sign-in</h1>
+          <p className="auth-sub">You're already signed in on another device</p>
+
+          <div className="card login-form" style={{ textAlign: 'center' }}>
+            {pendingStatus === 'pending' && (
+              <>
+                <div className="text-sm text-2 mb-2">
+                  Open <strong>Settings → Login Code for Another Session</strong> on your other device
+                  and enter this security key to approve signing in on <strong>{pending.deviceLabel}</strong>.
+                </div>
+                <div className="security-key-display">
+                  {pending.code.split('').map((d, i) => <span key={i}>{d}</span>)}
+                </div>
+                <div className="flex items-center justify-center gap-1 text-xs text-2 mt-3">
+                  <span className="spinner" /> Waiting for approval…
+                </div>
+              </>
+            )}
+
+            {pendingStatus === 'denied' && (
+              <div className="text-sm" style={{ color: 'var(--danger)' }}>
+                This sign-in was denied from your other device.
+              </div>
+            )}
+
+            {pendingStatus === 'expired' && (
+              <div className="text-sm" style={{ color: 'var(--danger)' }}>
+                This security key expired before it was approved. Please sign in again.
+              </div>
+            )}
+
+            <button className="btn btn-secondary btn-block mt-3" onClick={cancelPending}>
+              {pendingStatus === 'pending' ? 'Cancel' : 'Back to sign in'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

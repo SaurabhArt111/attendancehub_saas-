@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useThemePref } from '../utils/theme'
+import { ensurePushSubscription } from '../utils/push'
+import { PendingLoginProvider } from '../context/PendingLoginContext'
+import PendingLoginModal from '../components/PendingLoginModal'
 import './DashboardLayout.css'
 
 const NAV = [
@@ -16,12 +19,25 @@ const NAV = [
 const BOTTOM_NAV = NAV.filter(n => n.to !== '/my-employees')
 
 export default function DashboardLayout() {
+  return (
+    <PendingLoginProvider>
+      <DashboardLayoutInner />
+    </PendingLoginProvider>
+  )
+}
+
+function DashboardLayoutInner() {
   const nav = useNavigate()
   const loc = useLocation()
   const [open, setOpen] = useState(false)
   const { pref: theme, resolved: resolvedTheme, setPref: setTheme } = useThemePref()
 
   const user = (() => { try { return JSON.parse(localStorage.getItem('adminUser') || '{}') } catch { return {} } })()
+
+  // Best-effort: register this device for push notifications (used for the
+  // "New session" alert) once the dashboard is open. No-ops quietly if the
+  // browser doesn't support it or the admin declines the permission prompt.
+  useEffect(() => { ensurePushSubscription() }, [])
 
   // Quick topbar toggle cycles Light → Dark → System → Light …
   function toggleTheme() {
@@ -113,6 +129,8 @@ export default function DashboardLayout() {
           })}
         </nav>
       </div>
+
+      <PendingLoginModal />
     </div>
   )
 }

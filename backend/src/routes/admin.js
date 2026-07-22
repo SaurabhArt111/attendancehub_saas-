@@ -1,19 +1,23 @@
 const router  = require('express').Router();
+const crypto  = require('crypto');
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const Admin   = require('../models/Admin');
 const Company = require('../models/Company');
 const Session = require('../models/Session');
+const PendingLogin = require('../models/PendingLogin');
 const { verifyAdmin, signToken, JWT_SECRET, SLIDING_MS } = require('../middleware/auth');
 const { getDeviceInfo } = require('../utils/deviceInfo');
+const { sendPushToAdmin, VAPID_PUBLIC_KEY } = require('../utils/push');
 
 const MAX_ADMIN_DEVICES = 3;
+const PENDING_LOGIN_TTL_MS = 5 * 60 * 1000; // security key / approval window
 
-// Creates a Session document for a freshly logged-in admin, evicting the
+// Creates a Session document for `admin` on the given device, evicting the
 // least-recently-active device if the account is already at the concurrent
 // device limit. Returns { session, evicted } where `evicted` is a boolean.
-async function createAdminSession(admin, req) {
-  const { userAgent, ip, deviceLabel, deviceType } = getDeviceInfo(req);
+async function createSessionForDevice(admin, deviceInfo) {
+  const { userAgent, ip, deviceLabel, deviceType } = deviceInfo;
   const now = new Date();
 
   const activeSessions = await Session.find({
@@ -37,6 +41,16 @@ async function createAdminSession(admin, req) {
   });
 
   return { session, evicted };
+}
+
+// Convenience wrapper — pulls device info straight from the request.
+async function createAdminSession(admin, req) {
+  return createSessionForDevice(admin, getDeviceInfo(req));
+}
+
+// Generates a 6-digit numeric "security key" for the device-approval flow.
+function generateSecurityCode() {
+  return String(crypto.randomInt(0, 1000000)).padStart(6, '0');
 }
 
 // POST /api/admin/setup — create primary admin (owner) after company login
@@ -106,6 +120,44 @@ router.post('/login', async (req, res) => {
     if (!admin || !await bcrypt.compare(password, admin.password))
       return res.status(401).json({ error: 'Invalid credentials' });
 
+    const deviceInfo = getDeviceInfo(req);
+
+    const activeSessionCount = await Session.countDocuments({
+      role: 'admin', userId: admin._id, revoked: false, expiresAt: { $gt: new Date() }
+    });
+
+    // Already signed in elsewhere → hold this login for approval instead of
+    // completing it immediately. The requesting device gets a one-time
+    // security key; an already-trusted device must enter it to let this
+    // device in (Settings → Security & Sessions → Login Code for Another Session).
+    if (activeSessionCount > 0) {
+      const code = generateSecurityCode();
+      const now = new Date();
+      const pending = await PendingLogin.create({
+        companyId: company._id, adminId: admin._id, code,
+        userAgent: deviceInfo.userAgent, ip: deviceInfo.ip,
+        deviceLabel: deviceInfo.deviceLabel, deviceType: deviceInfo.deviceType,
+        createdAt: now, expiresAt: new Date(now.getTime() + PENDING_LOGIN_TTL_MS)
+      });
+
+      sendPushToAdmin(admin, {
+        title: 'New session',
+        body: `Someone is trying to sign in on ${deviceInfo.deviceLabel}. Tap to review.`,
+        tag: 'new-session',
+        url: '/settings/security-sessions',
+        pendingId: pending._id.toString()
+      }).catch(() => { /* push is best-effort */ });
+
+      return res.json({
+        requiresApproval: true,
+        pendingId: pending._id,
+        code,
+        deviceLabel: deviceInfo.deviceLabel,
+        expiresAt: pending.expiresAt,
+        message: 'This account is already signed in elsewhere. Approve this sign-in from a trusted device.'
+      });
+    }
+
     const { session, evicted } = await createAdminSession(admin, req);
     const token = signToken(
       { id: admin._id, companyId: company._id, username: admin.username, role: 'admin', isOwner: admin.isOwner, sid: session._id.toString() }
@@ -120,6 +172,146 @@ router.post('/login', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// ── New-device login approval ("security key") ─────────────────────
+
+// GET /api/admin/pending-login/:id/status — polled by the *new* (unauthenticated)
+// device while it waits to be approved.
+router.get('/pending-login/:id/status', async (req, res) => {
+  try {
+    const pending = await PendingLogin.findById(req.params.id);
+    if (!pending) return res.status(404).json({ status: 'expired' });
+
+    if (pending.status === 'pending' && pending.expiresAt < new Date()) {
+      pending.status = 'expired';
+      await pending.save();
+    }
+
+    if (pending.status === 'pending') return res.json({ status: 'pending' });
+    if (pending.status === 'denied')  return res.json({ status: 'denied' });
+    if (pending.status === 'expired') return res.json({ status: 'expired' });
+
+    // approved
+    const admin = await Admin.findById(pending.adminId);
+    const company = await Company.findById(pending.companyId).select('-password');
+    if (!admin || !pending.approvedSessionId) return res.status(410).json({ status: 'expired' });
+
+    const token = signToken({
+      id: admin._id, companyId: pending.companyId, username: admin.username,
+      role: 'admin', isOwner: admin.isOwner, sid: pending.approvedSessionId.toString()
+    });
+
+    res.json({
+      status: 'approved',
+      token,
+      admin: { id: admin._id, username: admin.username, adminId: admin.adminId, isOwner: admin.isOwner },
+      company: { name: company?.name, companyCode: company?.companyCode }
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/admin/pending-login/check — polled/checked by already-signed-in
+// devices so the approval prompt can appear as soon as the app is opened.
+router.get('/pending-login/check', verifyAdmin, async (req, res) => {
+  try {
+    const pending = await PendingLogin.find({
+      adminId: req.admin.id, status: 'pending', expiresAt: { $gt: new Date() }
+    }).sort({ createdAt: -1 });
+
+    res.json(pending.map(p => ({
+      id: p._id, deviceLabel: p.deviceLabel, deviceType: p.deviceType, ip: p.ip,
+      createdAt: p.createdAt, expiresAt: p.expiresAt
+    })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/admin/pending-login/:id/approve — entered from a trusted, already
+// signed-in device via "Login Code for Another Session".
+router.post('/pending-login/:id/approve', verifyAdmin, async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: 'Security code required' });
+
+    const pending = await PendingLogin.findOne({ _id: req.params.id, adminId: req.admin.id });
+    if (!pending) return res.status(404).json({ error: 'Login request not found' });
+    if (pending.status !== 'pending') return res.status(409).json({ error: `This request was already ${pending.status}` });
+    if (pending.expiresAt < new Date()) {
+      pending.status = 'expired';
+      await pending.save();
+      return res.status(410).json({ error: 'This security key has expired' });
+    }
+    if (String(code).trim() !== pending.code)
+      return res.status(401).json({ error: 'Incorrect security key' });
+
+    const admin = await Admin.findById(pending.adminId);
+    if (!admin) return res.status(404).json({ error: 'Admin not found' });
+
+    const { session } = await createSessionForDevice(admin, {
+      userAgent: pending.userAgent, ip: pending.ip,
+      deviceLabel: pending.deviceLabel, deviceType: pending.deviceType
+    });
+
+    pending.status = 'approved';
+    pending.approvedSessionId = session._id;
+    pending.approvedBySessionId = req.admin.sid || null;
+    await pending.save();
+
+    res.json({ message: 'Sign-in approved', deviceLabel: pending.deviceLabel });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/admin/pending-login/:id/deny
+router.post('/pending-login/:id/deny', verifyAdmin, async (req, res) => {
+  try {
+    const pending = await PendingLogin.findOne({ _id: req.params.id, adminId: req.admin.id });
+    if (!pending) return res.status(404).json({ error: 'Login request not found' });
+    if (pending.status === 'pending') {
+      pending.status = 'denied';
+      await pending.save();
+    }
+    res.json({ message: 'Sign-in denied' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Web Push subscriptions ──────────────────────────────────────────
+
+// GET /api/admin/push/vapid-public-key — public, needed before the client can subscribe.
+router.get('/push/vapid-public-key', (req, res) => {
+  res.json({ publicKey: VAPID_PUBLIC_KEY || null });
+});
+
+// POST /api/admin/push/subscribe
+router.post('/push/subscribe', verifyAdmin, async (req, res) => {
+  try {
+    const { subscription } = req.body;
+    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth)
+      return res.status(400).json({ error: 'Invalid push subscription' });
+
+    const admin = await Admin.findById(req.admin.id);
+    if (!admin) return res.status(404).json({ error: 'Admin not found' });
+
+    admin.pushSubscriptions = (admin.pushSubscriptions || []).filter(s => s.endpoint !== subscription.endpoint);
+    admin.pushSubscriptions.push({
+      endpoint: subscription.endpoint,
+      keys: { p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
+      sessionId: req.admin.sid || undefined
+    });
+    await admin.save();
+    res.json({ message: 'Subscribed' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/admin/push/unsubscribe
+router.post('/push/unsubscribe', verifyAdmin, async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    const admin = await Admin.findById(req.admin.id);
+    if (!admin) return res.status(404).json({ error: 'Admin not found' });
+    admin.pushSubscriptions = (admin.pushSubscriptions || []).filter(s => s.endpoint !== endpoint);
+    await admin.save();
+    res.json({ message: 'Unsubscribed' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // GET /api/admin/me
@@ -214,6 +406,12 @@ router.post('/sessions/:id/revoke', verifyAdmin, async (req, res) => {
     session.revokedAt = new Date();
     session.revokedReason = 'user';
     await session.save();
+
+    await Admin.updateOne(
+      { _id: req.admin.id },
+      { $pull: { pushSubscriptions: { sessionId: session._id } } }
+    );
+
     res.json({ message: 'Device signed out', wasCurrent: req.admin.sid === session._id.toString() });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -221,10 +419,19 @@ router.post('/sessions/:id/revoke', verifyAdmin, async (req, res) => {
 // POST /api/admin/sessions/logout-others — sign out every device except this one
 router.post('/sessions/logout-others', verifyAdmin, async (req, res) => {
   try {
+    const others = await Session.find({ role: 'admin', userId: req.admin.id, revoked: false, _id: { $ne: req.admin.sid } }).select('_id');
     const result = await Session.updateMany(
       { role: 'admin', userId: req.admin.id, revoked: false, _id: { $ne: req.admin.sid } },
       { $set: { revoked: true, revokedAt: new Date(), revokedReason: 'logout-others' } }
     );
+
+    if (others.length) {
+      await Admin.updateOne(
+        { _id: req.admin.id },
+        { $pull: { pushSubscriptions: { sessionId: { $in: others.map(o => o._id) } } } }
+      );
+    }
+
     res.json({ message: 'Other devices signed out', count: result.modifiedCount || 0 });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

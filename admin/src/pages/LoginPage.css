@@ -469,3 +469,24 @@ html, body, #root {
   outline: 2px solid var(--danger);
   outline-offset: 2px;
 }
+.security-key-display {
+  display: flex;
+  justify-content: center;
+  gap: .4rem;
+  margin: 1rem 0;
+}
+
+.security-key-display span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.6rem;
+  font-family: monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg2, rgba(124, 92, 252, 0.06));
+  color: var(--primary);
+}

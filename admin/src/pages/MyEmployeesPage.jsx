@@ -92,7 +92,7 @@ export default function MyEmployeesPage() {
                 </thead>
                 <tbody>
                   {filtered.map(emp => (
-                    <tr key={emp._id}>
+                    <tr key={emp._id} className="myemp-row-clickable" onClick={() => navigate(`/employees/${emp._id}`)}>
                       <td>
                         <div className="flex items-center gap-1">
                           <div className="emp-avatar emp-avatar-sm">{initials(emp.username)}</div>
@@ -112,7 +112,7 @@ export default function MyEmployeesPage() {
                           : <span className="myemp-proof-chip myemp-proof-no">Missing</span>}
                       </td>
                       <td>
-                        <div className="flex gap-1" style={{ justifyContent: 'flex-end' }}>
+                        <div className="flex gap-1" style={{ justifyContent: 'flex-end' }} onClick={e => e.stopPropagation()}>
                           <button className="btn btn-secondary btn-sm" onClick={() => setProofModal(emp)}>
                             <UploadIcon /> ID Proof
                           </button>
@@ -130,7 +130,7 @@ export default function MyEmployeesPage() {
             {/* Mobile cards */}
             <div className="myemp-table-mobile">
               {filtered.map(emp => (
-                <div key={emp._id} className="myemp-mobile-card">
+                <div key={emp._id} className="myemp-mobile-card myemp-row-clickable" onClick={() => navigate(`/employees/${emp._id}`)}>
                   <div className="flex items-center gap-1">
                     <div className="emp-avatar emp-avatar-sm">{initials(emp.username)}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -146,7 +146,7 @@ export default function MyEmployeesPage() {
                     <div><span className="text-2">Email</span><span>{emp.email || '—'}</span></div>
                     <div><span className="text-2">Salary</span><span>{emp.salary ? `₹${emp.salary.toLocaleString()}/mo` : '—'}</span></div>
                   </div>
-                  <div className="flex gap-1 mt-1">
+                  <div className="flex gap-1 mt-1" onClick={e => e.stopPropagation()}>
                     <button className="btn btn-secondary btn-sm btn-block" onClick={() => setProofModal(emp)}>
                       <UploadIcon /> ID Proof
                     </button>

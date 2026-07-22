@@ -69,3 +69,17 @@
     gap: .75rem;
   }
 }
+
+/* Clickable employee rows / cards → navigate to employee detail page */
+.myemp-row-clickable {
+  cursor: pointer;
+  transition: background .15s ease;
+}
+
+tr.myemp-row-clickable:hover {
+  background: var(--bg2, rgba(124, 92, 252, 0.05));
+}
+
+.myemp-table-mobile .myemp-row-clickable:active {
+  background: var(--bg2, rgba(124, 92, 252, 0.06));
+}

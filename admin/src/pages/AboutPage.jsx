@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 import './SettingsPage.css'
 
 export default function AboutPage() {
@@ -38,6 +39,7 @@ export default function AboutPage() {
 
   return (
     <section className="about-page">
+      <div className="mb-2"><BackButton fallback="/settings" /></div>
       <h1 className="font-700 mb-4" style={{ fontSize: '1.1rem' }}>About AttendanceHub</h1>
       <div className="about-container">
         <div className="about-hero card">

@@ -11,6 +11,7 @@ import ReportsPage from './pages/ReportsPage'
 import HolidaysPage from './pages/HolidaysPage'
 import DesignationsPage from './pages/DesignationsPage'
 import SettingsPage from './pages/SettingsPage'
+import SecuritySessionsPage from './pages/SecuritySessionsPage'
 import AboutPage from './pages/AboutPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import EmployeeDetailsPage from './pages/EmployeeDetails'
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="holidays" element={<HolidaysPage />} />
           <Route path="designations" element={<DesignationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings/security-sessions" element={<SecuritySessionsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

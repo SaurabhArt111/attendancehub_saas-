@@ -6,9 +6,17 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+      injectManifest: {
+        globPatterns: [
+          '**/*.{js,css,html,svg,png,ico,jpg,jpeg,gif,webp,woff,woff2,ttf,eot}'
+        ]
+      },
       manifest: {
         name: 'AttendanceHub - Admin',
         short_name: 'AH Admin',
@@ -104,58 +112,14 @@ export default defineConfig({
       workbox: {
         globPatterns: [
           '**/*.{js,css,html,svg,png,ico,jpg,jpeg,gif,webp,woff,woff2,ttf,eot}'
-        ],
-        runtimeCaching: [
-          // Cache API responses
-          {
-            urlPattern: /^https:\/\/.*\/api\/.*/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              networkTimeoutSeconds: 5,
-              expiration: {
-                maxEntries: 150,
-                maxAgeSeconds: 24 * 60 * 60 // 24 hours
-              }
-            }
-          },
-          // Cache Google Fonts
-          {
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              }
-            }
-          },
-          // Cache images
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              }
-            }
-          }
-        ],
-        skipWaiting: true,
-        clientsClaim: true,
-        cleanupOutdatedCaches: true
+        ]
       },
       devOptions: {
         enabled: false,
         suppressWarnings: true,
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\/.*/]
-      },
-      // Disable PWA in dev environment if needed
-      strategies: 'auto'
+      }
     })
   ],
   server: {
