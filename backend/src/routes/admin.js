@@ -12,26 +12,24 @@ const { sendPushToAdmin, VAPID_PUBLIC_KEY } = require('../utils/push');
 
 const MAX_ADMIN_DEVICES = 3;
 const PENDING_LOGIN_TTL_MS = 5 * 60 * 1000; // security key / approval window
+const DEVICE_LIMIT_MESSAGE = 'Maximum device limit reached. Please log out from another device to continue.';
 
-// Creates a Session document for `admin` on the given device, evicting the
-// least-recently-active device if the account is already at the concurrent
-// device limit. Returns { session, evicted } where `evicted` is a boolean.
+class DeviceLimitError extends Error {}
+
+// Creates a Session document for `admin` on the given device. All existing
+// active sessions are left untouched — if the account is already at the
+// concurrent device limit, this throws a DeviceLimitError instead of ever
+// signing another device out automatically.
 async function createSessionForDevice(admin, deviceInfo) {
   const { userAgent, ip, deviceLabel, deviceType } = deviceInfo;
   const now = new Date();
 
-  const activeSessions = await Session.find({
+  const activeSessionCount = await Session.countDocuments({
     role: 'admin', userId: admin._id, revoked: false, expiresAt: { $gt: now }
-  }).sort({ lastActiveAt: 1 }); // oldest activity first
+  });
 
-  let evicted = false;
-  if (activeSessions.length >= MAX_ADMIN_DEVICES) {
-    const oldest = activeSessions[0];
-    oldest.revoked = true;
-    oldest.revokedAt = now;
-    oldest.revokedReason = 'device-limit';
-    await oldest.save();
-    evicted = true;
+  if (activeSessionCount >= MAX_ADMIN_DEVICES) {
+    throw new DeviceLimitError(DEVICE_LIMIT_MESSAGE);
   }
 
   const session = await Session.create({
@@ -40,7 +38,7 @@ async function createSessionForDevice(admin, deviceInfo) {
     createdAt: now, lastActiveAt: now, expiresAt: new Date(now.getTime() + SLIDING_MS)
   });
 
-  return { session, evicted };
+  return { session };
 }
 
 // Convenience wrapper — pulls device info straight from the request.
@@ -126,10 +124,18 @@ router.post('/login', async (req, res) => {
       role: 'admin', userId: admin._id, revoked: false, expiresAt: { $gt: new Date() }
     });
 
-    // Already signed in elsewhere → hold this login for approval instead of
-    // completing it immediately. The requesting device gets a one-time
-    // security key; an already-trusted device must enter it to let this
-    // device in (Settings → Security & Sessions → Login Code for Another Session).
+    // At the device cap → refuse the login outright. No session is ever
+    // evicted automatically; the admin must sign out an existing device
+    // first (Settings → Security & Sessions) before signing in elsewhere.
+    if (activeSessionCount >= MAX_ADMIN_DEVICES) {
+      return res.status(403).json({ error: DEVICE_LIMIT_MESSAGE, deviceLimitReached: true });
+    }
+
+    // Already signed in elsewhere (but under the cap) → hold this login for
+    // approval instead of completing it immediately. The requesting device
+    // gets a one-time security key; an already-trusted device must enter it
+    // to let this device in (Settings → Security & Sessions → Login Code for
+    // Another Session).
     if (activeSessionCount > 0) {
       const code = generateSecurityCode();
       const now = new Date();
@@ -158,7 +164,14 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    const { session, evicted } = await createAdminSession(admin, req);
+    let session;
+    try {
+      ({ session } = await createAdminSession(admin, req));
+    } catch (err) {
+      if (err instanceof DeviceLimitError) return res.status(403).json({ error: err.message, deviceLimitReached: true });
+      throw err;
+    }
+
     const token = signToken(
       { id: admin._id, companyId: company._id, username: admin.username, role: 'admin', isOwner: admin.isOwner, sid: session._id.toString() }
     );
@@ -166,8 +179,7 @@ router.post('/login', async (req, res) => {
     res.json({
       token,
       admin: { id: admin._id, username: admin.username, adminId: admin.adminId, isOwner: admin.isOwner },
-      company: { name: company.name, companyCode: company.companyCode },
-      deviceLimitReached: evicted
+      company: { name: company.name, companyCode: company.companyCode }
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -247,10 +259,21 @@ router.post('/pending-login/:id/approve', verifyAdmin, async (req, res) => {
     const admin = await Admin.findById(pending.adminId);
     if (!admin) return res.status(404).json({ error: 'Admin not found' });
 
-    const { session } = await createSessionForDevice(admin, {
-      userAgent: pending.userAgent, ip: pending.ip,
-      deviceLabel: pending.deviceLabel, deviceType: pending.deviceType
-    });
+    let session;
+    try {
+      ({ session } = await createSessionForDevice(admin, {
+        userAgent: pending.userAgent, ip: pending.ip,
+        deviceLabel: pending.deviceLabel, deviceType: pending.deviceType
+      }));
+    } catch (err) {
+      if (err instanceof DeviceLimitError) {
+        // Leave the request pending (not consumed) — the admin can free up a
+        // slot from Security & Sessions and approve this same code again
+        // before it expires.
+        return res.status(403).json({ error: err.message, deviceLimitReached: true });
+      }
+      throw err;
+    }
 
     pending.status = 'approved';
     pending.approvedSessionId = session._id;

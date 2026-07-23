@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ companyCode: '', username: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [fieldError, setFieldError] = useState({})
+  const [formError, setFormError] = useState('')
 
   // Set once a login attempt comes back requiring approval from an
   // already-trusted device (the account is signed in elsewhere).
@@ -31,6 +32,8 @@ export default function LoginPage() {
     if (!form.password) errs.password = 'Password is required'
     if (Object.keys(errs).length) { setFieldError(errs); return }
 
+    setFieldError({})
+    setFormError('')
     setLoading(true)
     try {
       const { data } = await api.post('/admin/login', form)
@@ -46,7 +49,9 @@ export default function LoginPage() {
       nav('/employees')
     } catch (err) {
       const msg = err.response?.data?.error || 'Login failed'
-      if (/company|code/i.test(msg)) setFieldError({ companyCode: msg })
+      if (err.response?.data?.deviceLimitReached) {
+        setFormError(msg)
+      } else if (/company|code/i.test(msg)) setFieldError({ companyCode: msg })
       else if (/username|user|admin/i.test(msg)) setFieldError({ username: msg })
       else if (/password/i.test(msg)) setFieldError({ password: msg })
       else setFieldError({ password: msg })
@@ -167,6 +172,7 @@ export default function LoginPage() {
               onChange={set('password')}
             />
           </FieldWrap>
+          {formError && <div className="form-error-banner">{formError}</div>}
           <button className="btn btn-primary btn-block mt-2" type="submit" disabled={loading}>
             {loading ? <span className="spinner" /> : 'Sign In'}
           </button>

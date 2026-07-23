@@ -78,8 +78,8 @@ export default function SecuritySessionsPage() {
               <div>
                 <div className="font-700">Active Sessions</div>
                 <div className="text-xs text-2 mt-1">
-                  {sessions?.length || 0} of {maxDevices} devices signed in — the oldest device is
-                  signed out automatically when you log in on a {maxDevices + 1}th device
+                  {sessions?.length || 0} of {maxDevices} devices signed in — once you're at the limit,
+                  new sign-ins are blocked until you sign out a device here
                 </div>
               </div>
               {sessions?.length > 1 && (
@@ -152,7 +152,7 @@ export default function SecuritySessionsPage() {
               <div className="settings-row">
                 <div>
                   <div className="text-sm font-600">Device limit</div>
-                  <div className="text-xs text-2">Max {maxDevices} devices signed in at once</div>
+                  <div className="text-xs text-2">Max {maxDevices} devices signed in at once. At the limit, new sign-ins are refused until a device is signed out — nothing is ever signed out automatically.</div>
                 </div>
               </div>
               <div className="settings-row">
