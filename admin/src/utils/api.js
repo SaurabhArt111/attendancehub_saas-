@@ -26,10 +26,18 @@ api.interceptors.response.use(
   r => { captureRefreshedToken(r); return r },
   err => {
     if (err.response) captureRefreshedToken(err.response)
-    if (err.response?.status === 401) {
+
+    // These endpoints act on a *different* device's pending login. A failure
+    // there (wrong/expired security key, already-handled request, etc.) is a
+    // business-logic error about that other device, never a sign that this
+    // device's own session/token is invalid — so it must never force this
+    // device to log out.
+    const isPendingLoginAction = /\/admin\/pending-login\/[^/]+\/(approve|deny)$/.test(err.config?.url || '')
+
+    if (err.response?.status === 401 && !isPendingLoginAction && localStorage.getItem('adminToken')) {
       localStorage.removeItem('adminToken')
       localStorage.removeItem('adminUser')
-      window.location.href = '/login'
+      if (window.location.pathname !== '/login') window.location.href = '/login'
     }
     return Promise.reject(err)
   }

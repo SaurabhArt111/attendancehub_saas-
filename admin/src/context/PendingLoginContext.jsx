@@ -53,12 +53,12 @@ export function PendingLoginProvider({ children }) {
 
   const approve = useCallback(async (id, code) => {
     await api.post(`/admin/pending-login/${id}/approve`, { code })
-    await checkNow({ openIfFound: false })
+    return checkNow({ openIfFound: false })
   }, [checkNow])
 
   const deny = useCallback(async (id) => {
     await api.post(`/admin/pending-login/${id}/deny`)
-    await checkNow({ openIfFound: false })
+    return checkNow({ openIfFound: false })
   }, [checkNow])
 
   // Used by the "Login Code for Another Session" button in Settings — always

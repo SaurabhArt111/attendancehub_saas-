@@ -21,9 +21,10 @@ export default function PendingLoginModal() {
     if (code.trim().length !== 6) { toast.error('Enter the 6-digit security key shown on the other device'); return }
     setBusy(true)
     try {
-      await approve(current.id, code.trim())
+      const remaining = await approve(current.id, code.trim())
       toast.success('Sign-in approved')
       setCode('')
+      if (!remaining?.length) close()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Approval failed')
     } finally { setBusy(false) }
@@ -33,8 +34,9 @@ export default function PendingLoginModal() {
     if (!current) return
     setBusy(true)
     try {
-      await deny(current.id)
+      const remaining = await deny(current.id)
       toast.success('Sign-in denied')
+      if (!remaining?.length) close()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to deny')
     } finally { setBusy(false) }

@@ -110,7 +110,7 @@ router.put('/update', verifyAdmin, async (req, res) => {
       if (!currentPassword)
         return res.status(400).json({ error: 'Current password required to change password' });
       const valid = await bcrypt.compare(currentPassword, company.password);
-      if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+      if (!valid) return res.status(400).json({ error: 'Current password is incorrect' });
       if (newPassword.length < 6)
         return res.status(400).json({ error: 'New password must be at least 6 characters' });
       company.password = await bcrypt.hash(newPassword, 10);

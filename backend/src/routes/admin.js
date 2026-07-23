@@ -242,7 +242,7 @@ router.post('/pending-login/:id/approve', verifyAdmin, async (req, res) => {
       return res.status(410).json({ error: 'This security key has expired' });
     }
     if (String(code).trim() !== pending.code)
-      return res.status(401).json({ error: 'Incorrect security key' });
+      return res.status(400).json({ error: 'Incorrect security key' });
 
     const admin = await Admin.findById(pending.adminId);
     if (!admin) return res.status(404).json({ error: 'Admin not found' });
@@ -345,7 +345,7 @@ router.put('/update', verifyAdmin, async (req, res) => {
       if (!currentPassword)
         return res.status(400).json({ error: 'Current password required to change password' });
       const valid = await bcrypt.compare(currentPassword, admin.password);
-      if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+      if (!valid) return res.status(400).json({ error: 'Current password is incorrect' });
       if (newPassword.length < 6)
         return res.status(400).json({ error: 'New password must be at least 6 characters' });
       admin.password = await bcrypt.hash(newPassword, 10);
