@@ -18,6 +18,8 @@ const EMPTY_FORM = {
   isActive: true,
 }
 
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
 export default function EmployeeDetailsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -30,6 +32,9 @@ export default function EmployeeDetailsPage() {
   const [existingProofUrl, setExistingProofUrl] = useState(null)
   const [hasExistingProof, setHasExistingProof] = useState(false)
   const [removingProof, setRemovingProof] = useState(false)
+  const [payrollStats, setPayrollStats] = useState(null)
+  const [payrollLoading, setPayrollLoading] = useState(true)
+  const [payrollError, setPayrollError] = useState(null)
   const requestedTab = searchParams.get('tab')
   const [activeTab, setActiveTab] = useState(
     ['overview', 'edit', 'documents', 'attendance'].includes(requestedTab) ? requestedTab : 'overview'
@@ -92,6 +97,40 @@ export default function EmployeeDetailsPage() {
       if (blobUrl) URL.revokeObjectURL(blobUrl)
     }
   }, [employee?.hasIdProof, id])
+
+  useEffect(() => {
+    async function loadPayroll() {
+      if (!employee) return
+      setPayrollLoading(true)
+      setPayrollError(null)
+      try {
+        const now = new Date()
+        const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+        const { data } = await api.get(`/attendance/report/${monthStr}`)
+        const current = data.find(r => r.id === employee._id || r.employeeId === employee.employeeId)
+        if (!current) {
+          setPayrollStats({ totalPresent: 0, gross: 0, overtime: 0, deductions: 0, net: 0, month: monthStr })
+        } else {
+          const dailySalary = current.dailySalary || 0
+          const gross = Math.round(dailySalary * (current.P || 0))
+          const overtime = Math.max((current.estimatedSalary || 0) - gross, 0)
+          const deductions = current.remarks ? current.remarks.reduce((sum, remark) => {
+            const nums = String(remark).match(/\d+(\.\d+)?/g)
+            if (nums) nums.forEach(n => { sum += parseFloat(n) })
+            return sum
+          }, 0) : 0
+          const net = Math.max((current.estimatedSalary || 0) - deductions, 0)
+          setPayrollStats({ ...current, gross, overtime, deductions, net, month: monthStr })
+        }
+      } catch (err) {
+        setPayrollError('Failed to load payroll data')
+      } finally {
+        setPayrollLoading(false)
+      }
+    }
+
+    loadPayroll()
+  }, [employee])
 
   useEffect(() => {
     if (!proofFile) return
@@ -239,6 +278,25 @@ export default function EmployeeDetailsPage() {
                 <div className="profile-info-row"><span>Salary</span><strong>₹{Number(employee.salary || 0).toLocaleString()}</strong></div>
                 <div className="profile-info-row"><span>Salary type</span><strong>{employee.salaryType === 'daily' ? 'Daily' : 'Monthly'}</strong></div>
                 <div className="profile-info-row"><span>Status</span><strong>{employee.isActive === false ? 'Inactive' : 'Active'}</strong></div>
+              </div>
+              <div className="profile-panel">
+                <h3>Payroll summary</h3>
+                {payrollLoading ? (
+                  <div className="profile-info-row"><span>Payroll</span><strong>Loading...</strong></div>
+                ) : payrollError ? (
+                  <div className="profile-info-row"><span>Payroll</span><strong>{payrollError}</strong></div>
+                ) : payrollStats ? (
+                  <>
+                    <div className="profile-info-row"><span>Month</span><strong>{MONTHS[Number(payrollStats.month?.split('-')[1] || '1') - 1]} {payrollStats.month?.split('-')[0]}</strong></div>
+                    <div className="profile-info-row"><span>Total present</span><strong>{payrollStats.totalPresent ?? 0}</strong></div>
+                    <div className="profile-info-row"><span>Estimated salary</span><strong>₹{Number(payrollStats.estimatedSalary || 0).toLocaleString()}</strong></div>
+                    <div className="profile-info-row"><span>Overtime/PP pay</span><strong>₹{Number(payrollStats.overtime || 0).toLocaleString()}</strong></div>
+                    <div className="profile-info-row"><span>Deductions/advances</span><strong>₹{Number(payrollStats.deductions || 0).toLocaleString()}</strong></div>
+                    <div className="profile-info-row"><span>Net pay</span><strong>₹{Number(payrollStats.net || 0).toLocaleString()}</strong></div>
+                  </>
+                ) : (
+                  <div className="profile-info-row"><span>Payroll</span><strong>No payroll data yet</strong></div>
+                )}
               </div>
             </div>
           )}

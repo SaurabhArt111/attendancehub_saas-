@@ -113,7 +113,7 @@ export default function DesignationsPage() {
                 </div>
                 <div className="desig-card-actions" onClick={e => e.stopPropagation()}>
                   <button className="btn btn-secondary btn-sm" onClick={() => startRename(d)}>Rename</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => del(d._id, d.name)}>Remove</button>
+                  {/* <button className="btn btn-danger btn-sm" onClick={() => del(d._id, d.name)}>Remove</button> */}
                 </div>
               </div>
             )

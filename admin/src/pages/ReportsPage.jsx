@@ -314,44 +314,7 @@ export default function ReportsPage() {
                     const hasSalary = !!r.salary
                     return (
                       <tr key={r.id}>
-                        <td className="text-2 text-sm">{idx + 1}</td> {/*Sr No.*/}
-                        <td className="font-600">
-                          <button className="report-name-link" onClick={() => navigate(`/employees/${r.id}?tab=attendance`)}>
-                            {r.username}
-                            <div className="text-xs text-2" style={{ fontFamily: 'monospace' }}>{r.designation || '-'}</div>
-                          </button>
-                        </td>
-                        {/* <td className="text-sm text-2">{r.designation || '-'}</td> */}
-                        <td className="text-success font-600">{r.P || 0}</td>
-                        <td style={{ color: '#a78bfa', fontWeight: 600 }}>{r.PP || 0}</td>
-                        <td className="text-sm" style={{ whiteSpace: 'nowrap' }}>
-                          {hasSalary ? (
-                            <>
-                              Rs {gross.toLocaleString()}
-                              <div className="text-xs text-2">Rs {(r.dailySalary || 0).toLocaleString()}/day</div>
-                            </>
-                          ) : (
-                            <button className="report-set-salary-link no-print" onClick={() => navigate(`/employees/${r.id}?tab=edit`)}>
-                              Set Salary
-                            </button>
-                          )}
-                        </td>
-                        <td className="text-sm" style={{ color: overtime ? '#a78bfa' : undefined }}>
-                          {hasSalary ? `Rs ${overtime.toLocaleString()}` : '-'}
-                        </td>
-                        <td className="text-sm" style={{ color: deductions ? 'var(--danger)' : undefined }}>
-                          {deductions ? `Rs ${deductions.toLocaleString()}` : '-'}
-                        </td>
-                        <td className="font-600">
-                          {hasSalary ? `Rs ${net.toLocaleString()}` : '-'}
-                        </td>
-                        <td className="text-sm no-print" style={{ maxWidth: 160 }}>
-                          {r.remarks.length > 0 ? (
-                            <span title={r.remarks.join(' | ')} style={{ color: 'var(--warn)', cursor: 'help' }}>
-                              {r.remarks.length} rmk{r.remarks.length > 1 ? 's' : ''}
-                            </span>
-                          ) : <span className="text-2">-</span>}
-                        </td>
+                        <td className="text-2 text-sm">{idx + 1}</td><td className="font-600"><button className="report-name-link" onClick={() => navigate(`/employees/${r.id}?tab=attendance`)}>{r.username}<div className="text-xs text-2" style={{ fontFamily: 'monospace' }}>{r.designation || '-'}</div></button></td><td className="text-success font-600">{r.P || 0}</td><td style={{ color: '#a78bfa', fontWeight: 600 }}>{r.PP || 0}</td><td className="text-sm" style={{ whiteSpace: 'nowrap' }}>{hasSalary ? (<><span>Rs {gross.toLocaleString()}</span><div className="text-xs text-2">Rs {(r.dailySalary || 0).toLocaleString()}/day</div></>) : (<button className="report-set-salary-link no-print" onClick={() => navigate(`/employees/${r.id}?tab=edit`)}>Set Salary</button>)}</td><td className="text-sm" style={{ color: overtime ? '#7e53ff' : undefined }}>{hasSalary ? `Rs ${overtime.toLocaleString()}` : '-'}</td><td className="text-sm" style={{ color: deductions ? 'var(--danger)' : undefined }}>{deductions ? `Rs ${deductions.toLocaleString()}` : '-'}</td><td className="font-600">{hasSalary ? `Rs ${net.toLocaleString()}` : '-'}</td><td className="text-sm no-print" style={{ maxWidth: 160 }}>{r.remarks.length > 0 ? (<span title={r.remarks.join(' | ')} style={{ color: 'var(--warn)', cursor: 'help' }}>{r.remarks.length} rmk{r.remarks.length > 1 ? 's' : ''}</span>) : <span className="text-2">-</span>}</td>
                       </tr>
                     )
                   })}

@@ -51,10 +51,10 @@ export default function HolidaysPage() {
               <label className="label">Holiday Name</label>
               <input className="input" placeholder="Diwali" value={form.name} onChange={set('name')} required />
             </div>
-          </div>
-          <button className="btn btn-primary btn-sm" type="submit" disabled={loading}>
+          <button className="btn btn-primary btn-sm submit-holiday" type="submit" disabled={loading}>
             {loading ? <span className="spinner" /> : 'Add Holiday'}
           </button>
+          </div>
         </form>
       </div>
 

@@ -8,6 +8,7 @@ import './DashboardLayout.css'
 
 const NAV = [
   { to: '/employees', label: 'Employees', icon: <PeopleIcon /> },
+  { to: '/attendance', label: 'Attendance', icon: <RosterIcon /> },
   { to: '/my-employees', label: 'My Employees', icon: <RosterIcon /> },
   { to: '/reports', label: 'Reports', icon: <ChartIcon /> },
   { to: '/holidays', label: 'Holidays', icon: <HolIcon /> },

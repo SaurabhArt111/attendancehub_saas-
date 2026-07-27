@@ -50,3 +50,7 @@
     align-self: flex-start;
   }
 }
+
+.submit-holiday {
+  width: fit-content;
+}
