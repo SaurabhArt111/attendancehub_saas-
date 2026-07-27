@@ -26,9 +26,9 @@
   transition: background-color var(--tr);
 }
 
-.tbl tr:hover {
+/* .tbl tr:hover {
   background: var(--bg-hover);
-}
+} */
 
 .text-right {
   text-align: right;

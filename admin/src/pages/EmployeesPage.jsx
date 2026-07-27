@@ -448,7 +448,7 @@ function EmployeeCard({ emp, expanded, todayStatus, selectMode, selected, onTogg
                 </div>
                 <div className="emp-actions" onClick={e => e.stopPropagation()}>
                   <button className="emp-action-btn" title="View profile" onClick={onView}><EyeIcon /></button>
-                  <button className="emp-action-btn" title="Edit" onClick={onEdit}><EditIcon /></button>
+                  {/* <button className="emp-action-btn" title="Edit" onClick={onEdit}><EditIcon /></button> */}
                   <button className="emp-action-btn emp-action-danger" title="Archive" onClick={onArchive}><ArchiveIcon /></button>
                 </div>
               </>

@@ -317,7 +317,7 @@ export default function EmployeeDetailsPage() {
                 </label>
                 <label className="form-group">
                   <span>Employee ID</span>
-                  <input className="input" value={form.employeeId} onChange={handleChange('employeeId')} required />
+                  <input className="input" value={form.employeeId} onChange={handleChange('employeeId')} required readOnly />
                 </label>
               </div>
               <div className="form-grid-2">
