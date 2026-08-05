@@ -2,8 +2,22 @@ const router   = require('express').Router();
 const bcrypt   = require('bcryptjs');
 const multer   = require('multer');
 const Employee = require('../models/Employee');
-const { verifyAdmin, verifyEmployee, signToken } = require('../middleware/auth');
+const Session  = require('../models/Session');
+const { verifyAdmin, verifyEmployee, signToken, SLIDING_MS } = require('../middleware/auth');
 const { compressToJpeg } = require('../utils/imageCompress');
+const { getDeviceInfo } = require('../utils/deviceInfo');
+const { countActiveSessions, pruneStaleSessions } = require('../utils/sessionCleanup');
+
+// Employees get the same session tracking as Admins (added to bring this
+// side up to par with the admin session-security work), but with a simpler
+// flow: no push-based approval handshake, just a straightforward cap. Lower
+// stakes than an admin account holding company-wide data, so a plain block
+// at the limit — with a way to see/sign-out devices from Profile — is
+// proportionate.
+const MAX_EMPLOYEE_DEVICES = 3;
+const DEVICE_LIMIT_MESSAGE = 'Maximum device limit reached. Please sign out from another device to continue.';
+const PIN_LOCK_MS = 15 * 60 * 1000;
+const PIN_MAX_ATTEMPTS = 5;
 
 // Employee ID format: 4 alphabetic characters + 3-5 alphanumeric characters
 // (total length 7-9), auto-generated and guaranteed unique.
@@ -72,16 +86,163 @@ router.post('/login', async (req, res) => {
     if (!await bcrypt.compare(password, emp.password))
       return res.status(401).json({ error: 'Invalid Employee ID or password' });
     if (!emp.isActive) return res.status(403).json({ error: 'Account deactivated' });
+
+    // Stale sessions (device uninstalled / site data cleared) are pruned
+    // before counting against the cap — see utils/sessionCleanup.js. A
+    // session that's still genuinely in use is never evicted automatically;
+    // the employee signs it out themselves (Profile → Signed-in Devices).
+    const activeSessionCount = await countActiveSessions('employee', emp._id);
+    if (activeSessionCount >= MAX_EMPLOYEE_DEVICES) {
+      return res.status(403).json({ error: DEVICE_LIMIT_MESSAGE, deviceLimitReached: true });
+    }
+
     const Company = require('../models/Company');
     const company = await Company.findById(emp.companyId);
+
+    const deviceInfo = getDeviceInfo(req);
+    const now = new Date();
+    const session = await Session.create({
+      role: 'employee', userId: emp._id, companyId: emp.companyId,
+      userAgent: deviceInfo.userAgent, ip: deviceInfo.ip,
+      deviceLabel: deviceInfo.deviceLabel, deviceType: deviceInfo.deviceType,
+      createdAt: now, lastActiveAt: now,
+      expiresAt: new Date(now.getTime() + SLIDING_MS)
+    });
+
     const token = signToken(
-      { id: emp._id, companyId: emp.companyId, username: emp.username, role: 'employee' }
+      { id: emp._id, companyId: emp.companyId, username: emp.username, role: 'employee', sid: session._id }
     );
     res.json({
       token,
       employee: { id: emp._id, username: emp.username, employeeId: emp.employeeId, contact: emp.contact, designation: emp.designation },
       company: { name: company?.name, companyCode: company?.companyCode }
     });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/employees/logout — explicitly revokes *this* device's session.
+// Without this, signing out only cleared the token locally and the session
+// kept counting toward the device limit until it expired or went stale.
+router.post('/logout', verifyEmployee, async (req, res) => {
+  try {
+    if (req.employee.sid) {
+      await Session.updateOne(
+        { _id: req.employee.sid, role: 'employee', userId: req.employee.id, revoked: false },
+        { $set: { revoked: true, revokedAt: new Date(), revokedReason: 'user' } }
+      );
+    }
+    res.json({ message: 'Signed out' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/employees/sessions — this employee's signed-in devices
+router.get('/sessions', verifyEmployee, async (req, res) => {
+  try {
+    await pruneStaleSessions('employee', req.employee.id);
+    const sessions = await Session.find({
+      role: 'employee', userId: req.employee.id, revoked: false, expiresAt: { $gt: new Date() }
+    }).sort({ lastActiveAt: -1 }).lean();
+    res.json({
+      currentSessionId: req.employee.sid || null,
+      maxDevices: MAX_EMPLOYEE_DEVICES,
+      sessions: sessions.map(s => ({
+        id: s._id, deviceLabel: s.deviceLabel, deviceType: s.deviceType,
+        createdAt: s.createdAt, lastActiveAt: s.lastActiveAt,
+        isCurrent: req.employee.sid && String(s._id) === String(req.employee.sid)
+      }))
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/employees/sessions/:id/revoke — sign out one other device
+router.post('/sessions/:id/revoke', verifyEmployee, async (req, res) => {
+  try {
+    const session = await Session.findOne({ _id: req.params.id, role: 'employee', userId: req.employee.id });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    session.revoked = true;
+    session.revokedAt = new Date();
+    session.revokedReason = 'user';
+    await session.save();
+    res.json({ message: 'Device signed out', wasCurrent: req.employee.sid === session._id.toString() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/employees/sessions/logout-others — sign out every device but this one
+router.post('/sessions/logout-others', verifyEmployee, async (req, res) => {
+  try {
+    await Session.updateMany(
+      { role: 'employee', userId: req.employee.id, revoked: false, _id: { $ne: req.employee.sid } },
+      { $set: { revoked: true, revokedAt: new Date(), revokedReason: 'logout-others' } }
+    );
+    res.json({ message: 'Other devices signed out' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Payroll PIN ────────────────────────────────────────────────────────
+// Gates the Payroll page. First visit → employee creates a 4-digit PIN.
+// Every visit after that → they must re-enter it. Locks out for 15 minutes
+// after 5 wrong attempts (a 4-digit space is small; this matters).
+
+// GET /api/employees/payroll-pin/status
+router.get('/payroll-pin/status', verifyEmployee, async (req, res) => {
+  try {
+    const emp = await Employee.findById(req.employee.id).select('payrollPin');
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    res.json({ hasPin: !!emp.payrollPin });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/employees/payroll-pin/setup  { pin, confirmPin }
+router.post('/payroll-pin/setup', verifyEmployee, async (req, res) => {
+  try {
+    const { pin, confirmPin } = req.body;
+    if (!/^\d{4}$/.test(pin || '')) return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+    if (pin !== confirmPin) return res.status(400).json({ error: 'PINs do not match' });
+
+    const emp = await Employee.findById(req.employee.id);
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    if (emp.payrollPin) return res.status(409).json({ error: 'A PIN is already set. Ask your admin to reset it if you\'ve forgotten it.' });
+
+    emp.payrollPin = await bcrypt.hash(pin, 10);
+    emp.payrollPinSetAt = new Date();
+    emp.payrollPinFailedAttempts = 0;
+    emp.payrollPinLockedUntil = undefined;
+    await emp.save();
+    res.json({ message: 'PIN created' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/employees/payroll-pin/verify  { pin }
+router.post('/payroll-pin/verify', verifyEmployee, async (req, res) => {
+  try {
+    const { pin } = req.body;
+    const emp = await Employee.findById(req.employee.id);
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    if (!emp.payrollPin) return res.status(400).json({ error: 'No PIN set up yet' });
+
+    if (emp.payrollPinLockedUntil && emp.payrollPinLockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((emp.payrollPinLockedUntil - new Date()) / 60000);
+      return res.status(429).json({ error: `Too many attempts. Try again in ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'}.` });
+    }
+
+    const match = await bcrypt.compare(pin || '', emp.payrollPin);
+    if (!match) {
+      emp.payrollPinFailedAttempts = (emp.payrollPinFailedAttempts || 0) + 1;
+      if (emp.payrollPinFailedAttempts >= PIN_MAX_ATTEMPTS) {
+        emp.payrollPinLockedUntil = new Date(Date.now() + PIN_LOCK_MS);
+        emp.payrollPinFailedAttempts = 0;
+        await emp.save();
+        return res.status(429).json({ error: 'Too many attempts. Try again in 15 minutes.' });
+      }
+      await emp.save();
+      const remaining = PIN_MAX_ATTEMPTS - emp.payrollPinFailedAttempts;
+      return res.status(401).json({ error: 'Incorrect PIN', attemptsRemaining: remaining });
+    }
+
+    emp.payrollPinFailedAttempts = 0;
+    emp.payrollPinLockedUntil = undefined;
+    await emp.save();
+    res.json({ verified: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -197,12 +358,13 @@ router.post('/bulk', verifyAdmin, async (req, res) => {
 // GET /api/employees/:id
 router.get('/:id', verifyAdmin, async (req, res) => {
   try {
-    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId }).select('-idProofData').lean();
+    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId }).select('-idProofData -payrollPin').lean();
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
     res.json({
       ...emp,
       hasPassword: !!emp.password,
-      hasIdProof: !!emp.idProofContentType
+      hasIdProof: !!emp.idProofContentType,
+      hasPayrollPin: !!emp.payrollPinSetAt
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -295,6 +457,21 @@ router.delete('/:id/id-proof', verifyAdmin, async (req, res) => {
     emp.idProofUploadedAt = undefined;
     await emp.save();
     res.json({ message: 'Identification proof removed' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/employees/:id/payroll-pin/reset — admin clears an employee's
+// forgotten Payroll PIN so they can set a fresh one on their next visit.
+router.post('/:id/payroll-pin/reset', verifyAdmin, async (req, res) => {
+  try {
+    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId });
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    emp.payrollPin = '';
+    emp.payrollPinSetAt = undefined;
+    emp.payrollPinFailedAttempts = 0;
+    emp.payrollPinLockedUntil = undefined;
+    await emp.save();
+    res.json({ message: 'Payroll PIN reset. The employee will be asked to create a new one.' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

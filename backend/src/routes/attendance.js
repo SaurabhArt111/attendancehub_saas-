@@ -3,6 +3,7 @@ const Attendance = require('../models/Attendance');
 const Employee   = require('../models/Employee');
 const { verifyAdmin, verifyEmployee } = require('../middleware/auth');
 const jwt        = require('jsonwebtoken');
+const { computeEmployeeMonthRow, salaryBreakdown } = require('../utils/payroll');
 
 const VALID_STATUSES = ['P', 'A', 'PP'];
 const JWT_SECRET     = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-key-2024';
@@ -11,6 +12,11 @@ const JWT_SECRET     = process.env.JWT_SECRET || 'attendancehub-saas-super-secre
 function toMonthKey(yearMonth) {
   const [y, m] = yearMonth.split('-');
   return `${m}-${y}`;
+}
+
+function daysInMonthFor(month) {
+  const [y, m] = month.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
 }
 
 // GET /api/attendance/report/:month  (YYYY-MM)
@@ -28,37 +34,60 @@ router.get('/report/:month', verifyAdmin, async (req, res) => {
       byEmp[rec.employeeId.toString()] = rec.days;
     }
 
-    const [y, m] = month.split('-').map(Number);
-    const daysInMonth = new Date(y, m, 0).getDate();
-
-    const report = employees.map(e => {
-      const eid      = e._id.toString();
-      const daysMap  = byEmp[eid] || new Map();
-      let P = 0, A = 0, PP = 0;
-      const remarks  = [];
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const rec = daysMap.get ? daysMap.get(String(d)) : daysMap[String(d)];
-        if (!rec) continue;
-        if (rec.status === 'P')  P++;
-        if (rec.status === 'A')  A++;
-        if (rec.status === 'PP') PP++;
-        if (rec.remark && rec.remark.trim()) remarks.push(rec.remark.trim());
-      }
-
-      const totalPresent = P + PP * 2;
-      const monthlySalary = e.salary || 0;
-      const dailySalary = daysInMonth > 0 ? monthlySalary / daysInMonth : 0;
-      const estimatedSalary = Math.round(dailySalary * totalPresent);
-
-      return {
-        id: e._id, username: e.username, employeeId: e.employeeId,
-        designation: e.designation || '', salary: monthlySalary, salaryType: 'monthly',
-        dailySalary: Math.round(dailySalary * 100) / 100,
-        daysInMonth, P, A, PP, totalPresent, estimatedSalary, remarks
-      };
-    });
+    const daysInMonth = daysInMonthFor(month);
+    const report = employees.map(e => computeEmployeeMonthRow(e, byEmp[e._id.toString()] || new Map(), daysInMonth));
     res.json(report);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/attendance/my-report/:month  (YYYY-MM) — the logged-in employee's
+// own payroll row, with the gross/overtime/deductions/net breakdown. Uses
+// the exact same computation as the admin Reports endpoint above, so the
+// numbers an employee sees on their Payroll page always match what their
+// admin sees.
+router.get('/my-report/:month', verifyEmployee, async (req, res) => {
+  try {
+    const { month } = req.params;
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ error: 'Invalid month format' });
+    const monthKey = toMonthKey(month);
+
+    const emp = await Employee.findById(req.employee.id).select('-password -idProofData');
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+
+    const record = await Attendance.findOne({ companyId: req.employee.companyId, employeeId: emp._id, month: monthKey });
+    const daysInMonth = daysInMonthFor(month);
+    const row = computeEmployeeMonthRow(emp, record?.days || new Map(), daysInMonth);
+    const breakdown = salaryBreakdown(row);
+
+    res.json({ month, ...row, ...breakdown });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/attendance/my-report — last 6 months' net pay, oldest first, for
+// the Payroll history strip. Months with no salary configured are skipped
+// on the frontend, not here, so a brand-new employee just sees an empty list.
+router.get('/my-report', verifyEmployee, async (req, res) => {
+  try {
+    const emp = await Employee.findById(req.employee.id).select('-password -idProofData');
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+
+    const months = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    }
+
+    const results = await Promise.all(months.map(async (month) => {
+      const monthKey = toMonthKey(month);
+      const record = await Attendance.findOne({ companyId: req.employee.companyId, employeeId: emp._id, month: monthKey });
+      const daysInMonth = daysInMonthFor(month);
+      const row = computeEmployeeMonthRow(emp, record?.days || new Map(), daysInMonth);
+      const breakdown = salaryBreakdown(row);
+      return { month, ...row, ...breakdown };
+    }));
+
+    res.json(results);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

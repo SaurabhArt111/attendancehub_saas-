@@ -4,6 +4,7 @@ import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import './EmployeesPage.css'
 import './ReportsPage.css'
+import { RowListSkeleton } from '../components/Skeleton'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -284,7 +285,7 @@ export default function ReportsPage() {
       {/* DATA TABLE SECTION */}
       <div className="card report-table-wrapper" style={{ padding: 0 }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem' }}><span className="spinner" /></div>
+          <div style={{ padding: '1rem' }}><RowListSkeleton count={6} /></div>
         ) : report.length === 0 ? (
           <div className="empty">No data for this month.</div>
         ) : filteredReport.length === 0 ? (

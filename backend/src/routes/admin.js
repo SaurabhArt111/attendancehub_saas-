@@ -9,6 +9,7 @@ const PendingLogin = require('../models/PendingLogin');
 const { verifyAdmin, signToken, JWT_SECRET, SLIDING_MS } = require('../middleware/auth');
 const { getDeviceInfo } = require('../utils/deviceInfo');
 const { sendPushToAdmin, VAPID_PUBLIC_KEY } = require('../utils/push');
+const { countActiveSessions, pruneStaleSessions } = require('../utils/sessionCleanup');
 
 const MAX_ADMIN_DEVICES = 3;
 const PENDING_LOGIN_TTL_MS = 5 * 60 * 1000; // security key / approval window
@@ -19,14 +20,13 @@ class DeviceLimitError extends Error {}
 // Creates a Session document for `admin` on the given device. All existing
 // active sessions are left untouched — if the account is already at the
 // concurrent device limit, this throws a DeviceLimitError instead of ever
-// signing another device out automatically.
+// signing another device out automatically. Stale (uninstalled / data-cleared)
+// sessions are pruned first, so a ghost device can never eat a real slot.
 async function createSessionForDevice(admin, deviceInfo) {
   const { userAgent, ip, deviceLabel, deviceType } = deviceInfo;
   const now = new Date();
 
-  const activeSessionCount = await Session.countDocuments({
-    role: 'admin', userId: admin._id, revoked: false, expiresAt: { $gt: now }
-  });
+  const activeSessionCount = await countActiveSessions('admin', admin._id);
 
   if (activeSessionCount >= MAX_ADMIN_DEVICES) {
     throw new DeviceLimitError(DEVICE_LIMIT_MESSAGE);
@@ -120,13 +120,15 @@ router.post('/login', async (req, res) => {
 
     const deviceInfo = getDeviceInfo(req);
 
-    const activeSessionCount = await Session.countDocuments({
-      role: 'admin', userId: admin._id, revoked: false, expiresAt: { $gt: new Date() }
-    });
+    // Stale sessions (device uninstalled / site data cleared) are pruned
+    // before we ever count against the cap — see utils/sessionCleanup.js.
+    const activeSessionCount = await countActiveSessions('admin', admin._id);
 
-    // At the device cap → refuse the login outright. No session is ever
-    // evicted automatically; the admin must sign out an existing device
-    // first (Settings → Security & Sessions) before signing in elsewhere.
+    // At the device cap → refuse the login outright. A session is only ever
+    // freed up automatically once its device has gone dark long enough to be
+    // essentially certain it's gone (see STALE_SESSION_DAYS); a device that's
+    // still genuinely in use is never evicted — the admin signs it out
+    // themselves (Settings → Security & Sessions) before signing in elsewhere.
     if (activeSessionCount >= MAX_ADMIN_DEVICES) {
       return res.status(403).json({ error: DEVICE_LIMIT_MESSAGE, deviceLimitReached: true });
     }
@@ -337,6 +339,30 @@ router.post('/push/unsubscribe', verifyAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/admin/logout — explicitly revokes *this* device's session.
+// Without this, "Sign Out" only cleared the token locally; the Session
+// document kept counting toward the device limit until it naturally expired
+// or went stale, so signing out and back in on the same device could
+// silently eat two slots instead of reusing one.
+router.post('/logout', verifyAdmin, async (req, res) => {
+  try {
+    if (req.admin.sid) {
+      const session = await Session.findOne({ _id: req.admin.sid, role: 'admin', userId: req.admin.id });
+      if (session && !session.revoked) {
+        session.revoked = true;
+        session.revokedAt = new Date();
+        session.revokedReason = 'user';
+        await session.save();
+        await Admin.updateOne(
+          { _id: req.admin.id },
+          { $pull: { pushSubscriptions: { sessionId: session._id } } }
+        );
+      }
+    }
+    res.json({ message: 'Signed out' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // GET /api/admin/me
 router.get('/me', verifyAdmin, async (req, res) => {
   try {
@@ -386,6 +412,9 @@ router.put('/update', verifyAdmin, async (req, res) => {
 // GET /api/admin/sessions — active (non-revoked, non-expired) devices
 router.get('/sessions', verifyAdmin, async (req, res) => {
   try {
+    // Prune anything stale first so a ghost device (uninstalled / cleared
+    // data) never lingers in this list looking "active".
+    await pruneStaleSessions('admin', req.admin.id);
     const sessions = await Session.find({
       role: 'admin', userId: req.admin.id, revoked: false, expiresAt: { $gt: new Date() }
     }).sort({ lastActiveAt: -1 });

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
+import { RowListSkeleton } from '../components/Skeleton'
 import './EmployeesPage.css'
 import './AttendancePage.css'
 
@@ -93,7 +94,7 @@ export default function AttendancePage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}><span className="spinner" /></div>
+        <RowListSkeleton count={5} />
       ) : employees.length === 0 ? (
         <div className="empty card">No employees found. Add employees first.</div>
       ) : mode === 'single' ? (

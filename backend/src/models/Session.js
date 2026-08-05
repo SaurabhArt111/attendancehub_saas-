@@ -1,9 +1,16 @@
 const mongoose = require('mongoose');
 
-// Tracks individual logged-in devices/sessions for an account (currently used for Admins).
+// Tracks individual logged-in devices/sessions for an account (Admins and Employees).
 // The JWT carries this document's _id as `sid`. On every authenticated request the
 // session is looked up, its activity timestamps are refreshed, and a new sliding
 // JWT (fresh 30-day expiry) is issued back to the client.
+//
+// `lastActiveAt` doubles as a liveness signal: since it refreshes on every single
+// authenticated request, a device that's still installed and opened every so often
+// keeps it current on its own. See utils/sessionCleanup.js — whenever a device-limit
+// check runs, sessions whose device has gone dark for longer than a real install
+// plausibly would (uninstalled / site data cleared, most likely) are pruned first,
+// so a ghost session from a wiped device can never sit there blocking a real login.
 const sessionSchema = new mongoose.Schema({
   role:         { type: String, enum: ['admin', 'employee'], required: true },
   userId:       { type: mongoose.Schema.Types.ObjectId, required: true }, // Admin or Employee _id
@@ -21,7 +28,7 @@ const sessionSchema = new mongoose.Schema({
 
   revoked:      { type: Boolean, default: false },
   revokedAt:    { type: Date },
-  revokedReason:{ type: String, default: '' } // 'user', 'device-limit', 'logout-others'
+  revokedReason:{ type: String, default: '' } // 'user', 'device-limit', 'logout-others', 'stale-device'
 });
 
 sessionSchema.index({ userId: 1, revoked: 1, expiresAt: 1 });

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
+import { CardGridSkeleton } from '../components/Skeleton'
 import './EmployeesPage.css'
 
 const TODAY_STATUS = {
@@ -270,7 +271,7 @@ export default function EmployeesPage() {
 
       {/* Employee List */}
       {loading ? (
-        <div className="emp-loading"><span className="spinner" /><span>Loading employees...</span></div>
+        <CardGridSkeleton count={6} />
       ) : filtered.length === 0 ? (
         <div className="emp-empty">
           <div className="emp-empty-icon">

@@ -627,3 +627,22 @@ button.cal-day.PP { background: rgba(124, 92, 252, .18); color: #a78bfa; }
 button.cal-day.H  { background: rgba(245, 158, 11, .18); color: #f59e0b !important; font-weight: 700; }
 button.cal-day.future { opacity: .28; }
 button.cal-day.today  { border-color: var(--accent); }
+
+/* ── Loading skeletons ─────────────────────────────────────────────
+   Shape-matched placeholders shown while a page's first data fetch is in
+   flight, so the layout is recognizable immediately instead of the page
+   popping from spinner to fully-populated content in one jump. */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  display: block;
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 37%, var(--bg3) 63%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+.skeleton-stack { display: flex; flex-direction: column; gap: .6rem; }

@@ -5,6 +5,7 @@ import LoginPage     from './pages/LoginPage'
 import AppShell      from './pages/AppShell'
 import HomePage      from './pages/HomePage'
 import AttendancePage from './pages/AttendancePage'
+import PayrollPage   from './pages/PayrollPage'
 import ProfilePage   from './pages/ProfilePage'
 
 function RequireAuth({ children }) {
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/" element={<RequireAuth><AppShell /></RequireAuth>}>
           <Route index element={<HomePage />} />
           <Route path="attendance" element={<AttendancePage />} />
+          <Route path="payroll"    element={<PayrollPage />} />
           <Route path="profile"    element={<ProfilePage />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

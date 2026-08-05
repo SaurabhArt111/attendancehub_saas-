@@ -5,6 +5,7 @@ const cors    = require('cors');
 const os      = require('os');
 const http    = require('http');
 const connectDB = require('./utils/db');
+const { pruneAllStaleSessions } = require('./utils/sessionCleanup');
 
 const app  = express();
 const PORT = process.env.PORT || 5900;
@@ -58,6 +59,19 @@ connectDB().then(() => {
     }
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`Network: http://${localIP}:${PORT}`);
+
+    // Housekeeping: revoke sessions whose device has gone dark long enough to
+    // be essentially certain it's uninstalled / had its data cleared, so the
+    // Security & Sessions / Signed-in-Devices lists stay honest even between
+    // login attempts. Runs on boot, then every 6 hours.
+    const SWEEP_INTERVAL_MS = 6 * 60 * 60 * 1000;
+    const sweep = () => {
+      pruneAllStaleSessions()
+        .then(count => { if (count) console.log(`[session-cleanup] revoked ${count} stale session(s)`); })
+        .catch(err => console.error('[session-cleanup] failed:', err.message));
+    };
+    sweep();
+    setInterval(sweep, SWEEP_INTERVAL_MS);
     console.log(`LAN: http://${localIP}:${PORT}`);
   });
 });

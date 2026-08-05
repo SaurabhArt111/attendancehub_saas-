@@ -502,3 +502,41 @@ body {
   transition: color var(--tr);
   margin: 10px;
 }
+/* ── Loading skeletons ─────────────────────────────────────────────
+   Shape-matched placeholders shown while a page's first data fetch is in
+   flight, so the layout appears instantly and content fades in rather than
+   the page popping from "spinner" to "fully populated" in one jump. */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  display: block;
+  background: linear-gradient(90deg, var(--bg-hover) 25%, var(--bg-active) 37%, var(--bg-hover) 63%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.skeleton-card {
+  padding: 1.1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.skeleton-stack { display: flex; flex-direction: column; gap: 0.6rem; }

@@ -54,10 +54,13 @@ const verifyAdmin = async (req, res, next) => {
   }
 };
 
-// verifyEmployee — same sliding-refresh behavior as verifyAdmin. Employee
-// sessions aren't tracked in the Session collection (no device-list UI is
-// required for employees), so this just re-signs the token on every request.
-const verifyEmployee = (req, res, next) => {
+// verifyEmployee — same sliding-refresh + Session-backed behavior as
+// verifyAdmin (device tracking was added to the employee side to bring it up
+// to par with the admin session-security work). Tokens signed before that
+// change won't carry a `sid`; those are let through without a session check
+// so nobody already logged in gets abruptly signed out — the next login will
+// pick up a real session.
+const verifyEmployee = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'No token provided' });
 
@@ -69,13 +72,28 @@ const verifyEmployee = (req, res, next) => {
   }
   if (decoded.role !== 'employee') return res.status(403).json({ error: 'Employee access required' });
 
-  req.employee = decoded;
+  try {
+    if (decoded.sid) {
+      const session = await Session.findById(decoded.sid);
+      if (!session || session.revoked || session.expiresAt < new Date()) {
+        return res.status(401).json({ error: 'Session expired or was signed out. Please log in again.' });
+      }
+      const now = new Date();
+      session.lastActiveAt = now;
+      session.expiresAt = new Date(now.getTime() + SLIDING_MS);
+      await session.save();
+    }
 
-  const freshToken = signToken({
-    id: decoded.id, companyId: decoded.companyId, username: decoded.username, role: 'employee'
-  });
-  res.setHeader('x-new-token', freshToken);
-  next();
+    req.employee = decoded;
+
+    const freshToken = signToken({
+      id: decoded.id, companyId: decoded.companyId, username: decoded.username, role: 'employee', sid: decoded.sid
+    });
+    res.setHeader('x-new-token', freshToken);
+    next();
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 };
 
 module.exports = { verifyAdmin, verifyEmployee, signToken, JWT_SECRET, SLIDING_DAYS, SLIDING_MS };

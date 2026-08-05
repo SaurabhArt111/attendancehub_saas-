@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
+import { Skeleton } from '../components/Skeleton'
 
 const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -111,7 +112,10 @@ export default function AttendancePage() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign:'center', padding:'1.5rem' }}><span className="spinner" /></div>
+          <div className="cal-grid">
+            {DAYS.map(d => <div key={d} className="cal-head">{d}</div>)}
+            {Array.from({ length: 35 }).map((_, i) => <Skeleton key={i} height={34} radius={8} />)}
+          </div>
         ) : (
           <div className="cal-grid">
             {DAYS.map(d => <div key={d} className="cal-head">{d}</div>)}

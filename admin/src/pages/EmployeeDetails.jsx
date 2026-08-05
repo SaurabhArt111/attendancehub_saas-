@@ -4,6 +4,7 @@ import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
 import BackButton from '../components/BackButton'
+import { ProfileSkeleton } from '../components/Skeleton'
 import './EmployeesPage.css'
 
 const EMPTY_FORM = {
@@ -32,6 +33,7 @@ export default function EmployeeDetailsPage() {
   const [existingProofUrl, setExistingProofUrl] = useState(null)
   const [hasExistingProof, setHasExistingProof] = useState(false)
   const [removingProof, setRemovingProof] = useState(false)
+  const [resettingPin, setResettingPin] = useState(false)
   const [payrollStats, setPayrollStats] = useState(null)
   const [payrollLoading, setPayrollLoading] = useState(true)
   const [payrollError, setPayrollError] = useState(null)
@@ -199,13 +201,24 @@ export default function EmployeeDetailsPage() {
     }
   }
 
+  const handleResetPayrollPin = async () => {
+    if (!confirm("Reset this employee's Payroll PIN? They'll be asked to create a new one next time they open Payroll.")) return
+    setResettingPin(true)
+    try {
+      await api.post(`/employees/${id}/payroll-pin/reset`)
+      setEmployee((prev) => prev ? { ...prev, hasPayrollPin: false } : prev)
+      toast.success('Payroll PIN reset')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to reset PIN')
+    } finally {
+      setResettingPin(false)
+    }
+  }
+
   if (loading || !employee) {
     return (
       <div className="emp-page">
-        <div className="emp-loading">
-          <span className="spinner" />
-          <span>Loading employee profile...</span>
-        </div>
+        <ProfileSkeleton />
       </div>
     )
   }
@@ -360,6 +373,19 @@ export default function EmployeeDetailsPage() {
                 <span>New password</span>
                 <input className="input" type="password" value={form.password} onChange={handleChange('password')} placeholder={employee.hasPassword ? 'Leave blank to keep current password' : 'Set a login password'} />
               </label>
+              <div className="form-group">
+                <span>Payroll PIN</span>
+                <div className="flex items-center gap-2" style={{ marginTop: '0.35rem' }}>
+                  <span className="text-sm text-2">
+                    {employee.hasPayrollPin ? 'A PIN is set for viewing Payroll.' : 'Not set up yet — the employee will be prompted on their first Payroll visit.'}
+                  </span>
+                  {employee.hasPayrollPin && (
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={handleResetPayrollPin} disabled={resettingPin}>
+                      {resettingPin ? <span className="spinner" /> : 'Reset PIN'}
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="form-actions">
                 <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? <span className="spinner" /> : 'Save changes'}

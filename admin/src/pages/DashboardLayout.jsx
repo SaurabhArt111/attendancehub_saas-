@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useThemePref } from '../utils/theme'
 import { ensurePushSubscription } from '../utils/push'
+import api from '../utils/api'
 import { PendingLoginProvider } from '../context/PendingLoginContext'
 import PendingLoginModal from '../components/PendingLoginModal'
 import './DashboardLayout.css'
@@ -45,7 +46,11 @@ function DashboardLayoutInner() {
     setTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light')
   }
 
-  function logout() {
+  async function logout() {
+    // Best-effort: tell the server to revoke this device's session so it
+    // doesn't keep counting toward the device limit. Sign-out proceeds
+    // locally either way — a network hiccup here shouldn't trap anyone.
+    try { await api.post('/admin/logout') } catch { /* ignore */ }
     localStorage.removeItem('adminToken')
     localStorage.removeItem('adminUser')
     nav('/login')

@@ -22,7 +22,18 @@ const employeeSchema = new mongoose.Schema({
   idProofData:        { type: Buffer },
   idProofContentType: { type: String, default: '' }, // always 'image/jpeg' once set
   idProofSize:         { type: Number },              // bytes, post-compression
-  idProofUploadedAt:   { type: Date }
+  idProofUploadedAt:   { type: Date },
+
+  // ── Payroll PIN ──────────────────────────────────────────────
+  // Gates the employee-facing Payroll page. Set up by the employee on their
+  // first visit to Payroll, then required on every subsequent visit. Stored
+  // as a bcrypt hash, never in plain text. A small failed-attempt lockout
+  // guards the 4-digit space against brute force. An admin can clear it
+  // (see PUT /api/employees/:id/payroll-pin/reset) if an employee forgets it.
+  payrollPin:               { type: String, default: '' },
+  payrollPinSetAt:          { type: Date },
+  payrollPinFailedAttempts: { type: Number, default: 0 },
+  payrollPinLockedUntil:    { type: Date }
 });
 
 employeeSchema.index({ companyId: 1, username:   1 }, { unique: true });

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import BackButton from '../components/BackButton'
+import { RowListSkeleton } from '../components/Skeleton'
 import './SettingsPage.css'
 
 export default function SecuritySessionsPage() {
@@ -70,7 +71,7 @@ export default function SecuritySessionsPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}><span className="spinner" /></div>
+        <div className="settings-container"><div className="card"><RowListSkeleton count={3} /></div></div>
       ) : (
         <div className="settings-container">
           <div className="card">
@@ -152,7 +153,7 @@ export default function SecuritySessionsPage() {
               <div className="settings-row">
                 <div>
                   <div className="text-sm font-600">Device limit</div>
-                  <div className="text-xs text-2">Max {maxDevices} devices signed in at once. At the limit, new sign-ins are refused until a device is signed out — nothing is ever signed out automatically.</div>
+                  <div className="text-xs text-2">Max {maxDevices} devices signed in at once. At the limit, new sign-ins are refused until a device is signed out. A device you're still actively using is never signed out automatically — only one that's gone dark long enough to be essentially certain it was uninstalled or had its data cleared is cleaned up on its own.</div>
                 </div>
               </div>
               <div className="settings-row">

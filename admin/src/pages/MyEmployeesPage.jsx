@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
+import { CardGridSkeleton } from '../components/Skeleton'
 import './EmployeesPage.css'
 import './MyEmployeesPage.css'
 
@@ -68,7 +69,7 @@ export default function MyEmployeesPage() {
       </div>
 
       {loading ? (
-        <div className="emp-loading"><span className="spinner" /><span>Loading employees...</span></div>
+        <CardGridSkeleton count={4} />
       ) : filtered.length === 0 ? (
         <div className="emp-empty">
           <div className="emp-empty-title">{search || filterDesig ? 'No employees match your filters' : 'No employees yet'}</div>

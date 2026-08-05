@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
+import { HomeSkeleton } from '../components/Skeleton'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const STATUS_LABEL = { P: 'Present', A: 'Absent', PP: 'Double Shift' }
@@ -61,6 +62,10 @@ export default function HomePage() {
 
   const initials = user?.username?.slice(0,2).toUpperCase() || 'U'
 
+  if (loading) {
+    return <div className="fade-in"><HomeSkeleton /></div>
+  }
+
   return (
     <div className="fade-in">
       <div className="profile-card">
@@ -99,21 +104,19 @@ export default function HomePage() {
       {/* Today card */}
       <div className="card mb-2">
         <div className="font-600 mb-1 text-sm">Today</div>
-        {loading ? <span className="spinner" /> : (
-          <div className="flex items-center gap-1">
-            {todayHol ? (
-              <span className="badge" style={{ background:'rgba(245,158,11,.15)',color:'#f59e0b' }}>{todayHol.name}</span>
-            ) : todayAtt ? (
-              <span className={`badge badge-${todayAtt.status}`}>{STATUS_LABEL[todayAtt.status] || todayAtt.status}</span>
-            ) : (
-              <span className="text-sm text-2">Not marked yet</span>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          {todayHol ? (
+            <span className="badge" style={{ background:'rgba(245,158,11,.15)',color:'#f59e0b' }}>{todayHol.name}</span>
+          ) : todayAtt ? (
+            <span className={`badge badge-${todayAtt.status}`}>{STATUS_LABEL[todayAtt.status] || todayAtt.status}</span>
+          ) : (
+            <span className="text-sm text-2">Not marked yet</span>
+          )}
+        </div>
       </div>
 
       {/* Remarks this month */}
-      {!loading && remarks.length > 0 && (
+      {remarks.length > 0 && (
         <div className="card mb-2">
           <div className="font-600 mb-1 text-sm" style={{ display:'flex', alignItems:'center', gap:'.4rem' }}>
             <span style={{ width:8,height:8,borderRadius:'50%',background:'var(--warn)',display:'inline-block' }} />
