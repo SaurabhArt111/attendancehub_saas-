@@ -126,7 +126,7 @@ export default function ProfilePage() {
       <div className="card mb-2">
         <div className="font-600 mb-1 text-sm">Appearance</div>
         <div className="text-xs text-2 mb-2">
-          {theme === 'system' ? `Following your device (currently ${resolvedTheme === 'dark' ? 'Dark' : 'Light'})` : theme === 'dark' ? 'Dark' : 'Light'}
+          {theme === 'system' ? `System (${resolvedTheme === 'dark' ? 'Dark' : 'Light'})` : theme === 'dark' ? 'Dark' : 'Light'}
         </div>
         <div style={{ display: 'inline-flex', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '.25rem', gap: '.25rem' }}>
           {[

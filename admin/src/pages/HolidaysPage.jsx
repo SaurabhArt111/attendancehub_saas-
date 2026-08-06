@@ -33,7 +33,7 @@ export default function HolidaysPage() {
   }
 
   const upcoming = holidays.filter(h => new Date(h.date) >= new Date(new Date().toDateString()))
-  const past     = holidays.filter(h => new Date(h.date) <  new Date(new Date().toDateString()))
+  const past = holidays.filter(h => new Date(h.date) < new Date(new Date().toDateString()))
 
   return (
     <div>
@@ -51,9 +51,9 @@ export default function HolidaysPage() {
               <label className="label">Holiday Name</label>
               <input className="input" placeholder="Diwali" value={form.name} onChange={set('name')} required />
             </div>
-          <button className="btn btn-primary btn-sm submit-holiday" type="submit" disabled={loading}>
-            {loading ? <span className="spinner" /> : 'Add Holiday'}
-          </button>
+            <button className="btn btn-primary btn-sm submit-holiday" type="submit" disabled={loading}>
+              {loading ? <span className="spinner" /> : 'Add Holiday'}
+            </button>
           </div>
         </form>
       </div>

@@ -21,7 +21,7 @@ const NAV = [
 ]
 
 // Bottom mobile nav stays focused on the most-used items so it doesn't overflow
-const BOTTOM_NAV = NAV.filter(n => n.to !== '/my-employees' && n.to !== '/requests')
+const BOTTOM_NAV = NAV.filter(n => n.to !== '/my-employees' && n.to !== '/requests' && n.to !== '/settings/security-sessions' && n.to !== '/settings/attendance-geofencing')
 
 export default function DashboardLayout() {
   return (

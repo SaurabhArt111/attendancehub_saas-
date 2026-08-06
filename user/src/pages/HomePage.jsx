@@ -3,12 +3,12 @@ import api from '../utils/api'
 import { HomeSkeleton } from '../components/Skeleton'
 import ClockCard from '../components/ClockCard'
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const STATUS_LABEL = { P: 'Present', A: 'Absent', PP: 'Double Shift', WO: 'Weekly Off', PL: 'Paid Leave', HD: 'Half-Day Leave' }
 
 // Color palette for holidays (matches AttendancePage)
 const HOLIDAY_COLORS = [
-  { bg: '#fef3c7', color: '#92400e', name: 'Amber' },
+  { bg: '#f59e0b26', color: '#ffcc00', name: 'Amber' },
   { bg: '#fce7f3', color: '#831843', name: 'Pink' },
   { bg: '#e0e7ff', color: '#3730a3', name: 'Indigo' },
   { bg: '#f0fdfa', color: '#134e4a', name: 'Teal' },
@@ -28,30 +28,30 @@ function getHolidayColor(name) {
 }
 
 export default function HomePage() {
-  const now  = new Date()
+  const now = new Date()
   const user = (() => { try { return JSON.parse(localStorage.getItem('employeeUser') || '{}') } catch { return {} } })()
-  const [att,  setAtt]  = useState({})
+  const [att, setAtt] = useState({})
   const [hols, setHols] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const monthStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`
+  const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
   useEffect(() => {
     if (!user?.id) return
     Promise.all([
       api.get(`/attendance/${user.id}/${monthStr}`),
       api.get('/holidays')
-    ]).then(([a,h]) => { setAtt(a.data); setHols(h.data) })
-      .catch(() => {})
+    ]).then(([a, h]) => { setAtt(a.data); setHols(h.data) })
+      .catch(() => { })
       .finally(() => setLoading(false))
   }, [user?.id, monthStr])
 
-  const P  = Object.values(att).filter(v => v.status==='P').length
-  const A  = Object.values(att).filter(v => v.status==='A').length
-  const PP = Object.values(att).filter(v => v.status==='PP').length
+  const P = Object.values(att).filter(v => v.status === 'P').length
+  const A = Object.values(att).filter(v => v.status === 'A').length
+  const PP = Object.values(att).filter(v => v.status === 'PP').length
 
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
-  const todayAtt = att[String(now.getDate()).padStart(2,'0')]
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const todayAtt = att[String(now.getDate()).padStart(2, '0')]
   const todayHol = hols.find(h => h.date?.split('T')[0] === todayStr)
   const upcoming = hols.filter(h => (h.date?.split('T')[0] || h.date) >= todayStr).slice(0, 3)
 
@@ -61,7 +61,7 @@ export default function HomePage() {
     .map(([day, v]) => ({ day: parseInt(day, 10), remark: v.remark, status: v.status }))
     .sort((a, b) => b.day - a.day) // Latest first
 
-  const initials = user?.username?.slice(0,2).toUpperCase() || 'U'
+  const initials = user?.username?.slice(0, 2).toUpperCase() || 'U'
 
   if (loading) {
     return <div className="fade-in"><HomeSkeleton /></div>
@@ -72,7 +72,7 @@ export default function HomePage() {
       <div className="profile-card">
         <div className="avatar">{initials}</div>
         <div>
-          <div className="font-700" style={{ fontSize:'1.02rem' }}>{user?.username}</div>
+          <div className="font-700" style={{ fontSize: '1.02rem' }}>{user?.username}</div>
           {user?.designation && (
             <div className="text-sm text-2" style={{
               display: 'inline-block',
@@ -86,14 +86,14 @@ export default function HomePage() {
               {user.designation}
             </div>
           )}
-          <div style={{ fontFamily:'monospace',color:'var(--accent)',fontWeight:700,fontSize:'.82rem',marginTop:'.4rem',letterSpacing:'.05em' }}>
+          <div style={{ fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 700, fontSize: '.82rem', marginTop: '.4rem', letterSpacing: '.05em' }}>
             {user?.employeeId}
           </div>
           <div className="text-xs text-2 mt-1">{user?.company?.name}</div>
         </div>
       </div>
 
-      <div className="text-xs text-2 mb-1" style={{ textTransform:'uppercase', letterSpacing:'.04em', fontWeight:600 }}>
+      <div className="text-xs text-2 mb-1" style={{ textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600 }}>
         {MONTHS[now.getMonth()]} {now.getFullYear()}
       </div>
       <div className="stats-grid mb-2">
@@ -110,7 +110,7 @@ export default function HomePage() {
         <div className="font-600 mb-1 text-sm">Today</div>
         <div className="flex items-center gap-1">
           {todayHol ? (
-            <span className="badge" style={{ background:'rgba(245,158,11,.15)',color:'#f59e0b' }}>{todayHol.name}</span>
+            <span className="badge" style={{ background: 'rgba(245,158,11,.15)', color: '#f59e0b' }}>{todayHol.name}</span>
           ) : todayAtt ? (
             <span className={`badge badge-${todayAtt.status}`}>{STATUS_LABEL[todayAtt.status] || todayAtt.status}</span>
           ) : (
@@ -122,11 +122,11 @@ export default function HomePage() {
       {/* Remarks this month */}
       {remarks.length > 0 && (
         <div className="card mb-2">
-          <div className="font-600 mb-1 text-sm" style={{ display:'flex', alignItems:'center', gap:'.4rem' }}>
-            <span style={{ width:8,height:8,borderRadius:'50%',background:'var(--warn)',display:'inline-block' }} />
+          <div className="font-600 mb-1 text-sm" style={{ display: 'flex', alignItems: 'center', gap: '.4rem' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warn)', display: 'inline-block' }} />
             Remarks — {MONTHS[now.getMonth()]}
           </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:'.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
             {remarks.map(r => (
               <div key={r.day} style={{
                 padding: '.65rem .75rem',
@@ -141,7 +141,7 @@ export default function HomePage() {
                     color: 'var(--text)',
                     minWidth: 32
                   }}>
-                    {r.day} {MONTHS[now.getMonth()].slice(0,3)}
+                    {r.day} {MONTHS[now.getMonth()].slice(0, 3)}
                   </div>
                   {r.status && (
                     <span className={`badge badge-${r.status}`} style={{
@@ -171,7 +171,7 @@ export default function HomePage() {
       {upcoming.length > 0 && (
         <div className="card">
           <div className="font-600 mb-1 text-sm">Upcoming Holidays</div>
-          <div style={{ display:'flex',flexDirection:'column',gap:'.4rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
             {upcoming.map(h => {
               const holColor = getHolidayColor(h.name)
               return (
@@ -184,7 +184,7 @@ export default function HomePage() {
                   }}>
                   <span className="font-600 text-sm" style={{ color: holColor.color }}>{h.name}</span>
                   <span className="text-xs" style={{ color: holColor.color, opacity: 0.7 }}>
-                    {new Date((h.date?.split('T')[0] || h.date)+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',weekday:'short'})}
+                    {new Date((h.date?.split('T')[0] || h.date) + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', weekday: 'short' })}
                   </span>
                 </div>
               )

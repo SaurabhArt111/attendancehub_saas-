@@ -1,5 +1,5 @@
 @echo off
-echo Starting DriftX services on network...
+echo Starting AttendanceHub services on network...
 echo.
 echo This will open 3 terminal windows:
 echo   1. backend
@@ -13,7 +13,7 @@ cd /d "%~dp0"
 
 REM Start Backend in new window
 echo Starting backend...
-start "backend - Overlay Lounge" cmd /k "cd backend && npm run dev"
+start "backend" cmd /k "cd backend && npm run dev"
 timeout /t 2
 
 REM Start Admin in new window

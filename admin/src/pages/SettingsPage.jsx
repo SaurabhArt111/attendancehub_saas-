@@ -180,7 +180,7 @@ export default function SettingsPage() {
               <div>
                 <div className="text-sm font-600">Theme</div>
                 <div className="text-xs text-2">
-                  {theme === 'system' ? `Following your device (currently ${resolvedTheme})` : theme === 'dark' ? 'Dark' : 'Light'}
+                  {theme === 'system' ? `System (${resolvedTheme})` : theme === 'dark' ? 'Dark' : 'Light'}
                 </div>
               </div>
               <ThemeSegmented value={theme} onChange={setTheme} />
