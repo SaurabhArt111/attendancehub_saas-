@@ -108,6 +108,24 @@ body {
   border: 1px solid var(--border);
 }
 
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.08);
+}
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+
+.btn-success:hover {
+  filter: brightness(1.08);
+}
+
 .btn-block {
   width: 100%;
 }
@@ -179,6 +197,21 @@ body {
 .badge-PP {
   background: rgba(124, 92, 252, .18);
   color: #a78bfa;
+}
+
+.badge-WO {
+  background: rgba(148, 163, 184, .18);
+  color: #94a3b8;
+}
+
+.badge-PL {
+  background: rgba(56, 189, 248, .18);
+  color: #38bdf8;
+}
+
+.badge-HD {
+  background: rgba(234, 179, 8, .18);
+  color: #eab308;
 }
 
 @keyframes fadeIn {
@@ -420,6 +453,11 @@ body {
   color: #f59e0b;
 }
 
+.cal-day.WO {
+  background: rgba(59, 130, 246, .16);
+  color: #2563eb;
+}
+
 .cal-day.future {
   opacity: .28;
 }
@@ -432,6 +470,17 @@ body {
   height: 4px;
   border-radius: 50%;
   background: var(--warn);
+}
+
+.cal-day .holiday-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--warn);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
 }
 
 /* ── Toast ── */
@@ -470,6 +519,7 @@ body {
 
 .text-sm {
   font-size: .82rem;
+  color: var(--text2);
 }
 
 .text-xs {

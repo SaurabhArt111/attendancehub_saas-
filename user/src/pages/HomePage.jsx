@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import { HomeSkeleton } from '../components/Skeleton'
+import ClockCard from '../components/ClockCard'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
-const STATUS_LABEL = { P: 'Present', A: 'Absent', PP: 'Double Shift' }
+const STATUS_LABEL = { P: 'Present', A: 'Absent', PP: 'Double Shift', WO: 'Weekly Off', PL: 'Paid Leave', HD: 'Half-Day Leave' }
 
 // Color palette for holidays (matches AttendancePage)
 const HOLIDAY_COLORS = [
@@ -100,6 +101,9 @@ export default function HomePage() {
         <div className="stat-card stat-A"><div className="stat-val">{A}</div><div className="stat-lbl">Absent</div></div>
         <div className="stat-card stat-PP"><div className="stat-val">{PP}</div><div className="stat-lbl">Double</div></div>
       </div>
+
+      {/* Clock In/Out — only renders when the company uses Employee Clock-In/Clock-Out */}
+      <ClockCard />
 
       {/* Today card */}
       <div className="card mb-2">

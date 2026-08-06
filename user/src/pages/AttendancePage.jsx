@@ -5,25 +5,8 @@ import { Skeleton } from '../components/Skeleton'
 const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-// Color palette for holidays (distinct from attendance)
-const HOLIDAY_COLORS = [
-  { bg: '#fef3c7', color: '#92400e', name: 'Amber' },
-  { bg: '#fce7f3', color: '#831843', name: 'Pink' },
-  { bg: '#e0e7ff', color: '#3730a3', name: 'Indigo' },
-  { bg: '#f0fdfa', color: '#134e4a', name: 'Teal' },
-  { bg: '#fef2f2', color: '#7f1d1d', name: 'Red' },
-]
-
-// Hash function for consistent holiday colors
-function getHolidayColor(name) {
-  if (!name) return HOLIDAY_COLORS[0]
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = ((hash << 5) - hash) + name.charCodeAt(i)
-    hash = hash & hash
-  }
-  const colorIndex = Math.abs(hash) % HOLIDAY_COLORS.length
-  return HOLIDAY_COLORS[colorIndex]
+function getHolidayHighlight() {
+  return { bg: 'var(--warn-glow)', color: 'var(--warn)' }
 }
 
 export default function AttendancePage() {
@@ -33,6 +16,7 @@ export default function AttendancePage() {
   const [month, setMonth] = useState(now.getMonth())
   const [att,   setAtt]   = useState({})
   const [hols,  setHols]  = useState([])
+  const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
   const [remarkModal, setRemarkModal] = useState(null)
 
@@ -42,12 +26,14 @@ export default function AttendancePage() {
     if (!user?.id) return
     setLoading(true)
     try {
-      const [a, h] = await Promise.all([
+      const [a, h, s] = await Promise.all([
         api.get(`/attendance/${user.id}/${monthStr}`),
-        api.get('/holidays')
+        api.get('/holidays'),
+        api.get('/settings')
       ])
       setAtt(a.data)
       setHols(h.data)
+      setSettings(s.data)
     } catch {}
     finally { setLoading(false) }
   }, [user?.id, monthStr])
@@ -62,6 +48,9 @@ export default function AttendancePage() {
   const firstDay     = new Date(year, month, 1).getDay()
   const monthHolidays = hols.filter(h => h.date.startsWith(monthStr))
   const holidayMap = new Map(monthHolidays.map(h => [h.date.split('-')[2], h]))
+  const weekendConfig = Array.isArray(settings?.weekend?.global) && settings.weekend.global.length === 7
+    ? settings.weekend.global
+    : [true, false, false, false, false, false, false]
 
   const P  = Object.values(att).filter(v => v.status==='P').length
   const A  = Object.values(att).filter(v => v.status==='A').length
@@ -71,10 +60,13 @@ export default function AttendancePage() {
     const ds   = String(d).padStart(2,'0')
     const st   = att[ds]?.status
     const holData = holidayMap.get(ds)
+    const dayOfWeek = new Date(year, month, d).getDay()
+    const isWeekend = weekendConfig[dayOfWeek] === true
     const isFut= new Date(year,month,d) > today
     const isTod= new Date(year,month,d).toDateString() === today.toDateString()
-    if (isFut) return 'future'
     if (holData && !st) return 'H'
+    if (isWeekend && !st) return 'WO'
+    if (isFut) return 'future'
     if (st) return st
     return isTod ? 'today' : ''
   }
@@ -88,7 +80,7 @@ export default function AttendancePage() {
       remark: rem,
       status: att[ds]?.status,
       holiday: holData?.name,
-      holidayColor: holData ? getHolidayColor(holData.name) : null
+      holidayColor: holData ? getHolidayHighlight() : null
     })
   }
 
@@ -138,7 +130,7 @@ export default function AttendancePage() {
                   disabled={!isClickable || cls === 'future'}>
                   {d}
                   {hasRemark && <span className="remark-dot" />}
-                  {holData && !att[ds]?.status && <span className="holiday-dot" style={{ background: getHolidayColor(holData.name).color }} />}
+                  {holData && !att[ds]?.status && <span className="holiday-dot" />}
                 </button>
               )
             })}
@@ -146,7 +138,7 @@ export default function AttendancePage() {
         )}
 
         <div className="flex gap-2 mt-2" style={{ fontSize:'.72rem', flexWrap:'wrap' }}>
-          {[{c:'P',l:'Present'},{c:'A',l:'Absent'},{c:'PP',l:'Double'},{c:'H',l:'Holiday'}].map(s => (
+          {[{c:'P',l:'Present'},{c:'A',l:'Absent'},{c:'PP',l:'Double'},{c:'H',l:'Holiday'},{c:'WO',l:'Weekend'}].map(s => (
             <span key={s.c} className="flex items-center gap-1">
               <span className={`cal-day ${s.c}`} style={{ width:14,height:14,fontSize:9,borderRadius:4,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>{s.c}</span>
               {s.l}
@@ -168,7 +160,7 @@ export default function AttendancePage() {
           <div className="font-600 mb-1 text-sm">Holidays this month</div>
           <div style={{ display:'flex',flexDirection:'column',gap:'.4rem' }}>
             {monthHolidays.map(h => {
-              const holColor = getHolidayColor(h.name)
+              const holColor = getHolidayHighlight()
               return (
                 <div key={h._id} className="flex justify-between items-center"
                   style={{ padding:'.55rem .75rem', background: holColor.bg, borderRadius:8, borderLeft: `3px solid ${holColor.color}` }}>

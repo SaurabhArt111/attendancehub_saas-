@@ -12,10 +12,14 @@ import HolidaysPage from './pages/HolidaysPage'
 import DesignationsPage from './pages/DesignationsPage'
 import SettingsPage from './pages/SettingsPage'
 import SecuritySessionsPage from './pages/SecuritySessionsPage'
+import SecurityAndSessionsPage from './pages/SecurityAndSessionsPage'
 import AboutPage from './pages/AboutPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import EmployeeDetailsPage from './pages/EmployeeDetails'
 import MyEmployeesPage from './pages/MyEmployeesPage'
+import AttendanceSettingsPage from './pages/AttendanceSettingsPage'
+import AttendanceGeofencingPage from './pages/AttendanceGeofencingPage'
+import RequestsPage from './pages/RequestsPage'
 
 function RequireAuth({ children }) {
   return localStorage.getItem('adminToken') ? children : <Navigate to="/login" replace />
@@ -38,11 +42,15 @@ export default function App() {
           <Route path="employees/:id" element={<EmployeeDetailsPage />} />
           <Route path="my-employees" element={<MyEmployeesPage />} />
           <Route path="attendance" element={<AttendancePage />} />
+          <Route path="requests" element={<RequestsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="holidays" element={<HolidaysPage />} />
           <Route path="designations" element={<DesignationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings/attendance" element={<AttendanceSettingsPage />} />
+          <Route path="settings/attendance-geofencing" element={<AttendanceGeofencingPage />} />
           <Route path="settings/security-sessions" element={<SecuritySessionsPage />} />
+          <Route path="settings/security-and-sessions" element={<SecurityAndSessionsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

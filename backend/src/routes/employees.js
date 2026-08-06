@@ -475,6 +475,27 @@ router.post('/:id/payroll-pin/reset', verifyAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// PUT /api/employees/:id/weekend  { override: [7 booleans, Sun..Sat] | null }
+// null clears the override so the employee falls back to the company's
+// global Weekend Management schedule.
+router.put('/:id/weekend', verifyAdmin, async (req, res) => {
+  try {
+    const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId });
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+
+    const { override } = req.body;
+    if (override === null) {
+      emp.weekendOverride = null;
+    } else {
+      if (!Array.isArray(override) || override.length !== 7 || !override.every(v => typeof v === 'boolean'))
+        return res.status(400).json({ error: 'override must be an array of 7 booleans (Sun..Sat) or null' });
+      emp.weekendOverride = override;
+    }
+    await emp.save();
+    res.json({ message: 'Weekend schedule updated', weekendOverride: emp.weekendOverride });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // PUT /api/employees/:id
 router.put('/:id', verifyAdmin, async (req, res) => {
   try {

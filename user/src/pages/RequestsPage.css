@@ -1,0 +1,83 @@
+.req-tabs {
+  display: inline-flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .25rem;
+  gap: .25rem;
+  width: 100%;
+}
+
+.req-tab {
+  flex: 1;
+  padding: .5rem .6rem;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tr);
+}
+
+.req-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.req-type-toggle {
+  display: flex;
+  gap: .5rem;
+}
+
+.req-type-btn {
+  flex: 1;
+  padding: .55rem .4rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: inherit;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tr);
+}
+
+.req-type-btn.active {
+  border-color: var(--accent);
+  background: rgba(79, 142, 247, .12);
+  color: var(--accent);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+}
+
+.req-type-badge {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  padding: .22rem .55rem;
+  border-radius: 99px;
+}
+
+.req-type-badge.leave { background: rgba(79, 142, 247, .15); color: var(--accent); }
+.req-type-badge.correction { background: rgba(245, 158, 11, .15); color: var(--warn); }
+
+.req-status-badge {
+  font-size: .68rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  padding: .22rem .6rem;
+  border-radius: 99px;
+}
+
+.req-status-badge.pending { background: rgba(245, 158, 11, .15); color: var(--warn); }
+.req-status-badge.approved { background: rgba(34, 197, 94, .15); color: var(--success); }
+.req-status-badge.rejected { background: rgba(239, 68, 68, .15); color: var(--danger); }

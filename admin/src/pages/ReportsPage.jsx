@@ -12,8 +12,8 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 // and an Overtime/PP (double-shift) component. The two always sum exactly to
 // estimatedSalary so Gross + Overtime − Deductions === Net Pay.
 function salaryBreakdown(r) {
-  const gross = Math.round((r.dailySalary || 0) * (r.P || 0))
-  const overtime = Math.max((r.estimatedSalary || 0) - gross, 0)
+  const overtime = Math.round((r.dailySalary || 0) * (r.PP || 0))
+  const gross = Math.max(Math.round((r.estimatedSalary || 0) - overtime), 0)
   const deductions = parseAdvance(r.remarks)
   const net = Math.max((r.estimatedSalary || 0) - deductions, 0)
   return { gross, overtime, deductions, net }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import AttendanceCalendar from '../components/AttendanceCalendar'
+import EmployeeScheduleTab from '../components/EmployeeScheduleTab'
 import BackButton from '../components/BackButton'
 import { ProfileSkeleton } from '../components/Skeleton'
 import './EmployeesPage.css'
@@ -39,7 +40,7 @@ export default function EmployeeDetailsPage() {
   const [payrollError, setPayrollError] = useState(null)
   const requestedTab = searchParams.get('tab')
   const [activeTab, setActiveTab] = useState(
-    ['overview', 'edit', 'documents', 'attendance'].includes(requestedTab) ? requestedTab : 'overview'
+    ['overview', 'edit', 'documents', 'attendance', 'schedule'].includes(requestedTab) ? requestedTab : 'overview'
   )
 
   useEffect(() => {
@@ -114,8 +115,8 @@ export default function EmployeeDetailsPage() {
           setPayrollStats({ totalPresent: 0, gross: 0, overtime: 0, deductions: 0, net: 0, month: monthStr })
         } else {
           const dailySalary = current.dailySalary || 0
-          const gross = Math.round(dailySalary * (current.P || 0))
-          const overtime = Math.max((current.estimatedSalary || 0) - gross, 0)
+          const overtime = Math.round(dailySalary * (current.PP || 0))
+          const gross = Math.max(Math.round((current.estimatedSalary || 0) - overtime), 0)
           const deductions = current.remarks ? current.remarks.reduce((sum, remark) => {
             const nums = String(remark).match(/\d+(\.\d+)?/g)
             if (nums) nums.forEach(n => { sum += parseFloat(n) })
@@ -272,6 +273,7 @@ export default function EmployeeDetailsPage() {
           <div className="profile-tab-list">
             <button className={`profile-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Overview</button>
             <button className={`profile-tab ${activeTab === 'attendance' ? 'active' : ''}`} onClick={() => setActiveTab('attendance')}>Attendance</button>
+            <button className={`profile-tab ${activeTab === 'schedule' ? 'active' : ''}`} onClick={() => setActiveTab('schedule')}>Schedule</button>
             <button className={`profile-tab ${activeTab === 'edit' ? 'active' : ''}`} onClick={() => setActiveTab('edit')}>Edit Profile</button>
             <button className={`profile-tab ${activeTab === 'documents' ? 'active' : ''}`} onClick={() => setActiveTab('documents')}>Documents</button>
           </div>
@@ -318,6 +320,13 @@ export default function EmployeeDetailsPage() {
             <div className="profile-panel fade-in">
               <h3>Monthly attendance calendar</h3>
               <AttendanceCalendar employeeId={id} adminMode />
+            </div>
+          )}
+
+          {activeTab === 'schedule' && (
+            <div className="profile-panel fade-in">
+              <h3>Weekend schedule</h3>
+              <EmployeeScheduleTab employeeId={id} />
             </div>
           )}
 

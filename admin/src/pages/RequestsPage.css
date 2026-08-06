@@ -1,0 +1,82 @@
+/* ── Filter tabs (same pattern as AttendancePage) ── */
+.att-tabs {
+  display: inline-flex;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .25rem;
+  gap: .25rem;
+  flex-wrap: wrap;
+}
+
+.att-tab {
+  padding: .45rem .9rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tr);
+  white-space: nowrap;
+}
+
+.att-tab:hover { color: var(--text); }
+
+.att-tab.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+/* ── Request list ── */
+.request-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.85rem;
+}
+
+.request-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+}
+
+.request-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.request-card-body { display: flex; flex-direction: column; gap: 0.15rem; }
+
+.req-type-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.req-type-badge.leave { background: var(--primary-glow); color: var(--primary); }
+.req-type-badge.correction { background: var(--warn-glow); color: var(--warn); }
+
+.req-status-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.req-status-badge.pending { background: var(--warn-glow); color: var(--warn); }
+.req-status-badge.approved { background: var(--success-glow); color: var(--success); }
+.req-status-badge.rejected { background: var(--danger-glow, rgba(239,68,68,.15)); color: var(--danger, #ef4444); }

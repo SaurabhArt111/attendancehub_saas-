@@ -127,6 +127,19 @@ export default function SettingsPage() {
             )}
           </div>
 
+          {/* Attendance & Geofencing */}
+          <div className="card">
+            <div className="settings-section-header">
+              <div>
+                <div className="font-700">Attendance & Geofencing</div>
+                <div className="text-xs text-2 mt-1">Clock-In method, workplace geofencing & weekend schedule</div>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/settings/attendance-geofencing')}>
+                <ClockSettingsIcon /> Manage
+              </button>
+            </div>
+          </div>
+
           {/* Security & Sessions */}
           <div className="card">
             <div className="settings-section-header">
@@ -134,7 +147,7 @@ export default function SettingsPage() {
                 <div className="font-700">Security & Sessions</div>
                 <div className="text-xs text-2 mt-1">Active devices, login history & security options</div>
               </div>
-              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/settings/security-sessions')}>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/settings/security-and-sessions')}>
                 <ShieldIcon /> Manage
               </button>
             </div>
@@ -423,6 +436,15 @@ function ShieldIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  )
+}
+
+function ClockSettingsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
     </svg>
   )
 }

@@ -113,6 +113,21 @@
   color: var(--warn);
 }
 
+.cal-day.WO {
+  background: rgba(59, 130, 246, 0.16);
+  color: #2563eb;
+}
+
+.cal-day.PL {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.cal-day.HD {
+  background: rgba(250, 204, 21, 0.15);
+  color: #eab308;
+}
+
 .cal-day.future {
   opacity: 0.25;
 }

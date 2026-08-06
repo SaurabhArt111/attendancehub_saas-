@@ -1,11 +1,19 @@
 const router     = require('express').Router();
 const Attendance = require('../models/Attendance');
 const Employee   = require('../models/Employee');
+const Company    = require('../models/Company');
+const Holiday    = require('../models/Holiday');
 const { verifyAdmin, verifyEmployee } = require('../middleware/auth');
 const jwt        = require('jsonwebtoken');
 const { computeEmployeeMonthRow, salaryBreakdown } = require('../utils/payroll');
+const { nearestLocation } = require('../utils/geo');
+const { isWeekendDay } = require('../utils/weekend');
 
-const VALID_STATUSES = ['P', 'A', 'PP'];
+// Original three statuses stay exactly as they were for every existing
+// admin-marking flow. WO/PL/HD are additive — only ever written by the new
+// Weekend Management / Clock-In / Leave-request features, but an admin can
+// also choose them manually from the calendar if they want to.
+const VALID_STATUSES = ['P', 'A', 'PP', 'WO', 'PL', 'HD'];
 const JWT_SECRET     = process.env.JWT_SECRET || 'attendancehub-saas-super-secret-key-2024';
 
 // Helper: convert "YYYY-MM" to "MM-YYYY"
@@ -19,23 +27,69 @@ function daysInMonthFor(month) {
   return new Date(y, m, 0).getDate();
 }
 
+function todayParts() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+  return {
+    dateStr: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+    monthKey: `${String(m).padStart(2, '0')}-${y}`,
+    dayKey: String(d)
+  };
+}
+
+function adjacentMonths(month) {
+  const [year, monthNumber] = month.split('-').map(Number);
+  return [-1, 0, 1].map(offset => {
+    const date = new Date(year, monthNumber - 1 + offset, 1);
+    return `${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+  });
+}
+
+function calendarForEmployee(company, employee, month, records, holidayDates) {
+  const recordsByMonth = new Map(records.map(record => [record.month, record.days]));
+  return {
+    month,
+    holidayDates,
+    isWeekend: date => isWeekendDay(company, employee, date),
+    statusForDate: date => {
+      const monthKey = `${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+      const days = recordsByMonth.get(monthKey);
+      const key = String(date.getDate());
+      const record = days?.get ? days.get(key) : days?.[key];
+      return record?.status;
+    }
+  };
+}
+
 // GET /api/attendance/report/:month  (YYYY-MM)
 router.get('/report/:month', verifyAdmin, async (req, res) => {
   try {
     const { month } = req.params;  // YYYY-MM
     const monthKey  = toMonthKey(month);
 
-    const employees = await Employee.find({ companyId: req.admin.companyId }).select('-password');
-    const records   = await Attendance.find({ companyId: req.admin.companyId, month: monthKey });
+    const [company, employees, records, holidays] = await Promise.all([
+      Company.findById(req.admin.companyId),
+      Employee.find({ companyId: req.admin.companyId }).select('-password'),
+      Attendance.find({ companyId: req.admin.companyId, month: { $in: adjacentMonths(month) } }),
+      Holiday.find({ companyId: req.admin.companyId })
+    ]);
 
     // Index by employeeId
     const byEmp = {};
     for (const rec of records) {
-      byEmp[rec.employeeId.toString()] = rec.days;
+      const id = rec.employeeId.toString();
+      if (!byEmp[id]) byEmp[id] = [];
+      byEmp[id].push(rec);
     }
 
     const daysInMonth = daysInMonthFor(month);
-    const report = employees.map(e => computeEmployeeMonthRow(e, byEmp[e._id.toString()] || new Map(), daysInMonth));
+    const holidayDates = new Set(holidays.map(h => h.date));
+    const report = employees.map(e => {
+      const employeeRecords = byEmp[e._id.toString()] || [];
+      const currentRecord = employeeRecords.find(r => r.month === monthKey);
+      return computeEmployeeMonthRow(e, currentRecord?.days || new Map(), daysInMonth,
+        calendarForEmployee(company, e, month, employeeRecords, holidayDates));
+    });
     res.json(report);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -54,9 +108,15 @@ router.get('/my-report/:month', verifyEmployee, async (req, res) => {
     const emp = await Employee.findById(req.employee.id).select('-password -idProofData');
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
 
-    const record = await Attendance.findOne({ companyId: req.employee.companyId, employeeId: emp._id, month: monthKey });
+    const [company, records, holidays] = await Promise.all([
+      Company.findById(req.employee.companyId),
+      Attendance.find({ companyId: req.employee.companyId, employeeId: emp._id, month: { $in: adjacentMonths(month) } }),
+      Holiday.find({ companyId: req.employee.companyId })
+    ]);
+    const record = records.find(r => r.month === monthKey);
     const daysInMonth = daysInMonthFor(month);
-    const row = computeEmployeeMonthRow(emp, record?.days || new Map(), daysInMonth);
+    const row = computeEmployeeMonthRow(emp, record?.days || new Map(), daysInMonth,
+      calendarForEmployee(company, emp, month, records, new Set(holidays.map(h => h.date))));
     const breakdown = salaryBreakdown(row);
 
     res.json({ month, ...row, ...breakdown });
@@ -80,14 +140,152 @@ router.get('/my-report', verifyEmployee, async (req, res) => {
 
     const results = await Promise.all(months.map(async (month) => {
       const monthKey = toMonthKey(month);
-      const record = await Attendance.findOne({ companyId: req.employee.companyId, employeeId: emp._id, month: monthKey });
+      const [company, records, holidays] = await Promise.all([
+        Company.findById(req.employee.companyId),
+        Attendance.find({ companyId: req.employee.companyId, employeeId: emp._id, month: { $in: adjacentMonths(month) } }),
+        Holiday.find({ companyId: req.employee.companyId })
+      ]);
+      const record = records.find(r => r.month === monthKey);
       const daysInMonth = daysInMonthFor(month);
-      const row = computeEmployeeMonthRow(emp, record?.days || new Map(), daysInMonth);
+      const row = computeEmployeeMonthRow(emp, record?.days || new Map(), daysInMonth,
+        calendarForEmployee(company, emp, month, records, new Set(holidays.map(h => h.date))));
       const breakdown = salaryBreakdown(row);
       return { month, ...row, ...breakdown };
     }));
 
     res.json(results);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Employee Clock-In / Clock-Out ───────────────────────────────────────
+// Only usable when the company's attendance method is 'employee' (Settings
+// → Attendance Method). Geofencing, when enabled, is enforced here on the
+// server — the client-side check is only ever a courtesy prompt.
+
+// GET /api/attendance/clock-status — today's clock state + what the
+// Employee app needs to render the Clock In/Out card (method, geofencing
+// config so it can request the right permissions, whether today is a
+// configured Weekend day for this employee).
+router.get('/clock-status', verifyEmployee, async (req, res) => {
+  try {
+    const [company, emp] = await Promise.all([
+      Company.findById(req.employee.companyId),
+      Employee.findById(req.employee.id)
+    ]);
+    if (!company) return res.status(404).json({ error: 'Company not found' });
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+
+    const { dateStr, monthKey, dayKey } = todayParts();
+    const record = await Attendance.findOne({ companyId: req.employee.companyId, employeeId: emp._id, month: monthKey });
+    const day = record?.days?.get ? record.days.get(dayKey) : record?.days?.[dayKey];
+
+    res.json({
+      method: company.settings?.method || 'admin',
+      geofencing: {
+        enabled: !!company.settings?.geofencing?.enabled,
+        locations: (company.settings?.geofencing?.locations || []).map(l => ({
+          id: l._id, name: l.name, lat: l.lat, lng: l.lng, radiusMeters: l.radiusMeters
+        }))
+      },
+      isWeekend: isWeekendDay(company, emp, dateStr),
+      date: dateStr,
+      today: day ? {
+        status: day.status, remark: day.remark || '',
+        clockIn: day.clockIn || null, clockOut: day.clockOut || null
+      } : null
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/attendance/clock-in  { lat, lng, accuracy }
+router.post('/clock-in', verifyEmployee, async (req, res) => {
+  try {
+    const company = await Company.findById(req.employee.companyId);
+    if (!company) return res.status(404).json({ error: 'Company not found' });
+    if ((company.settings?.method || 'admin') !== 'employee')
+      return res.status(403).json({ error: 'Employee Clock-In is not enabled for your company. Contact your admin.' });
+
+    const { dateStr, monthKey, dayKey } = todayParts();
+    const record = await Attendance.findOne({ companyId: req.employee.companyId, employeeId: req.employee.id, month: monthKey });
+    const existing = record?.days?.get ? record.days.get(dayKey) : record?.days?.[dayKey];
+
+    if (existing?.clockIn && !existing?.clockOut)
+      return res.status(409).json({ error: 'You are already clocked in. Clock out first.' });
+    if (existing?.clockIn && existing?.clockOut)
+      return res.status(409).json({ error: "You've already clocked in and out for today." });
+
+    const { lat, lng, accuracy } = req.body;
+    const geofencing = company.settings?.geofencing;
+    let withinGeofence = null, distanceMeters = undefined;
+
+    if (geofencing?.enabled) {
+      if (typeof lat !== 'number' || typeof lng !== 'number')
+        return res.status(400).json({ error: 'Location is required to clock in. Please enable Location and try again.' });
+      const nearest = nearestLocation(lat, lng, geofencing.locations);
+      if (!nearest)
+        return res.status(400).json({ error: 'No workplace location has been configured yet. Contact your admin.' });
+      withinGeofence = nearest.withinRadius;
+      distanceMeters = Math.round(nearest.distanceMeters);
+      if (!nearest.withinRadius) {
+        return res.status(403).json({
+          error: `You're ${distanceMeters}m away from ${nearest.location.name}. You must be within ${nearest.location.radiusMeters}m to clock in.`,
+          distanceMeters, requiredRadiusMeters: nearest.location.radiusMeters, locationName: nearest.location.name
+        });
+      }
+    }
+
+    const clockIn = { time: new Date(), lat, lng, accuracy, withinGeofence, distanceMeters };
+    await Attendance.findOneAndUpdate(
+      { companyId: req.employee.companyId, employeeId: req.employee.id, month: monthKey },
+      { $set: { [`days.${dayKey}`]: { status: 'P', remark: existing?.remark || '', clockIn, source: 'employee' } } },
+      { upsert: true, new: true }
+    );
+    res.status(201).json({ message: 'Clocked in', date: dateStr, clockIn });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/attendance/clock-out  { lat, lng, accuracy }
+router.post('/clock-out', verifyEmployee, async (req, res) => {
+  try {
+    const company = await Company.findById(req.employee.companyId);
+    if (!company) return res.status(404).json({ error: 'Company not found' });
+    if ((company.settings?.method || 'admin') !== 'employee')
+      return res.status(403).json({ error: 'Employee Clock-In is not enabled for your company. Contact your admin.' });
+
+    const { dateStr, monthKey, dayKey } = todayParts();
+    const record = await Attendance.findOne({ companyId: req.employee.companyId, employeeId: req.employee.id, month: monthKey });
+    const existing = record?.days?.get ? record.days.get(dayKey) : record?.days?.[dayKey];
+
+    if (!existing?.clockIn) return res.status(409).json({ error: "You haven't clocked in yet today." });
+    if (existing?.clockOut) return res.status(409).json({ error: "You've already clocked out for today." });
+
+    const { lat, lng, accuracy } = req.body;
+    const geofencing = company.settings?.geofencing;
+    let withinGeofence = null, distanceMeters = undefined;
+
+    if (geofencing?.enabled) {
+      if (typeof lat !== 'number' || typeof lng !== 'number')
+        return res.status(400).json({ error: 'Location is required to clock out. Please enable Location and try again.' });
+      const nearest = nearestLocation(lat, lng, geofencing.locations);
+      if (nearest) {
+        withinGeofence = nearest.withinRadius;
+        distanceMeters = Math.round(nearest.distanceMeters);
+        if (!nearest.withinRadius) {
+          return res.status(403).json({
+            error: `You're ${distanceMeters}m away from ${nearest.location.name}. You must be within ${nearest.location.radiusMeters}m to clock out.`,
+            distanceMeters, requiredRadiusMeters: nearest.location.radiusMeters, locationName: nearest.location.name
+          });
+        }
+      }
+    }
+
+    const clockOut = { time: new Date(), lat, lng, accuracy, withinGeofence, distanceMeters };
+    await Attendance.findOneAndUpdate(
+      { companyId: req.employee.companyId, employeeId: req.employee.id, month: monthKey },
+      { $set: { [`days.${dayKey}.clockOut`]: clockOut } },
+      { upsert: true, new: true }
+    );
+    res.status(201).json({ message: 'Clocked out', date: dateStr, clockOut });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -117,7 +315,10 @@ router.get('/:employeeId/:month', async (req, res) => {
       const daysObj = record.days instanceof Map ? Object.fromEntries(record.days) : record.days;
       Object.entries(daysObj).forEach(([day, val]) => {
         const paddedDay = String(day).padStart(2, '0');
-        result[paddedDay] = { status: val.status, remark: val.remark || '' };
+        result[paddedDay] = {
+          status: val.status, remark: val.remark || '',
+          clockIn: val.clockIn || undefined, clockOut: val.clockOut || undefined
+        };
       });
     }
     res.json(result);

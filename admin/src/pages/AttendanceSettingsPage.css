@@ -1,0 +1,190 @@
+/* ── Attendance Method ── */
+.method-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.method-option {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-hover);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--tr);
+  text-align: left;
+  font-family: inherit;
+}
+
+.method-option:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.method-option.active {
+  border-color: var(--primary);
+  background: var(--primary-glow);
+}
+
+.method-option svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.method-option.active svg:first-child {
+  color: var(--primary);
+}
+
+.method-option > div {
+  flex: 1;
+}
+
+.method-option > svg:last-child {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.method-option:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Switch (toggle) ── */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.switch-track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-active);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: all var(--tr);
+  cursor: pointer;
+  display: block;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all var(--tr);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.switch input:checked + .switch-track {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.switch input:checked + .switch-track .switch-thumb {
+  transform: translateX(18px);
+}
+
+.switch input:disabled + .switch-track {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Geofencing location list ── */
+.location-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.location-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.location-row-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--primary-glow);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ── Weekend Management ── */
+.weekday-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+  gap: 0.5rem;
+}
+
+.weekday-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.7rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--bg-hover);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--tr);
+}
+
+.weekday-chip:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.weekday-chip-label {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.weekday-chip-status {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.weekday-chip.working {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: var(--success-glow);
+}
+
+.weekday-chip.working .weekday-chip-status {
+  color: var(--success);
+}
+
+.weekday-chip.weekend {
+  border-color: var(--border);
+}
+
+.weekday-chip.weekend .weekday-chip-status {
+  color: var(--text-secondary);
+}

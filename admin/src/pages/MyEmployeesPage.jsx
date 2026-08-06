@@ -233,7 +233,7 @@ function IdProofModal({ emp, onClose, onDone }) {
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => inputRef.current?.click()}>
               {displayUrl ? 'Choose different image' : 'Choose image'}
             </button>
-            <div className="text-xs text-2 mt-1">Any image works — it's auto-compressed before saving.</div>
+            {/* <div className="text-xs text-2 mt-1">Any image works — it's auto-compressed before saving.</div> */}
           </div>
         </div>
         <div className="flex gap-1 mt-2">

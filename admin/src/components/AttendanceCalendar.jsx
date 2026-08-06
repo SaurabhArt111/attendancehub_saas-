@@ -18,6 +18,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
   const [month, setMonth] = useState(now.getMonth())
   const [data, setData] = useState({})
   const [holidays, setHolidays] = useState([])
+  const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
   const [markModal, setMarkModal] = useState(null)
   const [savingDay, setSavingDay] = useState(null) // which day is being saved
@@ -30,13 +31,15 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
     if (!employeeId) return
     setLoading(true)
     try {
-      const [attRes, holRes] = await Promise.all([
+      const [attRes, holRes, settingsRes] = await Promise.all([
         api.get(`/attendance/${employeeId}/${monthStr}`),
-        api.get('/holidays')
+        api.get('/holidays'),
+        api.get('/settings')
       ])
       const newData = attRes.data
       setData(newData)
       setHolidays(holRes.data)
+      setSettings(settingsRes?.data || null)
       // Notify parent of today's status (only when viewing current month)
       if (onTodayStatus && isCurrentMonth) {
         const todayKey = getTodayKey()
@@ -51,6 +54,9 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const firstDay = new Date(year, month, 1).getDay()
+  const weekendConfig = Array.isArray(settings?.weekend?.global) && settings.weekend.global.length === 7
+    ? settings.weekend.global
+    : [true, false, false, false, false, false, false]
   const holidayDates = new Set(
     holidays
       .filter(h => h.date && h.date.split('T')[0].startsWith(monthStr))
@@ -67,10 +73,13 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
     const status = rec?.status
     const remark = rec?.remark || ''
     const isHol = holidayDates.has(dayStr)
+    const dayOfWeek = new Date(year, month, d).getDay()
+    const isWeekend = weekendConfig[dayOfWeek] === true
     const isFut = new Date(year, month, d) > today
     const isToday = new Date(year, month, d).toDateString() === today.toDateString()
     let cls = ''
     if (isHol && !status) cls = 'H'
+    else if (isWeekend && !status) cls = 'WO'
     else if (isFut) cls = 'future'
     else if (status) cls = status
     else if (isToday) cls = 'today'
@@ -131,6 +140,8 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
   const P = Object.values(data).filter(v => v.status === 'P').length
   const A = Object.values(data).filter(v => v.status === 'A').length
   const PP = Object.values(data).filter(v => v.status === 'PP').length
+  const PL = Object.values(data).filter(v => v.status === 'PL').length
+  const HD = Object.values(data).filter(v => v.status === 'HD').length
 
   return (
     <div>
@@ -246,7 +257,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
         </div>
       ) : (
         <div className="flex gap-2 mt-2" style={{ flexWrap: 'wrap', fontSize: '.73rem' }}>
-          {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' }, { c: 'H', l: 'Holiday' }].map(s => (
+          {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' }, { c: 'H', l: 'Holiday' }, { c: 'WO', l: 'Weekend' }].map(s => (
             <span key={s.c} className="flex items-center gap-1">
               <span className={`cal-day ${s.c}`} style={{ width: 14, height: 14, fontSize: 9, borderRadius: 4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.c}</span>
               {s.l}
@@ -282,11 +293,12 @@ function MarkModal({ day, existing, onClose, onMark, onDelete }) {
         <h2 className="modal-title">Mark Day {day}</h2>
         <div className="form-group">
           <label className="label">Status</label>
-          <div className="flex gap-1">
-            {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' }].map(s => (
+          <div className="flex gap-1" style={{ flexWrap: 'wrap' }}>
+            {[{ c: 'P', l: 'Present' }, { c: 'A', l: 'Absent' }, { c: 'PP', l: 'Double' },
+              { c: 'PL', l: 'Paid Leave' }, { c: 'HD', l: 'Half-Day' }, { c: 'WO', l: 'Weekly Off' }].map(s => (
               <button key={s.c} type="button"
                 className={`btn btn-sm ${status === s.c ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1 }}
+                style={{ flex: '1 0 30%' }}
                 onClick={() => setStatus(s.c)}>{s.l}</button>
             ))}
           </div>

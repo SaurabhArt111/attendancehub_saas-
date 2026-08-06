@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import api from '../utils/api'
 import { toast } from '../components/Toaster'
 import { PayrollSkeleton } from '../components/Skeleton'
+import './PayrollPage.css'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -142,6 +143,8 @@ function PayrollView() {
   const [data, setData]   = useState(null)
   const [history, setHistory] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState('overview') // overview | slips | template
+  const [openSlip, setOpenSlip] = useState(null) // a history row, when viewing a slip in detail
 
   const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth()
@@ -172,60 +175,180 @@ function PayrollView() {
 
   return (
     <div className="fade-in">
-      <div className="cal-nav mb-2">
-        <button className="btn btn-secondary" style={{ padding: '.32rem .7rem', fontSize: '.85rem' }} onClick={prevM}>&#8249;</button>
-        <span className="cal-nav-title">{MONTHS[month]} {year}</span>
-        <button className="btn btn-secondary" style={{ padding: '.32rem .7rem', fontSize: '.85rem' }} onClick={nextM} disabled={isCurrentMonth}>&#8250;</button>
+      <div className="payroll-tabs mb-2">
+        <button className={`payroll-tab ${tab === 'overview' ? 'active' : ''}`} onClick={() => setTab('overview')}>Overview</button>
+        <button className={`payroll-tab ${tab === 'slips' ? 'active' : ''}`} onClick={() => setTab('slips')}>My Salary Slips</button>
+        <button className={`payroll-tab ${tab === 'template' ? 'active' : ''}`} onClick={() => setTab('template')}>My Salary Template</button>
       </div>
 
-      <div className="stats-grid mb-2">
-        <div className="stat-card stat-P"><div className="stat-val">{data.P}</div><div className="stat-lbl">Present</div></div>
-        <div className="stat-card stat-A"><div className="stat-val">{data.A}</div><div className="stat-lbl">Absent</div></div>
-        <div className="stat-card stat-PP"><div className="stat-val">{data.PP}</div><div className="stat-lbl">Double</div></div>
-      </div>
-
-      <div className="card mb-2">
-        <div className="font-600 mb-2 text-sm">Salary Breakdown</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
-          <Row label={`${data.salaryType === 'daily' ? 'Daily' : 'Monthly'} Salary`} value={fmtMoney(data.salary)} />
-          <Row label="Daily Rate" value={fmtMoney(data.dailySalary)} />
-          <Row label="Gross Pay" value={fmtMoney(data.gross)} />
-          {data.overtime > 0 && <Row label="Double-shift Pay" value={`+ ${fmtMoney(data.overtime)}`} accent="var(--success)" />}
-          {data.deductions > 0 && <Row label="Deductions" value={`− ${fmtMoney(data.deductions)}`} accent="var(--danger)" />}
-          <div style={{ borderTop: '1px dashed var(--border)', margin: '.3rem 0' }} />
-          <Row label="Net Pay" value={fmtMoney(data.net)} bold />
-        </div>
-      </div>
-
-      {data.remarks?.length > 0 && (
-        <div className="card mb-2">
-          <div className="font-600 mb-1 text-sm">Remarks — {MONTHS[month]}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
-            {data.remarks.map((r, i) => (
-              <div key={i} className="text-sm" style={{ padding: '.5rem .65rem', background: 'var(--bg3)', borderRadius: 8, color: 'var(--text2)' }}>{r}</div>
-            ))}
+      {tab === 'overview' && (
+        <>
+          <div className="cal-nav mb-2">
+            <button className="btn btn-secondary" style={{ padding: '.32rem .7rem', fontSize: '.85rem' }} onClick={prevM}>&#8249;</button>
+            <span className="cal-nav-title">{MONTHS[month]} {year}</span>
+            <button className="btn btn-secondary" style={{ padding: '.32rem .7rem', fontSize: '.85rem' }} onClick={nextM} disabled={isCurrentMonth}>&#8250;</button>
           </div>
-        </div>
+
+          <div className="stats-grid mb-2">
+            <div className="stat-card stat-P"><div className="stat-val">{data.P}</div><div className="stat-lbl">Present</div></div>
+            <div className="stat-card stat-A"><div className="stat-val">{data.A}</div><div className="stat-lbl">Absent</div></div>
+            <div className="stat-card stat-PP"><div className="stat-val">{data.PP}</div><div className="stat-lbl">Double</div></div>
+          </div>
+
+          <div className="card mb-2">
+            <div className="font-600 mb-2 text-sm">Salary Breakdown</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+              <Row label={`${data.salaryType === 'daily' ? 'Daily' : 'Monthly'} Salary`} value={fmtMoney(data.salary)} />
+              <Row label="Daily Rate" value={fmtMoney(data.dailySalary)} />
+              <Row label="Gross Pay" value={fmtMoney(data.gross)} />
+              {data.overtime > 0 && <Row label="Double-shift Pay" value={`+ ${fmtMoney(data.overtime)}`} accent="var(--success)" />}
+              {data.leavePay > 0 && <Row label="Paid Leave" value={`+ ${fmtMoney(data.leavePay)}`} accent="var(--success)" />}
+              {data.deductions > 0 && <Row label="Deductions" value={`− ${fmtMoney(data.deductions)}`} accent="var(--danger)" />}
+              <div style={{ borderTop: '1px dashed var(--border)', margin: '.3rem 0' }} />
+              <Row label="Net Pay" value={fmtMoney(data.net)} bold />
+            </div>
+          </div>
+
+          {data.remarks?.length > 0 && (
+            <div className="card mb-2">
+              <div className="font-600 mb-1 text-sm">Remarks — {MONTHS[month]}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+                {data.remarks.map((r, i) => (
+                  <div key={i} className="text-sm" style={{ padding: '.5rem .65rem', background: 'var(--bg3)', borderRadius: 8, color: 'var(--text2)' }}>{r}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {history?.length > 0 && (
+            <div className="card">
+              <div className="font-600 mb-1 text-sm">Last 6 Months</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '.35rem' }}>
+                {history.map(h => {
+                  const [hy, hm] = h.month.split('-').map(Number)
+                  return (
+                    <div key={h.month} className="flex justify-between items-center" style={{ padding: '.5rem .65rem', background: 'var(--bg3)', borderRadius: 8 }}>
+                      <span className="text-sm text-2">{MONTHS[hm - 1].slice(0, 3)} {hy}</span>
+                      <span className="font-600 text-sm">{fmtMoney(h.net)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {history?.length > 0 && (
-        <div className="card">
-          <div className="font-600 mb-1 text-sm">Last 6 Months</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '.35rem' }}>
-            {history.map(h => {
-              const [hy, hm] = h.month.split('-').map(Number)
-              return (
-                <div key={h.month} className="flex justify-between items-center" style={{ padding: '.5rem .65rem', background: 'var(--bg3)', borderRadius: 8 }}>
-                  <span className="text-sm text-2">{MONTHS[hm - 1].slice(0, 3)} {hy}</span>
-                  <span className="font-600 text-sm">{fmtMoney(h.net)}</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+      {tab === 'slips' && (
+        <SalarySlipsTab history={history} onOpen={setOpenSlip} />
       )}
+
+      {tab === 'template' && (
+        <SalaryTemplateTab data={data} />
+      )}
+
+      {openSlip && <SlipModal row={openSlip} onClose={() => setOpenSlip(null)} />}
     </div>
   )
+}
+
+function SalarySlipsTab({ history, onOpen }) {
+  if (!history || history.length === 0) {
+    return <div className="card text-sm text-2" style={{ textAlign: 'center' }}>No salary slips yet.</div>
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+      {[...history].reverse().map(h => {
+        const [hy, hm] = h.month.split('-').map(Number)
+        return (
+          <button key={h.month} className="card slip-row" onClick={() => onOpen(h)}>
+            <div>
+              <div className="font-600 text-sm">{MONTHS[hm - 1]} {hy}</div>
+              <div className="text-xs text-2">{h.totalPresent} day{h.totalPresent === 1 ? '' : 's'} present</div>
+            </div>
+            <div className="flex items-center gap-1 text-sm">
+              <span className="font-700">{fmtMoney(h.net)}</span>
+              <ChevronIcon />
+            </div>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function SalaryTemplateTab({ data }) {
+  const user = (() => { try { return JSON.parse(localStorage.getItem('employeeUser') || '{}') } catch { return {} } })()
+  return (
+    <div className="card">
+      <div className="font-700 mb-1">Salary Structure</div>
+      <div className="text-xs text-2 mb-2">This reflects your current salary structure as configured by your admin.</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
+        <Row label="Employee" value={data.username || user.username} />
+        <Row label="Designation" value={data.designation || user.designation || '—'} />
+        <div style={{ borderTop: '1px dashed var(--border)', margin: '.3rem 0' }} />
+        <Row label="Salary Type" value={data.salaryType === 'daily' ? 'Daily Wage' : 'Fixed Monthly'} />
+        <Row label={data.salaryType === 'daily' ? 'Daily Wage' : 'Monthly Salary'} value={fmtMoney(data.salary)} />
+        <Row label="Computed Daily Rate" value={fmtMoney(data.dailySalary)} />
+        <Row label="Payment Cycle" value="Monthly" />
+      </div>
+      <div className="text-xs text-2 mt-2">
+        Double-shift days pay 2× the daily rate.  |  Approved Half-Day leave pays 0.5× and Paid Leave pays the full daily rate.  |  Unpaid absences are not paid.
+      </div>
+    </div>
+  )
+}
+
+function SlipModal({ row, onClose }) {
+  const user = (() => { try { return JSON.parse(localStorage.getItem('employeeUser') || '{}') } catch { return {} } })()
+  const [hy, hm] = row.month.split('-').map(Number)
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal slip-modal" onClick={e => e.stopPropagation()}>
+        <div className="slip-printable">
+          <div className="text-center mb-2">
+            <div className="font-700" style={{ fontSize: '1.05rem' }}>{user?.company?.name || 'Salary Slip'}</div>
+            <div className="text-xs text-2">Salary Slip — {MONTHS[hm - 1]} {hy}</div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }} className="mb-2">
+            <Row label="Employee" value={row.username || user.username} />
+            <Row label="Employee ID" value={row.employeeId || user.employeeId} />
+            <Row label="Designation" value={row.designation || '—'} />
+          </div>
+          <div style={{ borderTop: '1px solid var(--border)', margin: '.5rem 0' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }} className="mb-2">
+            <Row label="Days Present" value={row.P} />
+            <Row label="Days Absent" value={row.A} />
+            {row.PP > 0 && <Row label="Double-Shift Days" value={row.PP} />}
+            {row.PL > 0 && <Row label="Paid Leave Days" value={row.PL} />}
+            {row.HD > 0 && <Row label="Half-Day Leave" value={row.HD} />}
+            <Row label="Total Paid Days" value={row.totalPresent} />
+          </div>
+          <div style={{ borderTop: '1px solid var(--border)', margin: '.5rem 0' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+            <Row label="Gross Pay" value={fmtMoney(row.gross)} />
+            {row.overtime > 0 && <Row label="Double-shift Pay" value={`+ ${fmtMoney(row.overtime)}`} accent="var(--success)" />}
+            {row.leavePay > 0 && <Row label="Paid Leave" value={`+ ${fmtMoney(row.leavePay)}`} accent="var(--success)" />}
+            {row.deductions > 0 && <Row label="Deductions" value={`− ${fmtMoney(row.deductions)}`} accent="var(--danger)" />}
+            <div style={{ borderTop: '1px dashed var(--border)', margin: '.3rem 0' }} />
+            <Row label="Net Pay" value={fmtMoney(row.net)} bold />
+          </div>
+          {row.remarks?.length > 0 && (
+            <div className="text-xs text-2 mt-2">{row.remarks.join(' · ')}</div>
+          )}
+        </div>
+        <div className="flex gap-1 mt-2 no-print">
+          <button className="btn btn-secondary btn-block" onClick={onClose}>Close</button>
+          <button className="btn btn-primary btn-block" onClick={() => window.print()}>Print / Save PDF</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ChevronIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
 }
 
 function Row({ label, value, accent, bold }) {

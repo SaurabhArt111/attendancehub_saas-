@@ -5,7 +5,7 @@ import BackButton from '../components/BackButton'
 import { RowListSkeleton } from '../components/Skeleton'
 import './SettingsPage.css'
 
-export default function SecuritySessionsPage() {
+export default function SecuritySessionsPage({ pageTitle = 'Security & Sessions' }) {
   const [sessions, setSessions] = useState(null)
   const [history, setHistory] = useState(null)
   const [maxDevices, setMaxDevices] = useState(3)
@@ -67,7 +67,7 @@ export default function SecuritySessionsPage() {
     <div>
       <div className="flex items-center gap-2 mb-2">
         <BackButton fallback="/settings" />
-        <h1 className="font-700" style={{ fontSize: '1.1rem' }}>Security & Sessions</h1>
+        <h1 className="font-700" style={{ fontSize: '1.1rem' }}>{pageTitle}</h1>
       </div>
 
       {loading ? (

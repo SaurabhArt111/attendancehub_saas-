@@ -38,6 +38,8 @@ app.use('/api/employees',    require('./routes/employees'));
 app.use('/api/attendance',   require('./routes/attendance'));
 app.use('/api/holidays',     require('./routes/holidays'));
 app.use('/api/designations', require('./routes/designations'));
+app.use('/api/settings',     require('./routes/settings'));
+app.use('/api/requests',     require('./routes/requests'));
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 

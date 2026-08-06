@@ -502,7 +502,7 @@ function IdProofPicker({ file, setFile, existingUrl, hasExisting, onRemoveExisti
               {removing ? <span className="spinner" /> : 'Remove'}
             </button>
           )}
-          <div className="text-xs text-2 mt-1">Any image works — it's auto-converted to a compressed JPEG (~100–200KB)</div>
+          {/* <div className="text-xs text-2 mt-1">Any image works — it's auto-converted to a compressed JPEG (~100–200KB)</div> */}
         </div>
       </div>
     </div>
@@ -547,7 +547,7 @@ function AddModal({ designations, onClose, onDone }) {
           {idLoading
             ? <div className="flex items-center gap-2"><span className="spinner" /><span className="text-sm text-2">Generating...</span></div>
             : <div className="id-badge"><IdIcon />{suggestedId}</div>}
-          <div className="text-xs text-2 mt-1">Employee uses this ID to log in</div>
+          {/* <div className="text-xs text-2 mt-1">Employee uses this ID to log in</div> */}
         </div>
         <form onSubmit={submit}>
           <div className="form-group">
@@ -586,7 +586,7 @@ function AddModal({ designations, onClose, onDone }) {
           <div className="form-group">
             <label className="label">Login Password (optional)</label>
             <input className="input" type="password" placeholder="Can be added later" value={form.password} onChange={set('password')} />
-            <div className="text-xs text-2 mt-1">Leave blank — the employee just won't be able to log in until a password is set</div>
+            {/* <div className="text-xs text-2 mt-1">Leave blank — the employee just won't be able to log in until a password is set</div> */}
           </div>
           <IdProofPicker file={idProofFile} setFile={setIdProofFile} existingUrl={null} hasExisting={false} />
           <div className="flex gap-1 mt-2">

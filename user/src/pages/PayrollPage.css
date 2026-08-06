@@ -1,0 +1,69 @@
+.payroll-tabs {
+  display: flex;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .25rem;
+  gap: .25rem;
+}
+
+.payroll-tab {
+  flex: 1;
+  padding: .5rem .4rem;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: .74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tr);
+  white-space: nowrap;
+}
+
+.payroll-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.slip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+
+.slip-row:hover {
+  border-color: var(--accent);
+}
+
+.text-center { text-align: center; }
+
+.slip-modal {
+  max-width: 420px;
+  width: 100%;
+}
+
+/* Printing a payslip: hide everything on the page except the slip content */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .slip-printable, .slip-printable * {
+    visibility: visible;
+  }
+  .slip-printable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

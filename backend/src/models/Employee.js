@@ -33,7 +33,13 @@ const employeeSchema = new mongoose.Schema({
   payrollPin:               { type: String, default: '' },
   payrollPinSetAt:          { type: Date },
   payrollPinFailedAttempts: { type: Number, default: 0 },
-  payrollPinLockedUntil:    { type: Date }
+  payrollPinLockedUntil:    { type: Date },
+
+  // ── Weekend override ─────────────────────────────────────────
+  // 7 booleans indexed Sun(0)..Sat(6), true = Weekend. null/undefined means
+  // "use the company's global weekend schedule" (Settings → Weekend
+  // Management). Only set once an admin explicitly overrides this employee.
+  weekendOverride: { type: [Boolean], default: null }
 });
 
 employeeSchema.index({ companyId: 1, username:   1 }, { unique: true });

@@ -19,11 +19,16 @@ function captureRefreshedToken(response) {
   if (fresh) localStorage.setItem('employeeToken', fresh)
 }
 
+function shouldLogoutOn401(error) {
+  const url = error?.config?.url || ''
+  return error?.response?.status === 401 && !url.includes('/employees/payroll-pin/verify')
+}
+
 api.interceptors.response.use(
   res => { captureRefreshedToken(res); return res },
   err => {
     if (err.response) captureRefreshedToken(err.response)
-    if (err.response?.status === 401) {
+    if (shouldLogoutOn401(err)) {
       localStorage.removeItem('employeeToken')
       localStorage.removeItem('employeeUser')
       window.location.href = '/login'

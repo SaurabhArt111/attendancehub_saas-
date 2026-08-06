@@ -10,15 +10,18 @@ import './DashboardLayout.css'
 const NAV = [
   { to: '/employees', label: 'Employees', icon: <PeopleIcon /> },
   { to: '/attendance', label: 'Attendance', icon: <RosterIcon /> },
+  { to: '/requests', label: 'Requests', icon: <InboxIcon /> },
   { to: '/my-employees', label: 'My Employees', icon: <RosterIcon /> },
   { to: '/reports', label: 'Reports', icon: <ChartIcon /> },
   { to: '/holidays', label: 'Holidays', icon: <HolIcon /> },
   { to: '/designations', label: 'Designations', icon: <TagIcon /> },
+  { to: '/settings/attendance-geofencing', label: 'Attendance & Geofencing', icon: <GearIcon /> },
+  { to: '/settings/security-sessions', label: 'Security Sessions', icon: <GearIcon /> },
   { to: '/settings', label: 'Settings', icon: <GearIcon /> },
 ]
 
 // Bottom mobile nav stays focused on the most-used items so it doesn't overflow
-const BOTTOM_NAV = NAV.filter(n => n.to !== '/my-employees')
+const BOTTOM_NAV = NAV.filter(n => n.to !== '/my-employees' && n.to !== '/requests')
 
 export default function DashboardLayout() {
   return (
@@ -141,6 +144,7 @@ function DashboardLayoutInner() {
   )
 }
 
+function InboxIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></svg> }
 function PeopleIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg> }
 function RosterIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="16" rx="2" /><line x1="7" y1="9" x2="17" y2="9" /><line x1="7" y1="13" x2="17" y2="13" /><line x1="7" y1="17" x2="13" y2="17" /></svg> }
 function ChartIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /><line x1="2" y1="20" x2="22" y2="20" /></svg> }
