@@ -40,14 +40,15 @@ function computeEmployeeMonthRow(emp, daysMap, daysInMonth, calendar = {}) {
   const holidayDates = calendar.holidayDates || new Set();
   const isWeekend = calendar.isWeekend || (() => false);
   const statusForDate = calendar.statusForDate || (() => undefined);
-  const isUnpaid = (status) => status === 'A';
+  const isPresent = (status) => status === 'P' || status === 'PP';
   const isWeekOff = (date) => isWeekend(date) || statusForDate(date) === 'WO';
   const dateFor = (day) => `${month}-${String(day).padStart(2, '0')}`;
   const asOfDate = calendar.asOfDate ? new Date(`${calendar.asOfDate}T00:00:00`) : startOfToday();
-  const sandwichUnpaidDates = new Set();
+  const paidWeekendDates = new Set();
 
-  // A weekly-off block is unpaid only when an absence directly brackets it.
-  // Declared holidays remain paid regardless of the surrounding attendance.
+  // A week-off block is paid only when a neighboring working day has an
+  // actual Present/Double Shift record. Blank or absent neighbors do not
+  // qualify; declared holidays themselves remain paid unconditionally.
   if (month) {
     for (let day = 1; day <= daysInMonth; day++) {
       const start = new Date(`${dateFor(day)}T00:00:00`);
@@ -56,11 +57,12 @@ function computeEmployeeMonthRow(emp, daysMap, daysInMonth, calendar = {}) {
       if (isWeekOff(previous)) continue;
       const end = new Date(start);
       while (isWeekOff(end)) end.setDate(end.getDate() + 1);
-      const before = new Date(start); before.setDate(before.getDate() - 1);
-      if (isUnpaid(statusForDate(before)) && isUnpaid(statusForDate(end))) {
+      const before = nearestWorkingDay(new Date(start), -1, isWeekOff, holidayDates);
+      const after = nearestWorkingDay(new Date(end), 0, isWeekOff, holidayDates);
+      if (isPresent(statusForDate(before)) || isPresent(statusForDate(after))) {
         for (const cursor = new Date(start); cursor < end; cursor.setDate(cursor.getDate() + 1)) {
           const key = toDateKey(cursor);
-          if (!holidayDates.has(key)) sandwichUnpaidDates.add(key);
+          if (!holidayDates.has(key)) paidWeekendDates.add(key);
         }
       }
     }
@@ -74,7 +76,7 @@ function computeEmployeeMonthRow(emp, daysMap, daysInMonth, calendar = {}) {
       if (calendarDate > asOfDate) continue;
       const status = statusForDate(calendarDate) || (daysMap?.get ? daysMap.get(String(day))?.status : daysMap?.[String(day)]?.status);
       if (holidayDates.has(date)) paidDays += 1;
-      else if (isWeekOff(calendarDate)) paidDays += sandwichUnpaidDates.has(date) ? 0 : 1;
+      else if (isWeekOff(calendarDate)) paidDays += paidWeekendDates.has(date) ? 1 : 0;
       else if (status === 'PP') paidDays += 2;
       else if (status === 'HD') paidDays += 0.5;
       else if (status === 'P' || status === 'PL') paidDays += 1;
@@ -93,7 +95,7 @@ function computeEmployeeMonthRow(emp, daysMap, daysInMonth, calendar = {}) {
     designation: emp.designation || '', salary: monthlySalary, salaryType: emp.salaryType || 'monthly',
     dailySalary: Math.round(dailySalary * 100) / 100,
     daysInMonth, P, A, PP, PL, HD, WO, totalPresent, estimatedSalary, remarks,
-    paidWeekendDays: countPaidWeekendDays(month, daysInMonth, isWeekOff, holidayDates, sandwichUnpaidDates, asOfDate),
+    paidWeekendDays: countPaidWeekendDays(month, daysInMonth, isWeekOff, holidayDates, paidWeekendDates, asOfDate),
     paidHolidayDays: countMonthHolidays(month, daysInMonth, holidayDates, asOfDate)
   };
 }
@@ -107,13 +109,22 @@ function startOfToday() {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
-function countPaidWeekendDays(month, daysInMonth, isWeekOff, holidayDates, sandwichUnpaidDates, asOfDate) {
+function nearestWorkingDay(date, direction, isWeekOff, holidayDates) {
+  const cursor = new Date(date);
+  if (direction) cursor.setDate(cursor.getDate() + direction);
+  while (isWeekOff(cursor) || holidayDates.has(toDateKey(cursor))) {
+    cursor.setDate(cursor.getDate() + (direction || 1));
+  }
+  return cursor;
+}
+
+function countPaidWeekendDays(month, daysInMonth, isWeekOff, holidayDates, paidWeekendDates, asOfDate) {
   if (!month) return 0;
   let count = 0;
   for (let day = 1; day <= daysInMonth; day++) {
     const date = `${month}-${String(day).padStart(2, '0')}`;
     const calendarDate = new Date(`${date}T00:00:00`);
-    if (calendarDate <= asOfDate && isWeekOff(calendarDate) && !holidayDates.has(date) && !sandwichUnpaidDates.has(date)) count++;
+    if (calendarDate <= asOfDate && isWeekOff(calendarDate) && !holidayDates.has(date) && paidWeekendDates.has(date)) count++;
   }
   return count;
 }
