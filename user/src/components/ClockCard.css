@@ -17,6 +17,19 @@
   color: #94a3b8;
 }
 
+.clock-workplace,
+.clock-location-record {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .75rem;
+  font-size: .74rem;
+  color: var(--text2);
+}
+
+.clock-workplace svg { color: var(--accent); flex: 0 0 auto; }
+.clock-location-record { color: var(--success); font-weight: 600; }
+
 .clock-times {
   display: flex;
   gap: .6rem;

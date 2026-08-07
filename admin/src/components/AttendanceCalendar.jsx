@@ -63,8 +63,10 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
       .map(h => h.date.split('T')[0].split('-')[2])
   )
   const canGoNext = new Date(year, month + 1, 1) <= today
+  const earliestMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+  const canGoPrevious = new Date(year, month, 1) > earliestMonth
 
-  function prevMonth() { if (month === 0) { setYear(y => y - 1); setMonth(11) } else setMonth(m => m - 1) }
+  function prevMonth() { if (!canGoPrevious) return; if (month === 0) { setYear(y => y - 1); setMonth(11) } else setMonth(m => m - 1) }
   function nextMonth() { if (!canGoNext) return; if (month === 11) { setYear(y => y + 1); setMonth(0) } else setMonth(m => m + 1) }
 
   function getDayMeta(d) {
@@ -72,6 +74,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
     const rec = data[dayStr]
     const status = rec?.status
     const remark = rec?.remark || ''
+    const locationName = rec?.clockOut?.locationName || rec?.clockIn?.locationName || ''
     const isHol = holidayDates.has(dayStr)
     const dayOfWeek = new Date(year, month, d).getDay()
     const isWeekend = weekendConfig[dayOfWeek] === true
@@ -83,7 +86,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
     else if (isFut) cls = 'future'
     else if (status) cls = status
     else if (isToday) cls = 'today'
-    return { cls, remark, status, isFut, isToday }
+    return { cls, remark, locationName, status, isFut, isToday }
   }
 
   // ── SEAMLESS single-day patch ──────────────────────────────
@@ -146,7 +149,7 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
   return (
     <div>
       <div className="cal-nav">
-        <button className="btn btn-secondary btn-sm" onClick={prevMonth}>&#8249;</button>
+        <button className="btn btn-secondary btn-sm" onClick={prevMonth} disabled={!canGoPrevious}>&#8249;</button>
         <span className="cal-nav-title">{MONTHS[month]} {year}</span>
         <button className="btn btn-secondary btn-sm" onClick={nextMonth} disabled={!canGoNext}>&#8250;</button>
       </div>
@@ -218,14 +221,14 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
           {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const d = i + 1
-            const { cls, remark, isFut } = getDayMeta(d)
+            const { cls, remark, locationName, isFut } = getDayMeta(d)
             const clickable = adminMode && !isFut
             const saving = savingDay === d
             return (
               <div key={d}
                 className={`cal-day ${cls} ${clickable ? 'clickable' : ''} ${saving ? 'cal-day-saving' : ''}`}
                 onClick={() => handleDayClick(d)}
-                title={remark || undefined}>
+                title={[remark, locationName].filter(Boolean).join(' - ') || undefined}>
                 {saving ? <span className="cal-mini-spinner" /> : d}
                 {remark && !isFut && <span className="remark-dot" />}
               </div>
@@ -286,6 +289,8 @@ export default function AttendanceCalendar({ employeeId, adminMode = false, onTo
 function MarkModal({ day, existing, onClose, onMark, onDelete }) {
   const [status, setStatus] = useState(existing?.status || 'P')
   const [remark, setRemark] = useState(existing?.remark || '')
+  const clockLocation = existing?.clockOut?.locationName || existing?.clockIn?.locationName
+  const clockDistance = existing?.clockOut?.distanceMeters ?? existing?.clockIn?.distanceMeters
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -303,6 +308,9 @@ function MarkModal({ day, existing, onClose, onMark, onDelete }) {
             ))}
           </div>
         </div>
+        {clockLocation && (
+          <div className="text-xs text-2 mb-2">Clock location: <strong>{clockLocation}</strong>{clockDistance != null ? ` (${clockDistance}m from geofence)` : ''}</div>
+        )}
         <div className="form-group">
           <label className="label">Remark / Advance (optional)</label>
           <input className="input" placeholder="e.g. Advance 500 or Late arrival..." value={remark} onChange={e => setRemark(e.target.value)} />

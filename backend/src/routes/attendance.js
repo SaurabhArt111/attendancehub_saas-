@@ -3,6 +3,7 @@ const Attendance = require('../models/Attendance');
 const Employee   = require('../models/Employee');
 const Company    = require('../models/Company');
 const Holiday    = require('../models/Holiday');
+const PayrollArchive = require('../models/PayrollArchive');
 const { verifyAdmin, verifyEmployee } = require('../middleware/auth');
 const jwt        = require('jsonwebtoken');
 const { computeEmployeeMonthRow, salaryBreakdown } = require('../utils/payroll');
@@ -25,6 +26,15 @@ function toMonthKey(yearMonth) {
 function daysInMonthFor(month) {
   const [y, m] = month.split('-').map(Number);
   return new Date(y, m, 0).getDate();
+}
+
+function isWithinAttendanceWindow(month) {
+  const [year, monthNumber] = month.split('-').map(Number);
+  const earliest = new Date();
+  earliest.setHours(0, 0, 0, 0);
+  earliest.setDate(1);
+  earliest.setMonth(earliest.getMonth() - 2);
+  return new Date(year, monthNumber - 1, 1) >= earliest;
 }
 
 function todayParts() {
@@ -50,6 +60,7 @@ function calendarForEmployee(company, employee, month, records, holidayDates) {
   return {
     month,
     holidayDates,
+    joiningDate: employee.joiningDate || '',
     isWeekend: date => isWeekendDay(company, employee, date),
     statusForDate: date => {
       const monthKey = `${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
@@ -61,11 +72,59 @@ function calendarForEmployee(company, employee, month, records, holidayDates) {
   };
 }
 
+function monthDate(monthKey) {
+  const [month, year] = monthKey.split('-').map(Number);
+  return new Date(year, month - 1, 1);
+}
+
+async function archiveExpiredAttendance(companyId) {
+  const cutoff = new Date();
+  cutoff.setHours(0, 0, 0, 0);
+  cutoff.setDate(1);
+  cutoff.setMonth(cutoff.getMonth() - 2);
+  const records = await Attendance.find({ companyId });
+  const expired = records.filter(record => monthDate(record.month) < cutoff);
+  if (!expired.length) return;
+
+  const [company, employees, holidays] = await Promise.all([
+    Company.findById(companyId),
+    Employee.find({ companyId }),
+    Holiday.find({ companyId })
+  ]);
+  const employeesById = new Map(employees.map(employee => [employee._id.toString(), employee]));
+  const recordsByEmployee = new Map();
+  for (const record of records) {
+    const id = record.employeeId.toString();
+    if (!recordsByEmployee.has(id)) recordsByEmployee.set(id, []);
+    recordsByEmployee.get(id).push(record);
+  }
+  const holidayDates = new Set(holidays.map(holiday => holiday.date));
+  for (const record of expired) {
+    const employee = employeesById.get(record.employeeId.toString());
+    if (!employee) continue;
+    const [month, year] = record.month.split('-');
+    const payrollMonth = `${year}-${month}`;
+    const row = computeEmployeeMonthRow(employee, record.days, daysInMonthFor(payrollMonth),
+      calendarForEmployee(company, employee, payrollMonth, recordsByEmployee.get(employee._id.toString()) || [], holidayDates));
+    await PayrollArchive.findOneAndUpdate(
+      { companyId, employeeId: employee._id, month: payrollMonth },
+      { $set: { payroll: { ...row, ...salaryBreakdown(row) }, archivedAt: new Date() } },
+      { upsert: true }
+    );
+  }
+  await Attendance.deleteMany({ _id: { $in: expired.map(record => record._id) } });
+}
+
 // GET /api/attendance/report/:month  (YYYY-MM)
 router.get('/report/:month', verifyAdmin, async (req, res) => {
   try {
+    await archiveExpiredAttendance(req.admin.companyId);
     const { month } = req.params;  // YYYY-MM
     const monthKey  = toMonthKey(month);
+    if (!isWithinAttendanceWindow(month)) {
+      const archives = await PayrollArchive.find({ companyId: req.admin.companyId, month });
+      return res.json(archives.map(archive => archive.payroll));
+    }
 
     const [company, employees, records, holidays] = await Promise.all([
       Company.findById(req.admin.companyId),
@@ -107,6 +166,12 @@ router.get('/my-report/:month', verifyEmployee, async (req, res) => {
 
     const emp = await Employee.findById(req.employee.id).select('-password -idProofData');
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    await archiveExpiredAttendance(req.employee.companyId);
+    if (!isWithinAttendanceWindow(month)) {
+      const archived = await PayrollArchive.findOne({ companyId: req.employee.companyId, employeeId: emp._id, month });
+      if (!archived) return res.status(404).json({ error: 'Archived payroll not found' });
+      return res.json({ month, ...archived.payroll });
+    }
 
     const [company, records, holidays] = await Promise.all([
       Company.findById(req.employee.companyId),
@@ -130,6 +195,7 @@ router.get('/my-report', verifyEmployee, async (req, res) => {
   try {
     const emp = await Employee.findById(req.employee.id).select('-password -idProofData');
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    await archiveExpiredAttendance(req.employee.companyId);
 
     const months = [];
     const now = new Date();
@@ -139,6 +205,10 @@ router.get('/my-report', verifyEmployee, async (req, res) => {
     }
 
     const results = await Promise.all(months.map(async (month) => {
+      if (!isWithinAttendanceWindow(month)) {
+        const archived = await PayrollArchive.findOne({ companyId: req.employee.companyId, employeeId: emp._id, month });
+        return archived ? { month, ...archived.payroll } : { month, salary: 0, totalPresent: 0, net: 0 };
+      }
       const monthKey = toMonthKey(month);
       const [company, records, holidays] = await Promise.all([
         Company.findById(req.employee.companyId),
@@ -216,7 +286,7 @@ router.post('/clock-in', verifyEmployee, async (req, res) => {
 
     const { lat, lng, accuracy } = req.body;
     const geofencing = company.settings?.geofencing;
-    let withinGeofence = null, distanceMeters = undefined;
+    let withinGeofence = null, distanceMeters = undefined, locationName = '';
 
     if (geofencing?.enabled) {
       if (typeof lat !== 'number' || typeof lng !== 'number')
@@ -226,6 +296,7 @@ router.post('/clock-in', verifyEmployee, async (req, res) => {
         return res.status(400).json({ error: 'No workplace location has been configured yet. Contact your admin.' });
       withinGeofence = nearest.withinRadius;
       distanceMeters = Math.round(nearest.distanceMeters);
+      locationName = nearest.location.name;
       if (!nearest.withinRadius) {
         return res.status(403).json({
           error: `You're ${distanceMeters}m away from ${nearest.location.name}. You must be within ${nearest.location.radiusMeters}m to clock in.`,
@@ -234,7 +305,7 @@ router.post('/clock-in', verifyEmployee, async (req, res) => {
       }
     }
 
-    const clockIn = { time: new Date(), lat, lng, accuracy, withinGeofence, distanceMeters };
+    const clockIn = { time: new Date(), lat, lng, accuracy, withinGeofence, distanceMeters, locationName };
     await Attendance.findOneAndUpdate(
       { companyId: req.employee.companyId, employeeId: req.employee.id, month: monthKey },
       { $set: { [`days.${dayKey}`]: { status: 'P', remark: existing?.remark || '', clockIn, source: 'employee' } } },
@@ -261,7 +332,7 @@ router.post('/clock-out', verifyEmployee, async (req, res) => {
 
     const { lat, lng, accuracy } = req.body;
     const geofencing = company.settings?.geofencing;
-    let withinGeofence = null, distanceMeters = undefined;
+    let withinGeofence = null, distanceMeters = undefined, locationName = '';
 
     if (geofencing?.enabled) {
       if (typeof lat !== 'number' || typeof lng !== 'number')
@@ -270,6 +341,7 @@ router.post('/clock-out', verifyEmployee, async (req, res) => {
       if (nearest) {
         withinGeofence = nearest.withinRadius;
         distanceMeters = Math.round(nearest.distanceMeters);
+        locationName = nearest.location.name;
         if (!nearest.withinRadius) {
           return res.status(403).json({
             error: `You're ${distanceMeters}m away from ${nearest.location.name}. You must be within ${nearest.location.radiusMeters}m to clock out.`,
@@ -279,7 +351,7 @@ router.post('/clock-out', verifyEmployee, async (req, res) => {
       }
     }
 
-    const clockOut = { time: new Date(), lat, lng, accuracy, withinGeofence, distanceMeters };
+    const clockOut = { time: new Date(), lat, lng, accuracy, withinGeofence, distanceMeters, locationName };
     await Attendance.findOneAndUpdate(
       { companyId: req.employee.companyId, employeeId: req.employee.id, month: monthKey },
       { $set: { [`days.${dayKey}.clockOut`]: clockOut } },
@@ -297,18 +369,29 @@ router.get('/:employeeId/:month', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     const { employeeId, month } = req.params;
+    await archiveExpiredAttendance(decoded.companyId);
+    if (!/^\d{4}-\d{2}$/.test(month) || !isWithinAttendanceWindow(month)) {
+      return res.status(403).json({ error: 'Attendance is available for the current month and previous two months only' });
+    }
     const monthKey = toMonthKey(month);
+    let employee;
 
     if (decoded.role === 'admin') {
-      const emp = await Employee.findOne({ _id: employeeId, companyId: decoded.companyId });
-      if (!emp) return res.status(404).json({ error: 'Employee not found' });
+      employee = await Employee.findOne({ _id: employeeId, companyId: decoded.companyId });
+      if (!employee) return res.status(404).json({ error: 'Employee not found' });
     } else if (decoded.role === 'employee') {
       if (decoded.id !== employeeId) return res.status(403).json({ error: 'Unauthorized' });
+      employee = await Employee.findOne({ _id: employeeId, companyId: decoded.companyId });
+      if (!employee) return res.status(404).json({ error: 'Employee not found' });
     } else {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const record = await Attendance.findOne({ employeeId, month: monthKey });
+    const [record, company, holidays] = await Promise.all([
+      Attendance.findOne({ companyId: decoded.companyId, employeeId, month: monthKey }),
+      Company.findById(decoded.companyId),
+      Holiday.find({ companyId: decoded.companyId, date: { $regex: `^${month}` } })
+    ]);
     // Convert Map to plain object for JSON response, zero-padding day keys
     const result = {};
     if (record && record.days) {
@@ -320,6 +403,17 @@ router.get('/:employeeId/:month', async (req, res) => {
           clockIn: val.clockIn || undefined, clockOut: val.clockOut || undefined
         };
       });
+    }
+    const holidayDates = new Set(holidays.map(holiday => holiday.date));
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const daysInMonth = daysInMonthFor(month);
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayKey = String(day).padStart(2, '0');
+      const date = `${month}-${dayKey}`;
+      const calendarDate = new Date(`${date}T00:00:00`);
+      if (calendarDate < today && (!employee.joiningDate || date >= employee.joiningDate) && !result[dayKey] && !holidayDates.has(date) && !isWeekendDay(company, employee, date)) {
+        result[dayKey] = { status: 'A', remark: 'Auto-marked absent' };
+      }
     }
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }

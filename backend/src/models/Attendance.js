@@ -10,7 +10,8 @@ const punchSchema = new mongoose.Schema({
   lng:            { type: Number },
   accuracy:       { type: Number },       // meters, from the browser Geolocation API
   withinGeofence: { type: Boolean, default: null },
-  distanceMeters: { type: Number }        // distance to the nearest configured workplace location
+  distanceMeters: { type: Number },       // distance to the nearest configured workplace location
+  locationName:   { type: String, default: '' }
 }, { _id: false });
 
 // Monthly attendance structure: one document per employee per month

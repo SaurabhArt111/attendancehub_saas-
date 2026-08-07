@@ -54,9 +54,9 @@ function generateSecurityCode() {
 // POST /api/admin/setup — create primary admin (owner) after company login
 router.post('/setup', async (req, res) => {
   try {
-    const { companySetupToken, username, adminId, contact, email, password } = req.body;
-    if (!companySetupToken || !username || !adminId || !password)
-      return res.status(400).json({ error: 'Setup token, username, admin ID, and password required' });
+    const { companySetupToken, username, contact, email, password } = req.body;
+    if (!companySetupToken || !username || !password)
+      return res.status(400).json({ error: 'Setup token, username, and password required' });
     if (password.length < 6)
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
@@ -67,13 +67,19 @@ router.post('/setup', async (req, res) => {
       return res.status(403).json({ error: 'Invalid token type' });
 
     const companyId = decoded.companyId;
+    const company = await Company.findById(companyId);
+    if (!company) return res.status(404).json({ error: 'Company not found' });
     const existing = await Admin.findOne({ companyId, isOwner: true });
     if (existing) return res.status(409).json({ error: 'Primary admin already created for this company' });
 
     if (await Admin.findOne({ companyId, username }))
       return res.status(409).json({ error: 'Username already exists' });
-    if (await Admin.findOne({ companyId, adminId }))
-      return res.status(409).json({ error: 'Admin ID already exists' });
+    let sequence = 1;
+    let adminId = `ADM-${company.companyCode}-${String(sequence).padStart(3, '0')}`;
+    while (await Admin.findOne({ companyId, adminId })) {
+      sequence++;
+      adminId = `ADM-${company.companyCode}-${String(sequence).padStart(3, '0')}`;
+    }
 
     const hashed = await bcrypt.hash(password, 10);
     const admin  = await Admin.create({
@@ -81,7 +87,6 @@ router.post('/setup', async (req, res) => {
       email: email ? email.trim().toLowerCase() : '', password: hashed, isOwner: true
     });
 
-    const company = await Company.findById(companyId).select('-password');
     const { session } = await createAdminSession(admin, req);
     const token = signToken(
       { id: admin._id, companyId, username: admin.username, role: 'admin', isOwner: true, sid: session._id.toString() }
@@ -90,7 +95,7 @@ router.post('/setup', async (req, res) => {
     res.status(201).json({
       token,
       admin: { id: admin._id, username: admin.username, adminId: admin.adminId, isOwner: true },
-      company: { name: company?.name, companyCode: company?.companyCode }
+      company: { name: company.name, companyCode: company.companyCode }
     });
   } catch (e) {
     res.status(500).json({ error: e.message });

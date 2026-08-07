@@ -16,6 +16,7 @@ const EMPTY_FORM = {
   designation: '',
   salary: '',
   salaryType: 'monthly',
+  joiningDate: '',
   password: '',
   isActive: true,
 }
@@ -59,6 +60,7 @@ export default function EmployeeDetailsPage() {
             designation: data.designation || '',
             salary: data.salary || '',
             salaryType: data.salaryType || 'monthly',
+            joiningDate: data.joiningDate || '',
             password: '',
             isActive: data.isActive !== false,
           })
@@ -164,6 +166,7 @@ export default function EmployeeDetailsPage() {
         designation: form.designation,
         salary: form.salary,
         salaryType: form.salaryType,
+        joiningDate: form.joiningDate,
         isActive: form.isActive,
       }
       if (form.password) payload.password = form.password
@@ -378,6 +381,10 @@ export default function EmployeeDetailsPage() {
                   </select>
                 </label>
               </div>
+              <label className="form-group">
+                <span>Joining date</span>
+                <input className="input" type="date" value={form.joiningDate} onChange={handleChange('joiningDate')} />
+              </label>
               <label className="form-group">
                 <span>New password</span>
                 <input className="input" type="password" value={form.password} onChange={handleChange('password')} placeholder={employee.hasPassword ? 'Leave blank to keep current password' : 'Set a login password'} />

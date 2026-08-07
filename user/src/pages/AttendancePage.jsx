@@ -41,7 +41,9 @@ export default function AttendancePage() {
   useEffect(() => { load() }, [load])
 
   const today = new Date(); today.setHours(0,0,0,0)
-  function prevM() { if (month===0) { setYear(y=>y-1); setMonth(11) } else setMonth(m=>m-1) }
+  const earliestMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+  const canGoPrevious = new Date(year, month, 1) > earliestMonth
+  function prevM() { if (!canGoPrevious) return; if (month===0) { setYear(y=>y-1); setMonth(11) } else setMonth(m=>m-1) }
   function nextM() { if (new Date(year,month+1,1) > now) return; if (month===11) { setYear(y=>y+1); setMonth(0) } else setMonth(m=>m+1) }
 
   const daysInMonth  = new Date(year, month+1, 0).getDate()
@@ -97,7 +99,7 @@ export default function AttendancePage() {
 
       <div className="cal-wrap">
         <div className="cal-nav">
-          <button className="btn btn-secondary" style={{ padding:'.32rem .7rem', fontSize:'.85rem' }} onClick={prevM}>&#8249;</button>
+          <button className="btn btn-secondary" style={{ padding:'.32rem .7rem', fontSize:'.85rem' }} onClick={prevM} disabled={!canGoPrevious}>&#8249;</button>
           <span className="cal-nav-title">{MONTHS[month]} {year}</span>
           <button className="btn btn-secondary" style={{ padding:'.32rem .7rem', fontSize:'.85rem' }} onClick={nextM}
             disabled={new Date(year,month+1,1) > now}>&#8250;</button>
@@ -171,6 +173,20 @@ export default function AttendancePage() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {settings?.geofencing?.locations?.length > 0 && (
+        <div className="card mt-2">
+          <div className="font-600 mb-1 text-sm">Workplace locations</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+            {settings.geofencing.locations.map(location => (
+              <div key={location.id} className="flex justify-between items-center" style={{ padding: '.5rem .65rem', background: 'var(--bg3)', borderRadius: 8 }}>
+                <span className="font-600 text-sm">{location.name}</span>
+                <span className="text-xs text-2">{location.radiusMeters}m radius</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

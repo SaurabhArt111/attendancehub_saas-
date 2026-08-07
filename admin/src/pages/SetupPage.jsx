@@ -28,6 +28,7 @@ export default function SetupPage() {
       }
       setSetupToken(data.token)
       setCompanyData(data)
+      setAForm(current => ({ ...current, adminId: data.suggestedAdminId || '' }))
       setStep(2)
     } catch (err) {
       toast.error(err.response?.data?.error || 'Invalid company credentials')
@@ -102,7 +103,7 @@ export default function SetupPage() {
               </div>
               <div className="form-group">
                 <label className="label">Admin ID</label>
-                <input className="input" placeholder="ADM001" value={aForm.adminId} onChange={setA('adminId')} required />
+                <input className="input" value={aForm.adminId} readOnly aria-readonly="true" />
               </div>
             </div>
             <div className="grid-2">

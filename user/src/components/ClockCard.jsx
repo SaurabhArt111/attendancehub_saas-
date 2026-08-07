@@ -107,6 +107,8 @@ export default function ClockCard() {
   const clockedIn = !!today?.clockIn
   const clockedOut = !!today?.clockOut
   const needsLocationPrompt = geoState === 'denied'
+  const workplaceNames = geofencing.locations.map(location => location.name).filter(Boolean)
+  const recordedLocation = today?.clockOut?.locationName || today?.clockIn?.locationName
 
   return (
     <div className="card mb-2 clock-card">
@@ -114,6 +116,10 @@ export default function ClockCard() {
         <div className="font-600 text-sm">Clock In / Clock Out</div>
         {isWeekend && <span className="clock-weekend-tag">Weekly Off</span>}
       </div>
+
+      {geofencing.enabled && workplaceNames.length > 0 && (
+        <div className="clock-workplace"><LocationIcon /> <span>{workplaceNames.join(', ')}</span></div>
+      )}
 
       {clockedIn && (
         <div className="clock-times">
@@ -135,6 +141,8 @@ export default function ClockCard() {
           )}
         </div>
       )}
+
+      {recordedLocation && <div className="clock-location-record">Clocked at {recordedLocation}</div>}
 
       {needsLocationPrompt && (
         <div className="clock-permission-banner">

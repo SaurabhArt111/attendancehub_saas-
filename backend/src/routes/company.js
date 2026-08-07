@@ -76,6 +76,7 @@ router.post('/login', async (req, res) => {
       companyId: company._id,
       companyCode: company.companyCode,
       name: company.name,
+      suggestedAdminId: `ADM-${company.companyCode}-001`,
       adminSetupDone: !!adminExists
     });
   } catch (e) {

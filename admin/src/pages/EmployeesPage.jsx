@@ -510,7 +510,7 @@ function IdProofPicker({ file, setFile, existingUrl, hasExisting, onRemoveExisti
 }
 
 function AddModal({ designations, onClose, onDone }) {
-  const [form, setForm] = useState({ username: '', contact: '', email: '', password: '', salary: '', designation: '' })
+  const [form, setForm] = useState({ username: '', contact: '', email: '', password: '', salary: '', designation: '', joiningDate: todayISO() })
   const [idProofFile, setIdProofFile] = useState(null)
   const [suggestedId, setSuggestedId] = useState('')
   const [loading, setLoading] = useState(false)
@@ -584,6 +584,10 @@ function AddModal({ designations, onClose, onDone }) {
             </div>
           </div>
           <div className="form-group">
+            <label className="label">Joining Date</label>
+            <input className="input" type="date" value={form.joiningDate} onChange={set('joiningDate')} />
+          </div>
+          <div className="form-group">
             <label className="label">Login Password (optional)</label>
             <input className="input" type="password" placeholder="Can be added later" value={form.password} onChange={set('password')} />
             {/* <div className="text-xs text-2 mt-1">Leave blank — the employee just won't be able to log in until a password is set</div> */}
@@ -604,7 +608,7 @@ function AddModal({ designations, onClose, onDone }) {
 function EditModal({ emp, designations, onClose, onDone }) {
   const [form, setForm] = useState({
     username: emp.username || '', contact: emp.contact || '', email: emp.email || '',
-    salary: emp.salary || '', designation: emp.designation || '', password: ''
+    salary: emp.salary || '', designation: emp.designation || '', joiningDate: emp.joiningDate || '', password: ''
   })
   const [loading, setLoading] = useState(false)
   const [idProofFile, setIdProofFile] = useState(null)
@@ -636,7 +640,7 @@ function EditModal({ emp, designations, onClose, onDone }) {
   async function submit(e) {
     e.preventDefault()
     setLoading(true)
-    const payload = { username: form.username, contact: form.contact, email: form.email, salary: form.salary, designation: form.designation }
+    const payload = { username: form.username, contact: form.contact, email: form.email, salary: form.salary, designation: form.designation, joiningDate: form.joiningDate }
     if (form.password) payload.password = form.password
     try {
       await api.put(`/employees/${emp._id}`, payload)
@@ -684,6 +688,10 @@ function EditModal({ emp, designations, onClose, onDone }) {
               <label className="label">Monthly Salary (₹)</label>
               <input className="input" type="number" min="0" value={form.salary} onChange={set('salary')} />
             </div>
+          </div>
+          <div className="form-group">
+            <label className="label">Joining Date</label>
+            <input className="input" type="date" value={form.joiningDate} onChange={set('joiningDate')} />
           </div>
           <div className="form-group">
             <label className="label">Password {emp.hasPassword ? '(blank = keep current)' : '(not yet set)'}</label>

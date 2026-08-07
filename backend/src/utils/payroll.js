@@ -43,6 +43,7 @@ function computeEmployeeMonthRow(emp, daysMap, daysInMonth, calendar = {}) {
   const isPresent = (status) => status === 'P' || status === 'PP';
   const isWeekOff = (date) => isWeekend(date) || statusForDate(date) === 'WO';
   const dateFor = (day) => `${month}-${String(day).padStart(2, '0')}`;
+  const joiningDate = calendar.joiningDate || '';
   const asOfDate = calendar.asOfDate ? new Date(`${calendar.asOfDate}T00:00:00`) : startOfToday();
   const paidWeekendDates = new Set();
 
@@ -74,6 +75,7 @@ function computeEmployeeMonthRow(emp, daysMap, daysInMonth, calendar = {}) {
       const date = dateFor(day);
       const calendarDate = new Date(`${date}T00:00:00`);
       if (calendarDate > asOfDate) continue;
+      if (joiningDate && date < joiningDate) continue;
       const status = statusForDate(calendarDate) || (daysMap?.get ? daysMap.get(String(day))?.status : daysMap?.[String(day)]?.status);
       if (holidayDates.has(date)) paidDays += 1;
       else if (isWeekOff(calendarDate)) paidDays += paidWeekendDates.has(date) ? 1 : 0;

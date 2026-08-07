@@ -10,6 +10,7 @@ const employeeSchema = new mongoose.Schema({
   designation:  { type: String, default: '' },
   salaryType:   { type: String, enum: ['monthly', 'daily'], default: 'monthly' },
   salary:       { type: Number, default: 0 },       // monthly salary
+  joiningDate:  { type: String, default: '' },      // YYYY-MM-DD; blank for existing employees
   isActive:     { type: Boolean, default: true },
   archived:     { type: Boolean, default: false },
   archivedAt:   { type: Date },

@@ -292,7 +292,7 @@ router.get('/', verifyAdmin, async (req, res) => {
 // Password, email, designation, and salary can all be added/updated later.
 router.post('/', verifyAdmin, async (req, res) => {
   try {
-    const { username, employeeId, contact, password, email, salary, designation } = req.body;
+    const { username, employeeId, contact, password, email, salary, designation, joiningDate } = req.body;
     if (!username || !username.trim()) return res.status(400).json({ error: 'Employee name is required' });
     if (!contact || !contact.trim())   return res.status(400).json({ error: 'Mobile number is required' });
 
@@ -316,12 +316,13 @@ router.post('/', verifyAdmin, async (req, res) => {
       password: password ? await bcrypt.hash(password, 10) : '',
       email: email ? email.trim().toLowerCase() : '',
       salary: parseFloat(salary) || 0,
-      salaryType: 'monthly', designation: designation || ''
+      salaryType: 'monthly', designation: designation || '',
+      joiningDate: /^\d{4}-\d{2}-\d{2}$/.test(joiningDate || '') ? joiningDate : ''
     });
     res.status(201).json({
       id: emp._id, username: emp.username, employeeId: emp.employeeId,
       contact: emp.contact, email: emp.email, salary: emp.salary, salaryType: emp.salaryType,
-      designation: emp.designation, hasPassword: !!emp.password
+      designation: emp.designation, joiningDate: emp.joiningDate, hasPassword: !!emp.password
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -338,7 +339,7 @@ router.post('/bulk', verifyAdmin, async (req, res) => {
     const results   = { created: [], failed: [] };
     for (const emp of employees) {
       try {
-        const { username, contact, password, salary, designation, email } = emp;
+        const { username, contact, password, salary, designation, email, joiningDate } = emp;
         if (!username || !contact) { results.failed.push({ username, reason: 'Name and mobile number are required' }); continue; }
         const finalId = await generateEmployeeId(companyId, company.name);
         const created = await Employee.create({
@@ -346,7 +347,8 @@ router.post('/bulk', verifyAdmin, async (req, res) => {
           password: password ? await bcrypt.hash(password, 10) : '',
           email: email ? email.trim().toLowerCase() : '',
           salary: parseFloat(salary) || 0,
-          salaryType: 'monthly', designation: designation || ''
+          salaryType: 'monthly', designation: designation || '',
+          joiningDate: /^\d{4}-\d{2}-\d{2}$/.test(joiningDate || '') ? joiningDate : ''
         });
         results.created.push({ id: created._id, username, employeeId: finalId });
       } catch (err) { results.failed.push({ username: emp.username, reason: err.message }); }
@@ -501,7 +503,7 @@ router.put('/:id', verifyAdmin, async (req, res) => {
   try {
     const emp = await Employee.findOne({ _id: req.params.id, companyId: req.admin.companyId });
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
-    const { salary, contact, password, isActive, designation, email, username, employeeId, salaryType } = req.body;
+    const { salary, contact, password, isActive, designation, email, username, employeeId, salaryType, joiningDate } = req.body;
     if (username !== undefined && username.trim() && username.trim() !== emp.username) {
       const dupe = await Employee.findOne({
         companyId: req.admin.companyId,
@@ -526,6 +528,10 @@ router.put('/:id', verifyAdmin, async (req, res) => {
     if (isActive    !== undefined) emp.isActive    = isActive;
     if (designation !== undefined) emp.designation = designation;
     if (email       !== undefined) emp.email       = email.trim().toLowerCase();
+    if (joiningDate !== undefined) {
+      if (joiningDate && !/^\d{4}-\d{2}-\d{2}$/.test(joiningDate)) return res.status(400).json({ error: 'Joining date must use YYYY-MM-DD' });
+      emp.joiningDate = joiningDate || '';
+    }
     if (password) emp.password = await bcrypt.hash(password, 10);
     await emp.save();
     res.json({ message: 'Employee updated', hasPassword: !!emp.password });
