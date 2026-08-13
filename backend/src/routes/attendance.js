@@ -412,7 +412,7 @@ router.get('/:employeeId/:month', async (req, res) => {
       const date = `${month}-${dayKey}`;
       const calendarDate = new Date(`${date}T00:00:00`);
       if (calendarDate < today && (!employee.joiningDate || date >= employee.joiningDate) && !result[dayKey] && !holidayDates.has(date) && !isWeekendDay(company, employee, date)) {
-        result[dayKey] = { status: 'A', remark: 'Auto-marked absent' };
+        result[dayKey] = { status: 'A', remark: '' };
       }
     }
     res.json(result);
