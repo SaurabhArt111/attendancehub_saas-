@@ -79,7 +79,7 @@ export default function DesignationsPage() {
       <div className="card mb-2">
         <div className="font-600 mb-2">Add Designation</div>
         <form onSubmit={add} className="flex gap-1">
-          <input className="input" placeholder="e.g. Manager, Sales Executive, Driver..." value={name}
+          <input className="input" placeholder="e.g. Manager, Developer, Driver..." value={name}
             onChange={e => setName(e.target.value)} required />
           <button type="submit" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }} disabled={loading}>
             {loading ? <span className="spinner" /> : '+ Add'}
