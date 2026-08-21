@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>AttendanceHub — Attendance, Payroll & Workforce Management in One Dashboard</title>
+<meta name="description" content="AttendanceHub is an all-in-one workforce management platform: employees, geofenced attendance, payroll, leave requests, reports, holidays, designations and security — for admins and employees alike." />
+<meta name="theme-color" content="#090d16" />
+<meta name="google-adsense-account" content="ca-pub-6548727667989543">
+
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+<!-- AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6548727667989543" crossorigin="anonymous"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="#top" class="brand"><img src="assets/logo.png" alt="AttendanceHub logo" />AttendanceHub</a>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#admin">Admin</a>
+      <a href="#employees">Employees</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle theme" title="Toggle light / dark">
+        <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <svg id="themeIconSun" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </button>
+      <a href="#get-started" class="btn btn-ghost login-link">Admin Sign In</a>
+      <a href="#get-started" class="btn btn-primary nav-cta">Get Started Free</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#features">Features</a>
+    <a href="#admin">Admin Experience</a>
+    <a href="#employees">Employee Experience</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#faq">FAQ</a>
+    <a href="#get-started" class="btn btn-primary">Get Started Free</a>
+  </div>
+</header>
+
+<div id="top"></div>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="container hero-inner">
+    <span class="eyebrow reveal"><span class="dot"></span> All-In-One Workforce OS</span>
+    <h1 class="reveal">Run attendance, payroll and your <span class="grad">whole team</span> from one dashboard.</h1>
+    <p class="hero-sub reveal">AttendanceHub pairs a real-time admin command center with a self-serve employee app — geofenced clock-in, auto-calculated payroll, leave requests and exportable reports, without a single spreadsheet.</p>
+    <div class="hero-cta reveal">
+      <a href="#get-started" class="btn btn-primary btn-lg">Get Started Free
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <a href="#how-it-works" class="btn btn-ghost btn-lg">See How It Works</a>
+    </div>
+    <p class="hero-note reveal">Free to set up · Your company workspace is ready in minutes</p>
+    <div class="hero-chips reveal">
+      <span class="hero-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Geofenced Clock-In</span>
+      <span class="hero-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Role-Based Access</span>
+      <span class="hero-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Auto-Calculated Payroll</span>
+      <span class="hero-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Installable PWA</span>
+    </div>
+  </div>
+
+  <div class="hero-visual reveal">
+    <div class="hero-visual-inner">
+      <div class="hero-stage">
+
+        <div class="mock-browser hero-browser">
+          <div class="mock-browser-bar">
+            <span class="mock-dot r"></span><span class="mock-dot y"></span><span class="mock-dot g"></span>
+            <div class="mock-url">app.attendancehub.io/employees</div>
+          </div>
+          <div class="mock-shell">
+            <aside class="mock-sidebar">
+              <div class="mock-sidebar-logo">AttendanceHub<span>Acme Pvt Ltd</span></div>
+              <nav>
+                <div class="mock-nav-item active"><i class="dotic"></i>Employees</div>
+                <div class="mock-nav-item"><i class="dotic"></i>Attendance</div>
+                <div class="mock-nav-item"><i class="dotic"></i>Requests</div>
+                <div class="mock-nav-item"><i class="dotic"></i>Reports</div>
+                <div class="mock-nav-item"><i class="dotic"></i>Holidays</div>
+                <div class="mock-nav-item"><i class="dotic"></i>Designations</div>
+                <div class="mock-nav-item"><i class="dotic"></i>Geofencing</div>
+                <div class="mock-nav-item"><i class="dotic"></i>Settings</div>
+              </nav>
+            </aside>
+            <div class="mock-main">
+              <div class="mock-topbar">
+                <span class="mock-topbar-title">Employees</span>
+                <span class="mock-topbar-tag">Acme Pvt Ltd · ACME2024</span>
+              </div>
+              <div class="mock-content">
+                <div class="mock-stats-row">
+                  <div class="mock-stat p"><b>42</b><span>Active</span></div>
+                  <div class="mock-stat"><b>7</b><span>Roles</span></div>
+                  <div class="mock-stat pp"><b>42</b><span>Filtered</span></div>
+                </div>
+                <table class="mock-table">
+                  <thead><tr><th>Employee</th><th>Designation</th><th>Salary</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td><div class="mock-avatar-row"><span class="mock-avatar">RP</span>Riya Patel</div></td><td>Sales Executive</td><td>₹28,000/mo</td><td><span class="mock-badge p">Active</span></td></tr>
+                    <tr><td><div class="mock-avatar-row"><span class="mock-avatar">AK</span>Aman Kumar</div></td><td>Driver</td><td>₹19,500/mo</td><td><span class="mock-badge p">Active</span></td></tr>
+                    <tr><td><div class="mock-avatar-row"><span class="mock-avatar">SJ</span>Sneha Joshi</div></td><td>Manager</td><td>₹45,000/mo</td><td><span class="mock-badge p">Active</span></td></tr>
+                    <tr><td><div class="mock-avatar-row"><span class="mock-avatar">VM</span>Vikram Mehta</div></td><td>Technician</td><td>₹240/day</td><td><span class="mock-badge a">Inactive</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mock-phone hero-phone" style="width:250px;">
+          <div class="mock-phone-top"><span class="mock-phone-notch"></span><span>AttendanceHub</span></div>
+          <div class="mock-phone-body">
+            <div class="mock-stats-row">
+              <div class="mock-stat p"><b>24</b><span>Present</span></div>
+              <div class="mock-stat a"><b>1</b><span>Absent</span></div>
+              <div class="mock-stat pp"><b>3</b><span>Double</span></div>
+            </div>
+            <div class="mock-card">
+              <b style="font-size:.78rem;">Today</b>
+              <div style="font-size:.72rem;color:var(--text-dim);margin-top:.4rem;">Not marked yet</div>
+              <span class="mock-btn primary" style="margin-top:.7rem;">Clock In</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mock-card hero-badge-float" style="width:210px;padding:.8rem;">
+          <div style="display:flex;gap:.55rem;align-items:center;">
+            <div style="width:30px;height:30px;border-radius:8px;background:var(--success-dim);color:var(--success);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div><b style="font-size:.76rem;display:block;">Leave request approved</b><span style="font-size:.66rem;color:var(--text-dim);">Priya S. · Half-day</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS STRIP ============ -->
+<section class="stats-strip">
+  <div class="container stats-grid">
+    <div class="reveal"><div class="stat-num" data-count="9">0</div><div class="stat-lbl">Core modules in one workspace</div></div>
+    <div class="reveal"><div class="stat-num" data-count="2">0</div><div class="stat-lbl">Purpose-built portals — Admin &amp; Employee</div></div>
+    <div class="reveal"><div class="stat-num" data-count="200">0</div><div class="stat-lbl">Metre-accurate geofencing, per location</div></div>
+    <div class="reveal"><div class="stat-num" data-count="100">0</div><div class="stat-lbl">% role-based access control</div></div>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="eyebrow"><span class="dot"></span> Everything, In One Place</span>
+      <h2>Every module your workforce actually runs on.</h2>
+      <p>No bolt-ons, no third-party integrations to wire up. Attendance, people and pay all live in the same workspace.</p>
+    </div>
+
+    <div class="feat-grid reveal-stagger">
+      <div class="feat-card reveal" style="--i:0">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Employees</h3>
+        <p>Add employees with an auto-generated ID, designation, salary and identification proof. Archive and restore without losing history — plus a filtered "My Employees" view for team leads.</p>
+      </div>
+      <div class="feat-card reveal" style="--i:1">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/><line x1="7" y1="17" x2="13" y2="17"/></svg></div>
+        <h3>Attendance</h3>
+        <p>Mark Present, Absent or Double Shift yourself, or switch on Employee Clock-In so the team marks their own — with every record editable and overridable at any time.</p>
+      </div>
+      <div class="feat-card reveal" style="--i:2">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
+        <h3>Requests</h3>
+        <p>Employees submit missed clock-in/out corrections or full and half-day leave applications with a reason. You approve or reject straight from the inbox.</p>
+      </div>
+      <div class="feat-card reveal" style="--i:3">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></div>
+        <h3>Reports &amp; Payroll</h3>
+        <p>Monthly reports turn attendance into gross salary, overtime pay, advances and net pay automatically — export to CSV or print a clean PDF in one click.</p>
+      </div>
+      <div class="feat-card reveal" style="--i:4">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M12 8v4l2 2"/></svg></div>
+        <h3>Holidays</h3>
+        <p>Set company-wide holidays once. Upcoming and past holidays surface automatically on every admin and employee calendar.</p>
+      </div>
+      <div class="feat-card reveal" style="--i:5">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+        <h3>Designations</h3>
+        <p>Define roles once — Manager, Sales Executive, Driver — and see live headcount, total payroll and average salary per role.</p>
+      </div>
+      <div class="feat-card reveal" style="--i:6">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <h3>Geofencing</h3>
+        <p>Add workplace locations with a latitude, longitude and radius — employees can only clock in from inside the fence. Set a working week per company or per employee.</p>
+      </div>
+      <div class="feat-card reveal" style="--i:7">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Security &amp; Sessions</h3>
+        <p>See every active session and login attempt, cap concurrent devices, and require approval before a new device can sign in — with a push alert the moment it happens.</p>
+      </div>
+      <div class="feat-card reveal" style="--i:8">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+        <h3>Company Settings</h3>
+        <p>Manage company info, the admin account, appearance (light, dark or system) and legal pages — all from a single, self-serve settings hub.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN EXPERIENCE ============ -->
+<section class="section section-alt" id="admin">
+  <div class="container">
+    <div class="split">
+      <div class="split-copy reveal">
+        <span class="eyebrow"><span class="dot"></span> Admin Experience</span>
+        <h2>A command center for whoever runs the office.</h2>
+        <p>Every record, request and report your business needs lives behind one login — built for the person juggling HR, payroll and operations at once.</p>
+        <ul class="check-list">
+          <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><strong>Full employee records</strong><span>Designations, salary type, identification proof and joining date — searchable, filterable, archivable.</span></div></li>
+          <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><strong>Bulk attendance, with overrides</strong><span>Mark the whole roster in seconds, or correct any single day at any time.</span></div></li>
+          <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><strong>Payroll that exports itself</strong><span>Gross pay, overtime and advances roll up automatically — CSV and PDF, ready for accounting.</span></div></li>
+          <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><strong>Locked-down access</strong><span>Geofenced clock-in, device limits and new-device approval keep attendance data trustworthy.</span></div></li>
+        </ul>
+      </div>
+
+      <div class="split-visual reveal">
+        <div class="bento">
+          <div class="crop">
+            <div class="mock-topbar"><span class="mock-topbar-title">Attendance — Today</span><span class="mock-topbar-tag">18 Aug</span></div>
+            <div class="mock-content">
+              <div class="mock-row"><div class="mock-avatar-row"><span class="mock-avatar">RP</span>Riya Patel</div><span class="mock-badge p">P</span></div>
+              <div class="mock-row"><div class="mock-avatar-row"><span class="mock-avatar">AK</span>Aman Kumar</div><span class="mock-badge pp">PP</span></div>
+              <div class="mock-row"><div class="mock-avatar-row"><span class="mock-avatar">SJ</span>Sneha Joshi</div><span class="mock-badge p">P</span></div>
+              <div class="mock-row"><div class="mock-avatar-row"><span class="mock-avatar">VM</span>Vikram Mehta</div><span class="mock-badge a">A</span></div>
+            </div>
+            <div class="bento-cap"><b>Attendance Roster</b><span>Mark P / A / Double Shift for the whole team in seconds.</span></div>
+          </div>
+
+          <div class="crop">
+            <div class="mock-topbar"><span class="mock-topbar-title">Requests</span><span class="mock-topbar-tag">3 pending</span></div>
+            <div class="mock-content">
+              <div class="mock-card" style="margin-bottom:.6rem;">
+                <b style="font-size:.78rem;">Missed Clock-In/Out</b>
+                <div style="font-size:.66rem;color:var(--text-dim);margin:.3rem 0 .7rem;">Aman Kumar · 17 Aug</div>
+                <div style="display:flex;gap:.4rem;"><span class="mock-btn danger">Reject</span><span class="mock-btn success">Approve</span></div>
+              </div>
+              <div class="mock-card">
+                <b style="font-size:.78rem;">Leave Application</b>
+                <div style="font-size:.66rem;color:var(--text-dim);margin:.3rem 0 .7rem;">Priya Shah · Half-Day</div>
+                <div style="display:flex;gap:.4rem;"><span class="mock-btn danger">Reject</span><span class="mock-btn success">Approve</span></div>
+              </div>
+            </div>
+            <div class="bento-cap"><b>Requests Inbox</b><span>Approve or reject corrections and leave in one tap.</span></div>
+          </div>
+
+          <div class="crop">
+            <div class="mock-topbar"><span class="mock-topbar-title">Reports — August</span><span class="mock-topbar-tag">CSV</span></div>
+            <div class="mock-content">
+              <table class="mock-table">
+                <thead><tr><th>Name</th><th>P</th><th>Net Pay</th></tr></thead>
+                <tbody>
+                  <tr><td>Riya Patel</td><td><span class="mock-badge p">26</span></td><td style="font-family:var(--font-mono);">₹24,200</td></tr>
+                  <tr><td>Aman Kumar</td><td><span class="mock-badge p">24</span></td><td style="font-family:var(--font-mono);">₹17,600</td></tr>
+                  <tr><td>Sneha Joshi</td><td><span class="mock-badge p">27</span></td><td style="font-family:var(--font-mono);">₹41,900</td></tr>
+                </tbody>
+              </table>
+              <div style="display:flex;gap:.5rem;margin-top:.8rem;">
+                <span class="mock-btn ghost"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV</span>
+                <span class="mock-btn ghost"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>PDF</span>
+              </div>
+            </div>
+            <div class="bento-cap"><b>Payroll Reports</b><span>Gross, overtime, advances and net pay — exportable instantly.</span></div>
+          </div>
+
+          <div class="crop">
+            <div class="mock-topbar"><span class="mock-topbar-title">Geofencing</span></div>
+            <div class="mock-content">
+              <div class="mock-card" style="margin-bottom:.6rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <b style="font-size:.78rem;">Enabled</b><span class="mock-switch on"></span>
+                </div>
+                <div style="font-size:.64rem;color:var(--text-dim);margin-top:.5rem;">Head Office · 200m radius</div>
+                <div style="font-size:.64rem;color:var(--text-dim);margin-top:.2rem;">Warehouse · 150m radius</div>
+              </div>
+              <div class="mock-card">
+                <b style="font-size:.78rem;display:block;margin-bottom:.5rem;">Weekend</b>
+                <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+                  <span class="mock-badge wo">Sun</span><span class="mock-badge p">Mon</span><span class="mock-badge p">Tue</span>
+                </div>
+              </div>
+            </div>
+            <div class="bento-cap"><b>Geofencing &amp; Weekend</b><span>Real-world coordinates and a company-wide working week.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EMPLOYEE EXPERIENCE ============ -->
+<section class="section" id="employees">
+  <div class="container">
+    <div class="split reverse">
+      <div class="split-visual reveal">
+        <div class="phone-row">
+          <div class="phone-item">
+            <div class="mock-phone">
+              <div class="mock-phone-top"><span class="mock-phone-notch"></span><span>AttendanceHub</span></div>
+              <div class="mock-phone-body">
+                <div class="mock-stats-row">
+                  <div class="mock-stat p"><b>24</b><span>Present</span></div>
+                  <div class="mock-stat a"><b>1</b><span>Absent</span></div>
+                  <div class="mock-stat pp"><b>3</b><span>Double</span></div>
+                </div>
+                <div class="mock-card" style="margin-bottom:.6rem;">
+                  <b style="font-size:.76rem;">Today</b>
+                  <div style="font-size:.68rem;color:var(--text-dim);margin-top:.35rem;">Not marked yet</div>
+                  <span class="mock-btn primary" style="margin-top:.6rem;">Clock In</span>
+                </div>
+                <div class="mock-card">
+                  <b style="font-size:.76rem;">Upcoming Holiday</b>
+                  <div style="font-size:.68rem;color:var(--text-dim);margin-top:.35rem;">Diwali · 1 Nov</div>
+                </div>
+              </div>
+              <div class="mock-phone-nav">
+                <span class="active"><i class="ic"></i>Home</span><span><i class="ic"></i>Attend.</span><span><i class="ic"></i>Payroll</span><span><i class="ic"></i>Requests</span><span><i class="ic"></i>Profile</span>
+              </div>
+            </div>
+            <div class="cap"><b>Home</b><span>Today's status, monthly totals and holidays at a glance.</span></div>
+          </div>
+
+          <div class="phone-item">
+            <div class="mock-phone">
+              <div class="mock-phone-top"><span class="mock-phone-notch"></span><span>AttendanceHub</span></div>
+              <div class="mock-phone-body">
+                <div class="mock-stats-row">
+                  <div class="mock-stat p"><b>24</b><span>Present</span></div>
+                  <div class="mock-stat a"><b>1</b><span>Absent</span></div>
+                  <div class="mock-stat pp"><b>3</b><span>Double</span></div>
+                </div>
+                <div class="mock-cal">
+                  <span class="h">S</span><span class="h">M</span><span class="h">T</span><span class="h">W</span><span class="h">T</span><span class="h">F</span><span class="h">S</span>
+                  <i class="mut">28</i><i class="p">29</i><i class="p">30</i><i class="p">31</i><i class="p">1</i><i class="wo">2</i><i class="wo">3</i>
+                  <i class="p">4</i><i class="p">5</i><i class="pp">6</i><i class="p">7</i><i class="a">8</i><i class="wo">9</i><i class="wo">10</i>
+                  <i class="p">11</i><i class="p">12</i><i class="p">13</i><i class="h">14</i><i class="p">15</i><i class="wo">16</i><i class="wo">17</i>
+                  <i class="today p">18</i><i class="mut">19</i><i class="mut">20</i><i class="mut">21</i><i class="mut">22</i><i class="mut wo">23</i><i class="mut wo">24</i>
+                </div>
+              </div>
+              <div class="mock-phone-nav">
+                <span><i class="ic"></i>Home</span><span class="active"><i class="ic"></i>Attend.</span><span><i class="ic"></i>Payroll</span><span><i class="ic"></i>Requests</span><span><i class="ic"></i>Profile</span>
+              </div>
+            </div>
+            <div class="cap"><b>Attendance</b><span>A full monthly calendar with holidays, half-days and remarks.</span></div>
+          </div>
+
+          <div class="phone-item">
+            <div class="mock-phone">
+              <div class="mock-phone-top"><span class="mock-phone-notch"></span><span>AttendanceHub</span></div>
+              <div class="mock-phone-body">
+                <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
+                  <span class="mock-btn primary" style="font-size:.62rem;">Overview</span>
+                  <span class="mock-btn ghost" style="font-size:.62rem;">Slips</span>
+                  <span class="mock-btn ghost" style="font-size:.62rem;">Template</span>
+                </div>
+                <div class="mock-card">
+                  <b style="font-size:.76rem;display:block;margin-bottom:.6rem;">Salary Breakdown</b>
+                  <div style="display:flex;justify-content:space-between;font-size:.68rem;padding:.35rem 0;border-bottom:1px solid var(--border-soft);"><span style="color:var(--text-dim);">Basic (26 days)</span><span style="font-family:var(--font-mono);">₹24,200</span></div>
+                  <div style="display:flex;justify-content:space-between;font-size:.68rem;padding:.35rem 0;border-bottom:1px solid var(--border-soft);"><span style="color:var(--text-dim);">Overtime / Double</span><span style="font-family:var(--font-mono);">₹2,800</span></div>
+                  <div style="display:flex;justify-content:space-between;font-size:.68rem;padding:.35rem 0;"><span style="color:var(--text-dim);">Advances</span><span style="font-family:var(--font-mono);color:var(--danger);">−₹1,500</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;padding-top:.6rem;border-top:1px solid var(--border);"><b style="font-size:.72rem;">Net Pay</b><b style="font-family:var(--font-mono);color:var(--success);font-size:.95rem;">₹25,500</b></div>
+                </div>
+              </div>
+              <div class="mock-phone-nav">
+                <span><i class="ic"></i>Home</span><span><i class="ic"></i>Attend.</span><span class="active"><i class="ic"></i>Payroll</span><span><i class="ic"></i>Requests</span><span><i class="ic"></i>Profile</span>
+              </div>
+            </div>
+            <div class="cap"><b>Payroll</b><span>PIN-protected salary slips, breakdowns and a saved template.</span></div>
+          </div>
+
+          <div class="phone-item">
+            <div class="mock-phone">
+              <div class="mock-phone-top"><span class="mock-phone-notch"></span><span>AttendanceHub</span></div>
+              <div class="mock-phone-body">
+                <div style="display:flex;gap:.4rem;margin-bottom:.8rem;">
+                  <span class="mock-btn primary" style="font-size:.62rem;">New Request</span>
+                  <span class="mock-btn ghost" style="font-size:.62rem;">My Requests</span>
+                </div>
+                <div class="mock-card" style="margin-bottom:.6rem;">
+                  <div style="font-size:.66rem;color:var(--text-dim);margin-bottom:.5rem;">Request Type</div>
+                  <div style="display:flex;gap:.4rem;">
+                    <span class="mock-btn primary" style="font-size:.6rem;">Missed Clock-In/Out</span>
+                    <span class="mock-btn ghost" style="font-size:.6rem;">Leave</span>
+                  </div>
+                </div>
+                <div class="mock-row"><span style="font-size:.68rem;">Leave · 12 Aug</span><span class="mock-badge p">Approved</span></div>
+                <div class="mock-row"><span style="font-size:.68rem;">Correction · 15 Aug</span><span class="mock-badge h">Pending</span></div>
+              </div>
+              <div class="mock-phone-nav">
+                <span><i class="ic"></i>Home</span><span><i class="ic"></i>Attend.</span><span><i class="ic"></i>Payroll</span><span class="active"><i class="ic"></i>Requests</span><span><i class="ic"></i>Profile</span>
+              </div>
+            </div>
+            <div class="cap"><b>Requests</b><span>Submit a correction or leave application, then track its status.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="split-copy reveal">
+        <span class="eyebrow"><span class="dot"></span> Employee Experience</span>
+        <h2>An app your team actually opens.</h2>
+        <p>Employees sign in with an Employee ID — no company jargon, just their day: clock in, check the calendar, see what they're owed, and ask for what they need.</p>
+        <ul class="check-list">
+          <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><strong>Self-serve clock-in</strong><span>Geofenced, so it only works from an approved workplace location.</span></div></li>
+          <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><strong>Private, PIN-locked payroll</strong><span>Salary slips print straight to PDF — visible to no one but them.</span></div></li>
+          <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><strong>Requests without the paperwork</strong><span>Corrections and leave applications, submitted and tracked in-app.</span></div></li>
+          <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><strong>Installable, works offline-first</strong><span>Add it to the home screen — it opens like a native app, PWA-powered.</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PAYROLL SHOWCASE ============ -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="eyebrow"><span class="dot"></span> Attendance → Payroll</span>
+      <h2>Every clock-in becomes a payslip, automatically.</h2>
+      <p>Set a monthly or daily salary once. AttendanceHub tracks Present, Absent and Double Shift days, then does the arithmetic — overtime, advances, and a clean net pay figure — for every employee, every month.</p>
+    </div>
+
+    <div class="payroll-wrap reveal">
+      <div class="crop">
+        <div class="mock-topbar">
+          <span class="mock-topbar-title">Attendance Report — August 2026</span>
+          <span class="mock-topbar-tag">Acme Pvt Ltd</span>
+        </div>
+        <div class="mock-content">
+          <table class="mock-table">
+            <thead><tr><th>Name</th><th>P</th><th>PP</th><th>Gross</th><th>Overtime</th><th>Advances</th><th>Net Pay</th></tr></thead>
+            <tbody>
+              <tr><td><div class="mock-avatar-row"><span class="mock-avatar">RP</span>Riya Patel</div></td><td style="color:var(--success);font-weight:700;">26</td><td style="color:var(--accent);font-weight:700;">2</td><td style="font-family:var(--font-mono);">₹24,200</td><td style="font-family:var(--font-mono);">₹2,800</td><td style="font-family:var(--font-mono);color:var(--danger);">−₹1,500</td><td style="font-family:var(--font-mono);font-weight:700;">₹25,500</td></tr>
+              <tr><td><div class="mock-avatar-row"><span class="mock-avatar">AK</span>Aman Kumar</div></td><td style="color:var(--success);font-weight:700;">24</td><td style="color:var(--accent);font-weight:700;">0</td><td style="font-family:var(--font-mono);">₹17,600</td><td style="font-family:var(--font-mono);">₹0</td><td style="font-family:var(--font-mono);">–</td><td style="font-family:var(--font-mono);font-weight:700;">₹17,600</td></tr>
+              <tr><td><div class="mock-avatar-row"><span class="mock-avatar">SJ</span>Sneha Joshi</div></td><td style="color:var(--success);font-weight:700;">27</td><td style="color:var(--accent);font-weight:700;">3</td><td style="font-family:var(--font-mono);">₹41,900</td><td style="font-family:var(--font-mono);">₹4,200</td><td style="font-family:var(--font-mono);color:var(--danger);">−₹2,000</td><td style="font-family:var(--font-mono);font-weight:700;">₹44,100</td></tr>
+              <tr><td><div class="mock-avatar-row"><span class="mock-avatar">VM</span>Vikram Mehta</div></td><td style="color:var(--success);font-weight:700;">21</td><td style="color:var(--accent);font-weight:700;">0</td><td style="font-family:var(--font-mono);">₹5,040</td><td style="font-family:var(--font-mono);">₹0</td><td style="font-family:var(--font-mono);">–</td><td style="font-family:var(--font-mono);font-weight:700;">₹5,040</td></tr>
+            </tbody>
+          </table>
+          <div style="display:flex;gap:.6rem;margin-top:1rem;">
+            <span class="mock-btn ghost"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download CSV</span>
+            <span class="mock-btn ghost"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print / Export PDF</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="slip-card">
+        <div class="slip-head">
+          <div><b>Salary Slip</b><div style="font-size:.78rem;color:var(--text-dim);margin-top:.2rem;">Riya Patel · Sales Executive</div></div>
+          <span>AUG 2026</span>
+        </div>
+        <div class="slip-row"><span>Present days</span><span>26</span></div>
+        <div class="slip-row"><span>Double Shift days</span><span>2</span></div>
+        <div class="slip-row"><span>Gross salary</span><span>₹24,200</span></div>
+        <div class="slip-row"><span>Overtime pay</span><span>₹2,800</span></div>
+        <div class="slip-row"><span>Advances / deductions</span><span style="color:var(--danger);">−₹1,500</span></div>
+        <div class="slip-total"><b>Net Pay</b><b>₹25,500</b></div>
+        <span class="mock-btn ghost" style="margin-top:1.1rem;justify-content:center;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print / Save PDF
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="eyebrow"><span class="dot"></span> Getting Started</span>
+      <h2>Four steps from sign-up to your first payroll report.</h2>
+      <p>This is the actual order every new AttendanceHub workspace follows — no hidden setup calls or onboarding tickets.</p>
+    </div>
+
+    <div class="steps reveal-stagger">
+      <div class="step-card reveal" style="--i:0">
+        <div class="step-num">01</div>
+        <h3>Register your company</h3>
+        <p>Create a workspace with a name, email and password — you'll get a unique Company Code your whole team signs in with.</p>
+      </div>
+      <div class="step-card reveal" style="--i:1">
+        <div class="step-num">02</div>
+        <h3>Set up admin &amp; designations</h3>
+        <p>Create the primary admin account, then add job titles in Designations so every employee record stays consistent.</p>
+      </div>
+      <div class="step-card reveal" style="--i:2">
+        <div class="step-num">03</div>
+        <h3>Add your team</h3>
+        <p>Each employee gets an auto-generated ID. Choose Admin Attendance or Employee Clock-In, and add geofenced locations.</p>
+      </div>
+      <div class="step-card reveal" style="--i:3">
+        <div class="step-num">04</div>
+        <h3>Reports run themselves</h3>
+        <p>As attendance rolls in, monthly reports and salary slips calculate automatically — export whenever you need them.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AD SLOT 1 ============ -->
+<section class="ad-slot">
+  <div class="container ad-wrap">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-frame">
+      <ins class="adsbygoogle"
+        style="display:block; width:100%;"
+        data-ad-client="ca-pub-6548727667989543"
+        data-ad-slot="0000000001"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section class="section section-alt" id="gallery">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="eyebrow"><span class="dot"></span> Inside AttendanceHub</span>
+      <h2>A closer look at the workspace.</h2>
+      <p>Eight real screens from the product — tap any of them for a closer look.</p>
+    </div>
+
+    <div class="gallery reveal-stagger">
+
+      <div class="gallery-item reveal" style="--i:0" data-title="Designations" data-desc="Live headcount, total payroll and average salary for every role.">
+        <div class="crop" style="border:none;box-shadow:none;">
+          <div class="mock-topbar"><span class="mock-topbar-title">Designations</span></div>
+          <div class="mock-content">
+            <div class="mock-row"><span style="font-size:.72rem;font-weight:600;">Manager</span><span class="mock-badge p">12</span></div>
+            <div class="mock-row"><span style="font-size:.72rem;font-weight:600;">Sales Executive</span><span class="mock-badge p">18</span></div>
+            <div class="mock-row"><span style="font-size:.72rem;font-weight:600;">Driver</span><span class="mock-badge p">9</span></div>
+            <div class="mock-stats-row" style="margin-top:.7rem;">
+              <div class="mock-stat"><b style="font-size:1rem;">18</b><span>Employees</span></div>
+              <div class="mock-stat"><b style="font-size:1rem;">₹5.0L</b><span>Payroll/mo</span></div>
+              <div class="mock-stat"><b style="font-size:1rem;">₹28K</b><span>Avg salary</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="gallery-cap"><b>Designations</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+
+      <div class="gallery-item reveal" style="--i:1" data-title="Holidays" data-desc="Company holidays that surface automatically on every calendar.">
+        <div class="crop" style="border:none;box-shadow:none;">
+          <div class="mock-topbar"><span class="mock-topbar-title">Holidays</span></div>
+          <div class="mock-content">
+            <div style="font-size:.62rem;color:var(--success);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem;">Upcoming</div>
+            <div class="mock-row"><span style="font-size:.72rem;">Diwali</span><span style="font-size:.66rem;color:var(--text-dim);">1 Nov</span></div>
+            <div class="mock-row"><span style="font-size:.72rem;">Republic Day</span><span style="font-size:.66rem;color:var(--text-dim);">26 Jan</span></div>
+            <div style="font-size:.62rem;color:var(--text-faint);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:.6rem 0 .4rem;">Past</div>
+            <div class="mock-row"><span style="font-size:.72rem;color:var(--text-dim);">Independence Day</span><span style="font-size:.66rem;color:var(--text-faint);">15 Aug</span></div>
+          </div>
+        </div>
+        <div class="gallery-cap"><b>Holidays</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+
+      <div class="gallery-item reveal" style="--i:2" data-title="Security & Sessions" data-desc="Active sessions, login history and new-device approval.">
+        <div class="crop" style="border:none;box-shadow:none;">
+          <div class="mock-topbar"><span class="mock-topbar-title">Security Sessions</span></div>
+          <div class="mock-content">
+            <div class="mock-row"><span style="font-size:.72rem;">Chrome · Surat, IN</span><span class="mock-badge p">This device</span></div>
+            <div class="mock-row"><span style="font-size:.72rem;">iPhone 13</span><span style="font-size:.64rem;color:var(--text-dim);">2h ago</span></div>
+            <div class="mock-row"><span style="font-size:.72rem;">New-device approval</span><span class="mock-switch on"></span></div>
+            <div class="mock-row"><span style="font-size:.72rem;">Sliding sessions</span><span class="mock-switch on"></span></div>
+          </div>
+        </div>
+        <div class="gallery-cap"><b>Security &amp; Sessions</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+
+      <div class="gallery-item reveal" style="--i:3" data-title="Appearance & Settings" data-desc="Light, dark or system theme, plus the attendance status legend.">
+        <div class="crop" style="border:none;box-shadow:none;">
+          <div class="mock-topbar"><span class="mock-topbar-title">Settings</span></div>
+          <div class="mock-content">
+            <b style="font-size:.74rem;display:block;margin-bottom:.5rem;">Theme</b>
+            <div style="display:flex;gap:.4rem;margin-bottom:.9rem;">
+              <span class="mock-btn ghost" style="font-size:.62rem;">Light</span>
+              <span class="mock-btn primary" style="font-size:.62rem;">Dark</span>
+              <span class="mock-btn ghost" style="font-size:.62rem;">System</span>
+            </div>
+            <b style="font-size:.74rem;display:block;margin-bottom:.5rem;">Status Legend</b>
+            <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+              <span class="mock-badge p">P</span><span class="mock-badge a">A</span><span class="mock-badge pp">PP</span><span class="mock-badge h">H</span><span class="mock-badge wo">WO</span>
+            </div>
+          </div>
+        </div>
+        <div class="gallery-cap"><b>Appearance</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+
+      <div class="gallery-item reveal" style="--i:4" data-title="My Employees" data-desc="A filtered team view for managers and team leads, with ID proof status.">
+        <div class="crop" style="border:none;box-shadow:none;">
+          <div class="mock-topbar"><span class="mock-topbar-title">My Employees</span></div>
+          <div class="mock-content">
+            <table class="mock-table">
+              <thead><tr><th>Employee</th><th>Salary</th><th>ID Proof</th></tr></thead>
+              <tbody>
+                <tr><td>Riya Patel</td><td style="font-family:var(--font-mono);">₹28,000</td><td><span class="mock-badge p">Uploaded</span></td></tr>
+                <tr><td>Aman Kumar</td><td style="font-family:var(--font-mono);">₹19,500</td><td><span class="mock-badge a">Missing</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="gallery-cap"><b>My Employees</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+
+      <div class="gallery-item reveal" style="--i:5" data-title="Employee Profile" data-desc="Account details, the status legend, and every device signed in.">
+        <div class="crop" style="border:none;box-shadow:none;">
+          <div class="mock-topbar"><span class="mock-topbar-title">Profile</span></div>
+          <div class="mock-content">
+            <div class="mock-row"><span style="font-size:.72rem;color:var(--text-dim);">Employee ID</span><span style="font-size:.72rem;font-family:var(--font-mono);">ACM014</span></div>
+            <div class="mock-row"><span style="font-size:.72rem;color:var(--text-dim);">Designation</span><span style="font-size:.72rem;">Sales Executive</span></div>
+            <div class="mock-row"><span style="font-size:.72rem;color:var(--text-dim);">Signed-in devices</span><span class="mock-badge p">2 active</span></div>
+          </div>
+        </div>
+        <div class="gallery-cap"><b>Employee Profile</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+
+      <div class="gallery-item reveal" style="--i:6" data-title="Attendance Calendar" data-desc="A full monthly view for any employee, remarks included.">
+        <div class="crop" style="border:none;box-shadow:none;">
+          <div class="mock-topbar"><span class="mock-topbar-title">Attendance — Riya Patel</span></div>
+          <div class="mock-content">
+            <div class="mock-cal">
+              <span class="h">S</span><span class="h">M</span><span class="h">T</span><span class="h">W</span><span class="h">T</span><span class="h">F</span><span class="h">S</span>
+              <i class="p">4</i><i class="p">5</i><i class="pp">6</i><i class="p">7</i><i class="a">8</i><i class="wo">9</i><i class="wo">10</i>
+              <i class="p">11</i><i class="p">12</i><i class="p">13</i><i class="h">14</i><i class="p">15</i><i class="wo">16</i><i class="wo">17</i>
+              <i class="today p">18</i><i class="mut">19</i><i class="mut">20</i><i class="mut">21</i><i class="mut">22</i><i class="mut wo">23</i><i class="mut wo">24</i>
+            </div>
+          </div>
+        </div>
+        <div class="gallery-cap"><b>Attendance Calendar</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+
+      <div class="gallery-item reveal" style="--i:7" data-title="Company Registration" data-desc="Register a workspace and receive your unique Company Code.">
+        <div class="crop" style="border:none;box-shadow:none;">
+          <div class="mock-topbar"><span class="mock-topbar-title">Register Your Company</span></div>
+          <div class="mock-content">
+            <div style="font-size:.66rem;color:var(--text-dim);margin-bottom:.3rem;">Company Name</div>
+            <div class="mock-card" style="padding:.5rem .7rem;margin-bottom:.7rem;font-size:.72rem;">Acme Pvt Ltd</div>
+            <div style="font-size:.66rem;color:var(--text-dim);margin-bottom:.3rem;">Your Company Code</div>
+            <div class="mock-card" style="padding:.7rem;text-align:center;background:var(--primary-dim);border-color:rgba(79,142,247,.3);">
+              <b style="font-family:var(--font-mono);font-size:1.15rem;letter-spacing:.08em;color:var(--primary);">ACME2024</b>
+            </div>
+          </div>
+        </div>
+        <div class="gallery-cap"><b>Company Registration</b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div>
+    <div class="lightbox-box" id="lightboxBox"></div>
+    <div class="lightbox-title" id="lightboxTitle"></div>
+  </div>
+</div>
+
+<!-- ============ FAQ ============ -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="eyebrow"><span class="dot"></span> Questions</span>
+      <h2>Frequently asked questions.</h2>
+      <p>Everything below reflects how AttendanceHub actually works today.</p>
+    </div>
+
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q">Does AttendanceHub support geofenced clock-in?<span class="plus"></span></button>
+        <div class="faq-a"><p>Yes. Turn on Employee Clock-In under Attendance &amp; Geofencing, add one or more workplace locations with a latitude, longitude and radius, and employees can only clock in or out from inside that fence.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can employees see their own payroll?<span class="plus"></span></button>
+        <div class="faq-a"><p>Yes, in a dedicated Payroll tab that's locked behind a PIN the employee sets themselves. They get an Overview, printable Salary Slips, and their saved Salary Template — visible to no one else.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What happens when someone signs in from a new device?<span class="plus"></span></button>
+        <div class="faq-a"><p>If New-Device Approval is on, the admin gets a push notification and approves or denies it from Security &amp; Sessions. You can also cap the number of devices allowed per account and review the full login history.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I export attendance and payroll reports?<span class="plus"></span></button>
+        <div class="faq-a"><p>Every monthly report can be downloaded as a CSV for your accounting software, or printed straight to PDF — gross salary, overtime pay, advances and net pay included per employee.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Is there a mobile app?<span class="plus"></span></button>
+        <div class="faq-a"><p>Both the admin dashboard and employee portal are installable Progressive Web Apps — add them to your home screen and they open full-screen, just like a native app.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">How does the weekly schedule work?<span class="plus"></span></button>
+        <div class="faq-a"><p>Weekend Management sets which days are working days company-wide — every day starts as a weekend until you mark it Working. Need an exception? Override the schedule from that employee's profile.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Is my company's data kept separate from others on AttendanceHub?<span class="plus"></span></button>
+        <div class="faq-a"><p>Yes. Every company gets its own workspace behind a unique Company Code, and role-based access keeps employees limited to their own attendance, requests and payroll — never anyone else's.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AD SLOT 2 ============ -->
+<section class="ad-slot">
+  <div class="container ad-wrap">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-frame">
+      <ins class="adsbygoogle"
+        style="display:block; width:100%;"
+        data-ad-client="ca-pub-6548727667989543"
+        data-ad-slot="0000000002"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section class="section" id="get-started">
+  <div class="container">
+    <div class="cta-band reveal">
+      <div class="cta-band-inner">
+        <span class="eyebrow" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff;"><span class="dot"></span> Ready When You Are</span>
+        <h2>Run your whole workforce from one dashboard.</h2>
+        <p>Register your company, set up your team, and let attendance turn into payroll on its own.</p>
+        <div class="hero-cta">
+          <a href="#" class="btn btn-primary btn-lg">Register Your Company
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a href="#" class="btn btn-ghost btn-lg" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#fff;">Employee Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#top" class="brand"><img src="assets/logo.png" alt="AttendanceHub logo" />AttendanceHub</a>
+        <p>Workforce attendance, payroll and management made simple — one workspace for admins and employees alike.</p>
+        <span class="footer-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Role-based access control</span>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#admin">Admin Experience</a>
+        <a href="#employees">Employee Experience</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#gallery">Gallery</a>
+      </div>
+      <div class="footer-col">
+        <h4>Modules</h4>
+        <a href="#features">Attendance &amp; Geofencing</a>
+        <a href="#features">Reports &amp; Payroll</a>
+        <a href="#features">Holidays &amp; Designations</a>
+        <a href="#features">Security &amp; Sessions</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#faq">FAQ</a>
+        <a href="#">About AttendanceHub</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#get-started">Get Started</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 AttendanceHub. All rights reserved.</p>
+      <div class="footer-legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms</a>
+        <a href="ads.txt">ads.txt</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
