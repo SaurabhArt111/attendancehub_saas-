@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!ads\\.txt$).*)",
       "destination": "/index.html"
     }
   ]
